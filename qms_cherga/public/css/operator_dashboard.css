@@ -1,0 +1,195 @@
+/* qms_cherga/public/css/operator_dashboard.css */
+
+/* --- Загальне контейнера --- */
+.operator-dashboard-container {
+    padding: 15px;
+    /* Трохи більше повітря */
+}
+
+/* --- Стилізація карток --- */
+.frappe-card {
+    border: 1px solid #e0e0e0;
+    border-radius: 8px;
+    /* Більш заокруглені кути */
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
+    /* Легка тінь */
+    margin-bottom: 20px !important;
+    /* Більший відступ між картками */
+}
+
+.frappe-card .card-header {
+    background-color: #f8f9fa;
+    /* Світлий фон заголовка */
+    font-weight: 600;
+    color: #495057;
+    border-bottom: 1px solid #e0e0e0;
+    border-radius: 8px 8px 0 0;
+}
+
+/* --- Статус Оператора --- */
+.operator-status-card #operator-status {
+    font-size: 1.1em;
+    /* Більший розмір статусу */
+    padding: 0.4em 0.8em;
+}
+
+.operator-status-card p {
+    margin-bottom: 0.75rem;
+    /* Трохи більші відступи */
+}
+
+/* --- Інформація про чергу --- */
+.queue-info-card #waiting-count {
+    font-size: 2.5em;
+    /* Дуже великий шрифт для кількості очікуючих */
+    color: #dc3545;
+    /* Червоний колір */
+    font-weight: bold;
+    display: block;
+    /* Щоб займав весь рядок */
+    text-align: center;
+    margin-bottom: 10px;
+}
+
+.queue-info-card #served-today {
+    font-size: 1.2em;
+    color: #198754;
+    /* Зелений колір */
+    display: block;
+    text-align: center;
+}
+
+/* --- Поточний талон --- */
+.current-ticket-card .card-body {
+    background-color: #eef;
+    /* Легкий синій фон */
+    border-radius: 0 0 8px 8px;
+}
+
+.current-ticket-card p strong {
+    font-size: 1.2em;
+    /* Збільшення важливих даних */
+}
+
+.current-ticket-card .badge {
+    font-size: 1em;
+    /* Збільшення статусу талону */
+}
+
+/* --- Відкладені талони --- */
+.held-tickets-card .list-group-item {
+    padding: 0.5rem 1rem;
+    /* Компактніші елементи */
+}
+
+.held-tickets-card .btn-recall {
+    padding: 0.25rem 0.5rem;
+    /* Менша кнопка */
+    font-size: 0.8em;
+}
+
+
+/* --- Кнопки дій --- */
+.actions-card .btn {
+    padding: 10px 15px;
+    /* Більші кнопки */
+    font-size: 1em;
+    margin-bottom: 10px !important;
+    /* Відступи між кнопками */
+    display: flex;
+    /* Для вирівнювання іконки та тексту */
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    /* Відстань між іконкою та текстом */
+}
+
+/* Додавання іконок (потрібно, щоб Font Awesome був доступний у Frappe) */
+/* Приклад для кнопки "Викликати Наступного" */
+#btn-call-next::before {
+    font-family: "Font Awesome 5 Free";
+    /* Або відповідна версія */
+    font-weight: 900;
+    /* Solid іконки */
+    content: "\f04b";
+    /* Іконка play/start */
+    margin-right: 8px;
+    /* Відступ від тексту */
+}
+
+/* Приклад для "Завершити" */
+#btn-finish-service::before {
+    font-family: "Font Awesome 5 Free";
+    font-weight: 900;
+    content: "\f00c";
+    /* Іконка check */
+    margin-right: 8px;
+}
+
+/* ...додайте схожі стилі для інших кнопок... */
+#btn-no-show::before {
+    font-family: "Font Awesome 5 Free";
+    font-weight: 900;
+    content: "\f071";
+    margin-right: 8px;
+}
+
+/* warning */
+#btn-hold-ticket::before {
+    font-family: "Font Awesome 5 Free";
+    font-weight: 900;
+    content: "\f04c";
+    margin-right: 8px;
+}
+
+/* pause */
+#btn-transfer-ticket::before {
+    font-family: "Font Awesome 5 Free";
+    font-weight: 900;
+    content: "\f362";
+    margin-right: 8px;
+}
+
+/* share/transfer */
+#btn-start-serving::before {
+    font-family: "Font Awesome 5 Free";
+    font-weight: 900;
+    content: "\f0f4";
+    margin-right: 8px;
+}
+
+/* coffee/serving? */
+
+
+/* --- Кольори кнопок (приклад) --- */
+#btn-call-next {
+    background-color: #0d6efd;
+    border-color: #0d6efd;
+}
+
+#btn-start-serving {
+    background-color: #0dcaf0;
+    border-color: #0dcaf0;
+    color: #000;
+}
+
+#btn-finish-service {
+    background-color: #198754;
+    border-color: #198754;
+}
+
+#btn-no-show {
+    background-color: #ffc107;
+    border-color: #ffc107;
+    color: #000;
+}
+
+#btn-hold-ticket {
+    background-color: #6c757d;
+    border-color: #6c757d;
+}
+
+#btn-transfer-ticket {
+    background-color: #6c757d;
+    border-color: #6c757d;
+}

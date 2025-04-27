@@ -1,0 +1,92 @@
+{
+ "app": "qms_cherga",
+ "charts": [],
+ "content": "[{\"id\":\"6BXUI35DiB\",\"type\":\"header\",\"data\":{\"text\":\"<span class=\\\"h4\\\">\u0427\u0435\u0440\u0490\u0430 - \u0441\u0438\u0441\u0442\u0435\u043c\u0430 \u043a\u0435\u0440\u0443\u0432\u0430\u043d\u043d\u044f \u0435\u043b\u0435\u043a\u0442\u0440\u043e\u043d\u043d\u043e\u044e \u0447\u0435\u0440\u0433\u043e\u044e</span>\",\"col\":12}},{\"id\":\"bX0U0D3_Nk\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Office\",\"col\":3}},{\"id\":\"txdiUurWgc\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Service Point\",\"col\":3}},{\"id\":\"UIVtJNGy94\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Operator\",\"col\":3}},{\"id\":\"jU2HYc9E91\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Ticket\",\"col\":3}},{\"id\":\"AdbVJpXqDu\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Service Category\",\"col\":3}},{\"id\":\"FDcCPuW8vp\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Service\",\"col\":3}}]",
+ "creation": "2025-04-26 12:56:13.644096",
+ "custom_blocks": [],
+ "docstatus": 0,
+ "doctype": "Workspace",
+ "for_user": "",
+ "hide_custom": 0,
+ "icon": "grid",
+ "idx": 0,
+ "indicator_color": "green",
+ "is_hidden": 0,
+ "label": "QMS CherGa",
+ "link_type": "DocType",
+ "links": [
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "\u0413\u0440\u0430\u0444\u0456\u043a \u0440\u043e\u0431\u043e\u0442\u0438",
+   "link_count": 0,
+   "link_to": "QMS Schedule",
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Link"
+  }
+ ],
+ "modified": "2025-04-26 18:18:27.914890",
+ "modified_by": "Administrator",
+ "module": "Qms Cherga",
+ "name": "QMS CherGa",
+ "number_cards": [],
+ "owner": "Administrator",
+ "parent_page": "",
+ "public": 1,
+ "quick_lists": [],
+ "roles": [],
+ "sequence_id": 41.0,
+ "shortcuts": [
+  {
+   "color": "Grey",
+   "doc_view": "List",
+   "label": "Office",
+   "link_to": "QMS Office",
+   "stats_filter": "[]",
+   "type": "DocType"
+  },
+  {
+   "color": "Grey",
+   "doc_view": "List",
+   "label": "Ticket",
+   "link_to": "QMS Ticket",
+   "stats_filter": "[]",
+   "type": "DocType"
+  },
+  {
+   "color": "Grey",
+   "doc_view": "List",
+   "label": "Service Point",
+   "link_to": "QMS Service Point",
+   "stats_filter": "[]",
+   "type": "DocType"
+  },
+  {
+   "color": "Grey",
+   "doc_view": "List",
+   "label": "Service Category",
+   "link_to": "QMS Service Category",
+   "stats_filter": "[]",
+   "type": "DocType"
+  },
+  {
+   "color": "Grey",
+   "doc_view": "List",
+   "label": "Operator",
+   "link_to": "QMS Operator",
+   "stats_filter": "[]",
+   "type": "DocType"
+  },
+  {
+   "color": "Grey",
+   "doc_view": "List",
+   "label": "Service",
+   "link_to": "QMS Service",
+   "stats_filter": "[]",
+   "type": "DocType"
+  }
+ ],
+ "title": "QMS CherGa",
+ "type": "Workspace"
+}

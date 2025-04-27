@@ -1,0 +1,45 @@
+{
+ "actions": [],
+ "allow_rename": 1,
+ "autoname": "hash",
+ "creation": "2025-04-26 14:04:24.482483",
+ "doctype": "DocType",
+ "editable_grid": 1,
+ "engine": "InnoDB",
+ "field_order": [
+  "service",
+  "is_active_in_office"
+ ],
+ "fields": [
+  {
+   "fieldname": "service",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "label": "Service",
+   "options": "QMS Service",
+   "reqd": 1
+  },
+  {
+   "default": "1",
+   "fieldname": "is_active_in_office",
+   "fieldtype": "Check",
+   "in_list_view": 1,
+   "label": "Is Active in Office"
+  }
+ ],
+ "grid_page_length": 50,
+ "index_web_pages_for_search": 1,
+ "istable": 1,
+ "links": [],
+ "modified": "2025-04-26 14:05:35.631439",
+ "modified_by": "Administrator",
+ "module": "Qms Cherga",
+ "name": "QMS Office Service Assignment",
+ "naming_rule": "Random",
+ "owner": "Administrator",
+ "permissions": [],
+ "row_format": "Dynamic",
+ "sort_field": "creation",
+ "sort_order": "DESC",
+ "states": []
+}

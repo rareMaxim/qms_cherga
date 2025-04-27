@@ -1,0 +1,88 @@
+{
+ "actions": [],
+ "allow_rename": 1,
+ "creation": "2025-04-26 16:17:01.354331",
+ "description": "\u0414\u043e\u043a\u0442\u0430\u0439\u043f \u0434\u043b\u044f \u043f\u0440\u0435\u0434\u0441\u0442\u0430\u0432\u043b\u0435\u043d\u043d\u044f \u0441\u043f\u0456\u0432\u0440\u043e\u0431\u0456\u0442\u043d\u0438\u043a\u0430, \u0449\u043e \u0432\u0438\u043a\u043e\u043d\u0443\u0454 \u0440\u043e\u043b\u044c \u043e\u043f\u0435\u0440\u0430\u0442\u043e\u0440\u0430 \u0432 \u0441\u0438\u0441\u0442\u0435\u043c\u0456 \u043a\u0435\u0440\u0443\u0432\u0430\u043d\u043d\u044f \u0447\u0435\u0440\u0433\u043e\u044e.",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "field_order": [
+  "user",
+  "full_name",
+  "default_office",
+  "is_active",
+  "skills_section_section",
+  "operator_skills"
+ ],
+ "fields": [
+  {
+   "fieldname": "user",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "label": "User",
+   "options": "User",
+   "reqd": 1,
+   "unique": 1
+  },
+  {
+   "fetch_from": "user.full_name",
+   "fetch_if_empty": 1,
+   "fieldname": "full_name",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Full Name",
+   "reqd": 1
+  },
+  {
+   "fieldname": "default_office",
+   "fieldtype": "Link",
+   "label": "Default Office",
+   "options": "QMS Office"
+  },
+  {
+   "default": "0",
+   "fieldname": "is_active",
+   "fieldtype": "Check",
+   "label": "Is Active"
+  },
+  {
+   "collapsible": 1,
+   "fieldname": "skills_section_section",
+   "fieldtype": "Section Break",
+   "label": "Skills Section"
+  },
+  {
+   "fieldname": "operator_skills",
+   "fieldtype": "Table",
+   "label": "Operator Skills",
+   "options": "QMS Operator Skill"
+  }
+ ],
+ "grid_page_length": 50,
+ "index_web_pages_for_search": 1,
+ "links": [],
+ "modified": "2025-04-26 17:24:08.948157",
+ "modified_by": "Administrator",
+ "module": "Qms Cherga",
+ "name": "QMS Operator",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "System Manager",
+   "share": 1,
+   "write": 1
+  }
+ ],
+ "row_format": "Dynamic",
+ "show_title_field_in_link": 1,
+ "sort_field": "creation",
+ "sort_order": "DESC",
+ "states": [],
+ "title_field": "full_name"
+}

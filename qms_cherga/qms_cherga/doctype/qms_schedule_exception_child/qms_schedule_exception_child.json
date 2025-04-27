@@ -1,0 +1,67 @@
+{
+ "actions": [],
+ "allow_rename": 1,
+ "creation": "2025-04-26 12:40:47.115407",
+ "description": "\u0426\u0435 \u0434\u0438\u0442\u044f\u0447\u0438\u0439 \u0434\u043e\u043a\u0442\u0430\u0439\u043f \u0434\u043b\u044f \u0442\u0430\u0431\u043b\u0438\u0446\u0456 schedule_exceptions \u0443 QMS Schedule.",
+ "doctype": "DocType",
+ "editable_grid": 1,
+ "engine": "InnoDB",
+ "field_order": [
+  "exception_date",
+  "description",
+  "is_workday",
+  "start_time",
+  "end_time"
+ ],
+ "fields": [
+  {
+   "fieldname": "exception_date",
+   "fieldtype": "Date",
+   "in_list_view": 1,
+   "label": "Exception Date",
+   "reqd": 1
+  },
+  {
+   "fieldname": "description",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Description",
+   "reqd": 1
+  },
+  {
+   "default": "0",
+   "fieldname": "is_workday",
+   "fieldtype": "Check",
+   "in_list_view": 1,
+   "label": "Is Workday?"
+  },
+  {
+   "depends_on": "eval:doc.is_workday==1",
+   "fieldname": "start_time",
+   "fieldtype": "Time",
+   "in_list_view": 1,
+   "label": "Start Time"
+  },
+  {
+   "depends_on": "eval:doc.is_workday==1",
+   "fieldname": "end_time",
+   "fieldtype": "Time",
+   "in_list_view": 1,
+   "label": "End Time"
+  }
+ ],
+ "grid_page_length": 50,
+ "index_web_pages_for_search": 1,
+ "istable": 1,
+ "links": [],
+ "modified": "2025-04-26 13:01:23.395441",
+ "modified_by": "Administrator",
+ "module": "Qms Cherga",
+ "name": "QMS Schedule Exception Child",
+ "owner": "Administrator",
+ "permissions": [],
+ "row_format": "Dynamic",
+ "sort_field": "creation",
+ "sort_order": "DESC",
+ "states": []
+}

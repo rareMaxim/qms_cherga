@@ -1,0 +1,690 @@
+# Translations template for Qms Cherga.
+# Copyright (C) 2025 Maxym Sysoiev
+# This file is distributed under the same license as the Qms Cherga project.
+# FIRST AUTHOR <EMAIL@ADDRESS>, 2025.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: Qms Cherga VERSION\n"
+"Report-Msgid-Bugs-To: maks4a@gmail.com\n"
+"POT-Creation-Date: 2025-04-27 13:37+0202\n"
+"PO-Revision-Date: 2025-04-27 13:37+0202\n"
+"Last-Translator: maks4a@gmail.com\n"
+"Language-Team: maks4a@gmail.com\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=utf-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Generated-By: Babel 2.13.1\n"
+
+#. Header text in the QMS CherGa Workspace
+#: qms_cherga/qms_cherga/workspace/qms_cherga/qms_cherga.json
+msgid "<span class=\"h4\">ЧерҐа - система керування електронною чергою</span>"
+msgstr ""
+
+#. Label of the abbreviation (Data) field in DocType 'QMS Office'
+#: qms_cherga/qms_cherga/doctype/qms_office/qms_office.json
+msgid "Abbreviation"
+msgstr ""
+
+#. Label of the actual_service_time_mins (Int) field in DocType 'QMS Ticket'
+#: qms_cherga/qms_cherga/doctype/qms_ticket/qms_ticket.json
+msgid "Actual Service Time (mins)"
+msgstr ""
+
+#. Label of the actual_wait_time_mins (Int) field in DocType 'QMS Ticket'
+#: qms_cherga/qms_cherga/doctype/qms_ticket/qms_ticket.json
+msgid "Actual Wait Time (mins)"
+msgstr ""
+
+#. Label of the add_service_button (Button) field in DocType 'QMS Office'
+#: qms_cherga/qms_cherga/doctype/qms_office/qms_office.json
+msgid "Add Service Button"
+msgstr ""
+
+#. Label of the address (Text) field in DocType 'QMS Office'
+#: qms_cherga/qms_cherga/doctype/qms_office/qms_office.json
+msgid "Address"
+msgstr ""
+
+#. Label of the address_contact_section (Section Break) field in DocType 'QMS
+#. Office'
+#: qms_cherga/qms_cherga/doctype/qms_office/qms_office.json
+msgid "Address & Contact Section"
+msgstr ""
+
+#. Label of the appointment_datetime (Datetime) field in DocType 'QMS Ticket'
+#: qms_cherga/qms_cherga/doctype/qms_ticket/qms_ticket.json
+msgid "Appointment Datetime"
+msgstr ""
+
+#. Label of the assigned_operator (Link) field in DocType 'QMS Service Point'
+#: qms_cherga/qms_cherga/doctype/qms_service_point/qms_service_point.json
+msgid "Assigned Operator"
+msgstr ""
+
+#. Label of the available_services (Table) field in DocType 'QMS Office'
+#: qms_cherga/qms_cherga/doctype/qms_office/qms_office.json
+msgid "Available Services"
+msgstr ""
+
+#. Label of the avg_duration_mins (Int) field in DocType 'QMS Service'
+#: qms_cherga/qms_cherga/doctype/qms_service/qms_service.json
+msgid "Avg Duration (mins)"
+msgstr ""
+
+#. Label of the call_time (Datetime) field in DocType 'QMS Ticket'
+#: qms_cherga/qms_cherga/doctype/qms_ticket/qms_ticket.json
+msgid "Call Time"
+msgstr ""
+
+#. Option for the 'Status' (Select) field in DocType 'QMS Ticket'
+#: qms_cherga/qms_cherga/doctype/qms_ticket/qms_ticket.json
+msgid "Called"
+msgstr ""
+
+#. Option for the 'Status' (Select) field in DocType 'QMS Ticket'
+#: qms_cherga/qms_cherga/doctype/qms_ticket/qms_ticket.json
+msgid "Cancelled"
+msgstr ""
+
+#. Label of the category (Link) field in DocType 'QMS Service'
+#: qms_cherga/qms_cherga/doctype/qms_service/qms_service.json
+msgid "Category"
+msgstr ""
+
+#. Label of the category_name (Data) field in DocType 'QMS Service Category'
+#: qms_cherga/qms_cherga/doctype/qms_service_category/qms_service_category.json
+msgid "Category Name"
+msgstr ""
+
+#. Label of the certification_date (Date) field in DocType 'QMS Operator Skill'
+#: qms_cherga/qms_cherga/doctype/qms_operator_skill/qms_operator_skill.json
+msgid "Certification Date"
+msgstr ""
+
+#. Option for the 'Status' (Select) field in DocType 'QMS Ticket'
+#: qms_cherga/qms_cherga/doctype/qms_ticket/qms_ticket.json
+msgid "Completed"
+msgstr ""
+
+#. Label of the completion_time (Datetime) field in DocType 'QMS Ticket'
+#: qms_cherga/qms_cherga/doctype/qms_ticket/qms_ticket.json
+msgid "Completion Time"
+msgstr ""
+
+#. Label of the contact_details_section_section (Section Break) field in
+#. DocType 'QMS Organization'
+#: qms_cherga/qms_cherga/doctype/qms_organization/qms_organization.json
+msgid "Contact Details Section"
+msgstr ""
+
+#. Label of the contact_email (Data) field in DocType 'QMS Organization'
+#: qms_cherga/qms_cherga/doctype/qms_organization/qms_organization.json
+msgid "Contact Email"
+msgstr ""
+
+#. Label of the contact_person (Data) field in DocType 'QMS Organization'
+#: qms_cherga/qms_cherga/doctype/qms_organization/qms_organization.json
+msgid "Contact Person"
+msgstr ""
+
+#. Label of the contact_phone (Phone) field in DocType 'QMS Office'
+#. Label of the contact_phone (Phone) field in DocType 'QMS Organization'
+#: qms_cherga/qms_cherga/doctype/qms_office/qms_office.json
+#: qms_cherga/qms_cherga/doctype/qms_organization/qms_organization.json
+msgid "Contact Phone"
+msgstr ""
+
+#. Label of the day_of_week (Select) field in DocType 'QMS Schedule Rule Child'
+#: qms_cherga/qms_cherga/doctype/qms_schedule_rule_child/qms_schedule_rule_child.json
+msgid "Day of Week"
+msgstr ""
+
+#. Label of the default_office (Link) field in DocType 'QMS Operator'
+#: qms_cherga/qms_cherga/doctype/qms_operator/qms_operator.json
+msgid "Default Office"
+msgstr ""
+
+#. Label of the default_schedule (Link) field in DocType 'QMS Organization'
+#: qms_cherga/qms_cherga/doctype/qms_organization/qms_organization.json
+msgid "Default Schedule"
+msgstr ""
+
+#. Label of the description (Data) field in DocType 'QMS Schedule Exception
+#. Child'
+#. Label of the description (Small Text) field in DocType 'QMS Service'
+#. Label of the description (Text) field in DocType 'QMS Service Category'
+#. Label of the description (Small Text) field in DocType 'QMS Service Point'
+#: qms_cherga/qms_cherga/doctype/qms_schedule_exception_child/qms_schedule_exception_child.json
+#: qms_cherga/qms_cherga/doctype/qms_service/qms_service.json
+#: qms_cherga/qms_cherga/doctype/qms_service_category/qms_service_category.json
+#: qms_cherga/qms_cherga/doctype/qms_service_point/qms_service_point.json
+msgid "Description"
+msgstr ""
+
+#. Label of the display_order (Int) field in DocType 'QMS Service Category'
+#: qms_cherga/qms_cherga/doctype/qms_service_category/qms_service_category.json
+msgid "Display Order"
+msgstr ""
+
+#. Label of the enabled (Check) field in DocType 'QMS Service'
+#: qms_cherga/qms_cherga/doctype/qms_service/qms_service.json
+msgid "Enabled"
+msgstr ""
+
+#. Label of the end_time (Time) field in DocType 'QMS Schedule Exception Child'
+#. Label of the end_time (Time) field in DocType 'QMS Schedule Rule Child'
+#: qms_cherga/qms_cherga/doctype/qms_schedule_exception_child/qms_schedule_exception_child.json
+#: qms_cherga/qms_cherga/doctype/qms_schedule_rule_child/qms_schedule_rule_child.json
+msgid "End Time"
+msgstr ""
+
+#. Description of the 'Timezone' (Data) field in DocType 'QMS Office'
+#: qms_cherga/qms_cherga/doctype/qms_office/qms_office.json
+msgid "Enter IANA timezone name (e.g., Europe/Kyiv)"
+msgstr ""
+
+#. Label of the estimated_wait_time_mins (Int) field in DocType 'QMS Ticket'
+#: qms_cherga/qms_cherga/doctype/qms_ticket/qms_ticket.json
+msgid "Estimated Wait Time (mins)"
+msgstr ""
+
+#. Label of the exception_date (Date) field in DocType 'QMS Schedule Exception
+#. Child'
+#: qms_cherga/qms_cherga/doctype/qms_schedule_exception_child/qms_schedule_exception_child.json
+msgid "Exception Date"
+msgstr ""
+
+#. Label of the exceptions_section_section (Section Break) field in DocType
+#. 'QMS Schedule'
+#: qms_cherga/qms_cherga/doctype/qms_schedule/qms_schedule.json
+msgid "Exceptions Section"
+msgstr ""
+
+#. Option for the 'Skill Level' (Select) field in DocType 'QMS Operator Skill'
+#: qms_cherga/qms_cherga/doctype/qms_operator_skill/qms_operator_skill.json
+msgid "Expert"
+msgstr ""
+
+#. Label of the expiry_date (Date) field in DocType 'QMS Operator Skill'
+#: qms_cherga/qms_cherga/doctype/qms_operator_skill/qms_operator_skill.json
+msgid "Expiry Date"
+msgstr ""
+
+#. Option for the 'Day of Week' (Select) field in DocType 'QMS Schedule Rule
+#. Child'
+#: qms_cherga/qms_cherga/doctype/qms_schedule_rule_child/qms_schedule_rule_child.json
+msgid "Friday"
+msgstr ""
+
+#. Label of the full_name (Data) field in DocType 'QMS Operator'
+#: qms_cherga/qms_cherga/doctype/qms_operator/qms_operator.json
+msgid "Full Name"
+msgstr ""
+
+#. Label of the ip_address (Data) field in DocType 'QMS Service Point'
+#: qms_cherga/qms_cherga/doctype/qms_service_point/qms_service_point.json
+msgid "IP Address"
+msgstr ""
+
+#. Label of the icon (Icon) field in DocType 'QMS Service Category'
+#: qms_cherga/qms_cherga/doctype/qms_service_category/qms_service_category.json
+msgid "Icon"
+msgstr ""
+
+#. Label of the is_active (Check) field in DocType 'QMS Operator'
+#. Label of the is_active (Check) field in DocType 'QMS Service Point'
+#: qms_cherga/qms_cherga/doctype/qms_operator/qms_operator.json
+#: qms_cherga/qms_cherga/doctype/qms_service_point/qms_service_point.json
+msgid "Is Active"
+msgstr ""
+
+#. Label of the is_active_in_office (Check) field in DocType 'QMS Office
+#. Service Assignment'
+#: qms_cherga/qms_cherga/doctype/qms_office_service_assignment/qms_office_service_assignment.json
+msgid "Is Active in Office"
+msgstr ""
+
+#. Label of the is_appointment (Check) field in DocType 'QMS Ticket'
+#: qms_cherga/qms_cherga/doctype/qms_ticket/qms_ticket.json
+msgid "Is Appointment"
+msgstr ""
+
+#. Label of the is_workday (Check) field in DocType 'QMS Schedule Exception
+#. Child'
+#: qms_cherga/qms_cherga/doctype/qms_schedule_exception_child/qms_schedule_exception_child.json
+msgid "Is Workday?"
+msgstr ""
+
+#. Label of the issue_time (Datetime) field in DocType 'QMS Ticket'
+#: qms_cherga/qms_cherga/doctype/qms_ticket/qms_ticket.json
+msgid "Issue Time"
+msgstr ""
+
+#. Label of the live_queue_enabled (Check) field in DocType 'QMS Service'
+#: qms_cherga/qms_cherga/doctype/qms_service/qms_service.json
+msgid "Live Queue Enabled"
+msgstr ""
+
+#. Label of the main_tab (Tab Break) field in DocType 'QMS Ticket'
+#: qms_cherga/qms_cherga/doctype/qms_ticket/qms_ticket.json
+msgid "Main Info"
+msgstr ""
+
+#. Option for the 'Day of Week' (Select) field in DocType 'QMS Schedule Rule
+#. Child'
+#: qms_cherga/qms_cherga/doctype/qms_schedule_rule_child/qms_schedule_rule_child.json
+msgid "Monday"
+msgstr ""
+
+#. Option for the 'Status' (Select) field in DocType 'QMS Ticket'
+#: qms_cherga/qms_cherga/doctype/qms_ticket/qms_ticket.json
+msgid "NoShow"
+msgstr ""
+
+#. Label of the office (Link) field in DocType 'QMS Service Point'
+#. Label of the office (Link) field in DocType 'QMS Ticket'
+#. Label of a shortcut in the QMS CherGa Workspace
+#: qms_cherga/qms_cherga/doctype/qms_service_point/qms_service_point.json
+#: qms_cherga/qms_cherga/doctype/qms_ticket/qms_ticket.json
+#: qms_cherga/qms_cherga/workspace/qms_cherga/qms_cherga.json
+msgid "Office"
+msgstr ""
+
+#. Label of the office_name (Data) field in DocType 'QMS Office'
+#: qms_cherga/qms_cherga/doctype/qms_office/qms_office.json
+msgid "Office Name"
+msgstr ""
+
+#. Label of the operator (Link) field in DocType 'QMS Ticket'
+#. Label of a shortcut in the QMS CherGa Workspace
+#: qms_cherga/qms_cherga/doctype/qms_ticket/qms_ticket.json
+#: qms_cherga/qms_cherga/workspace/qms_cherga/qms_cherga.json
+msgid "Operator"
+msgstr ""
+
+#. Label of the operator_skills (Table) field in DocType 'QMS Operator'
+#: qms_cherga/qms_cherga/doctype/qms_operator/qms_operator.json
+msgid "Operator Skills"
+msgstr ""
+
+#. Label of the organization (Link) field in DocType 'QMS Office'
+#. Label of the organization (Link) field in DocType 'QMS Service'
+#. Label of the organization (Link) field in DocType 'QMS Service Category'
+#: qms_cherga/qms_cherga/doctype/qms_office/qms_office.json
+#: qms_cherga/qms_cherga/doctype/qms_service/qms_service.json
+#: qms_cherga/qms_cherga/doctype/qms_service_category/qms_service_category.json
+msgid "Organization"
+msgstr ""
+
+#. Label of the organization_name (Data) field in DocType 'QMS Organization'
+#: qms_cherga/qms_cherga/doctype/qms_organization/qms_organization.json
+msgid "Organization Name"
+msgstr ""
+
+#. Label of the parent_category (Link) field in DocType 'QMS Service Category'
+#: qms_cherga/qms_cherga/doctype/qms_service_category/qms_service_category.json
+msgid "Parent Category"
+msgstr ""
+
+#. Label of the point_name (Data) field in DocType 'QMS Service Point'
+#: qms_cherga/qms_cherga/doctype/qms_service_point/qms_service_point.json
+msgid "Point Name/Number"
+msgstr ""
+
+#. Option for the 'Status' (Select) field in DocType 'QMS Ticket'
+#: qms_cherga/qms_cherga/doctype/qms_ticket/qms_ticket.json
+msgid "Postponed"
+msgstr ""
+
+#. Label of the priority (Int) field in DocType 'QMS Ticket'
+#: qms_cherga/qms_cherga/doctype/qms_ticket/qms_ticket.json
+msgid "Priority"
+msgstr ""
+
+#. Option for the 'Skill Level' (Select) field in DocType 'QMS Operator Skill'
+#: qms_cherga/qms_cherga/doctype/qms_operator_skill/qms_operator_skill.json
+msgid "Proficient"
+msgstr ""
+
+#. Name of a Workspace
+#: qms_cherga/qms_cherga/workspace/qms_cherga/qms_cherga.json
+msgid "QMS CherGa"
+msgstr ""
+
+#. Name of a DocType
+#: qms_cherga/qms_cherga/doctype/qms_office/qms_office.json
+msgid "QMS Office"
+msgstr ""
+
+#. Name of a DocType
+#: qms_cherga/qms_cherga/doctype/qms_office_service_assignment/qms_office_service_assignment.json
+msgid "QMS Office Service Assignment"
+msgstr ""
+
+#. Name of a DocType
+#: qms_cherga/qms_cherga/doctype/qms_operator/qms_operator.json
+msgid "QMS Operator"
+msgstr ""
+
+#. Name of a DocType
+#: qms_cherga/qms_cherga/doctype/qms_operator_skill/qms_operator_skill.json
+msgid "QMS Operator Skill"
+msgstr ""
+
+#. Name of a DocType
+#: qms_cherga/qms_cherga/doctype/qms_organization/qms_organization.json
+msgid "QMS Organization"
+msgstr ""
+
+#. Name of a DocType
+#: qms_cherga/qms_cherga/doctype/qms_schedule/qms_schedule.json
+msgid "QMS Schedule"
+msgstr ""
+
+#. Name of a DocType
+#: qms_cherga/qms_cherga/doctype/qms_schedule_exception_child/qms_schedule_exception_child.json
+msgid "QMS Schedule Exception Child"
+msgstr ""
+
+#. Name of a DocType
+#: qms_cherga/qms_cherga/doctype/qms_schedule_rule_child/qms_schedule_rule_child.json
+msgid "QMS Schedule Rule Child"
+msgstr ""
+
+#. Name of a DocType
+#: qms_cherga/qms_cherga/doctype/qms_service/qms_service.json
+msgid "QMS Service"
+msgstr ""
+
+#. Name of a DocType
+#: qms_cherga/qms_cherga/doctype/qms_service_category/qms_service_category.json
+msgid "QMS Service Category"
+msgstr ""
+
+#. Name of a DocType
+#: qms_cherga/qms_cherga/doctype/qms_service_point/qms_service_point.json
+msgid "QMS Service Point"
+msgstr ""
+
+#. Name of a DocType
+#: qms_cherga/qms_cherga/doctype/qms_ticket/qms_ticket.json
+msgid "QMS Ticket"
+msgstr ""
+
+#. Label of the requires_appointment (Check) field in DocType 'QMS Service'
+#: qms_cherga/qms_cherga/doctype/qms_service/qms_service.json
+msgid "Requires Appointment"
+msgstr ""
+
+#. Label of the rules_section_section (Section Break) field in DocType 'QMS
+#. Schedule'
+#: qms_cherga/qms_cherga/doctype/qms_schedule/qms_schedule.json
+msgid "Rules Section"
+msgstr ""
+
+#. Option for the 'Day of Week' (Select) field in DocType 'QMS Schedule Rule
+#. Child'
+#: qms_cherga/qms_cherga/doctype/qms_schedule_rule_child/qms_schedule_rule_child.json
+msgid "Saturday"
+msgstr ""
+
+#. Label of the schedule (Link) field in DocType 'QMS Office'
+#: qms_cherga/qms_cherga/doctype/qms_office/qms_office.json
+msgid "Schedule"
+msgstr ""
+
+#. Label of the schedule_exceptions (Table) field in DocType 'QMS Schedule'
+#: qms_cherga/qms_cherga/doctype/qms_schedule/qms_schedule.json
+msgid "Schedule Exceptions"
+msgstr ""
+
+#. Label of the schedule_name (Data) field in DocType 'QMS Schedule'
+#: qms_cherga/qms_cherga/doctype/qms_schedule/qms_schedule.json
+msgid "Schedule Name"
+msgstr ""
+
+#. Label of the schedule_rules (Table) field in DocType 'QMS Schedule'
+#: qms_cherga/qms_cherga/doctype/qms_schedule/qms_schedule.json
+msgid "Schedule Rules"
+msgstr ""
+
+#. Label of the schedule_section_section (Section Break) field in DocType 'QMS
+#. Office'
+#: qms_cherga/qms_cherga/doctype/qms_office/qms_office.json
+msgid "Schedule Section"
+msgstr ""
+
+#. Label of the service (Link) field in DocType 'QMS Office Service Assignment'
+#. Label of the service (Link) field in DocType 'QMS Operator Skill'
+#. Label of the service (Link) field in DocType 'QMS Ticket'
+#. Label of a shortcut in the QMS CherGa Workspace
+#: qms_cherga/qms_cherga/doctype/qms_office_service_assignment/qms_office_service_assignment.json
+#: qms_cherga/qms_cherga/doctype/qms_operator_skill/qms_operator_skill.json
+#: qms_cherga/qms_cherga/doctype/qms_ticket/qms_ticket.json
+#: qms_cherga/qms_cherga/workspace/qms_cherga/qms_cherga.json
+msgid "Service"
+msgstr ""
+
+#. Label of a shortcut in the QMS CherGa Workspace
+#: qms_cherga/qms_cherga/workspace/qms_cherga/qms_cherga.json
+msgid "Service Category"
+msgstr ""
+
+#. Label of the service_name (Data) field in DocType 'QMS Service'
+#: qms_cherga/qms_cherga/doctype/qms_service/qms_service.json
+msgid "Service Name"
+msgstr ""
+
+#. Label of the service_point (Link) field in DocType 'QMS Ticket'
+#. Label of a shortcut in the QMS CherGa Workspace
+#: qms_cherga/qms_cherga/doctype/qms_ticket/qms_ticket.json
+#: qms_cherga/qms_cherga/workspace/qms_cherga/qms_cherga.json
+msgid "Service Point"
+msgstr ""
+
+#. Label of the services_section_section (Section Break) field in DocType 'QMS
+#. Office'
+#: qms_cherga/qms_cherga/doctype/qms_office/qms_office.json
+msgid "Services Section"
+msgstr ""
+
+#. Option for the 'Status' (Select) field in DocType 'QMS Ticket'
+#: qms_cherga/qms_cherga/doctype/qms_ticket/qms_ticket.json
+msgid "Serving"
+msgstr ""
+
+#. Label of the settings_section_section (Section Break) field in DocType 'QMS
+#. Organization'
+#: qms_cherga/qms_cherga/doctype/qms_organization/qms_organization.json
+msgid "Settings Section"
+msgstr ""
+
+#. Label of the skill_level (Select) field in DocType 'QMS Operator Skill'
+#: qms_cherga/qms_cherga/doctype/qms_operator_skill/qms_operator_skill.json
+msgid "Skill Level"
+msgstr ""
+
+#. Label of the skills_section_section (Section Break) field in DocType 'QMS
+#. Operator'
+#: qms_cherga/qms_cherga/doctype/qms_operator/qms_operator.json
+msgid "Skills Section"
+msgstr ""
+
+#. Label of the start_service_time (Datetime) field in DocType 'QMS Ticket'
+#: qms_cherga/qms_cherga/doctype/qms_ticket/qms_ticket.json
+msgid "Start Service Time"
+msgstr ""
+
+#. Label of the start_time (Time) field in DocType 'QMS Schedule Exception
+#. Child'
+#. Label of the start_time (Time) field in DocType 'QMS Schedule Rule Child'
+#: qms_cherga/qms_cherga/doctype/qms_schedule_exception_child/qms_schedule_exception_child.json
+#: qms_cherga/qms_cherga/doctype/qms_schedule_rule_child/qms_schedule_rule_child.json
+msgid "Start Time"
+msgstr ""
+
+#. Label of the tab_statistics (Tab Break) field in DocType 'QMS Ticket'
+#: qms_cherga/qms_cherga/doctype/qms_ticket/qms_ticket.json
+msgid "Statistics"
+msgstr ""
+
+#. Label of the status (Select) field in DocType 'QMS Ticket'
+#: qms_cherga/qms_cherga/doctype/qms_ticket/qms_ticket.json
+msgid "Status"
+msgstr ""
+
+#. Option for the 'Day of Week' (Select) field in DocType 'QMS Schedule Rule
+#. Child'
+#: qms_cherga/qms_cherga/doctype/qms_schedule_rule_child/qms_schedule_rule_child.json
+msgid "Sunday"
+msgstr ""
+
+#. Name of a role
+#: qms_cherga/qms_cherga/doctype/qms_office/qms_office.json
+#: qms_cherga/qms_cherga/doctype/qms_operator/qms_operator.json
+#: qms_cherga/qms_cherga/doctype/qms_organization/qms_organization.json
+#: qms_cherga/qms_cherga/doctype/qms_schedule/qms_schedule.json
+#: qms_cherga/qms_cherga/doctype/qms_service/qms_service.json
+#: qms_cherga/qms_cherga/doctype/qms_service_category/qms_service_category.json
+#: qms_cherga/qms_cherga/doctype/qms_service_point/qms_service_point.json
+#: qms_cherga/qms_cherga/doctype/qms_ticket/qms_ticket.json
+msgid "System Manager"
+msgstr ""
+
+#. Label of the target_operator (Link) field in DocType 'QMS Ticket'
+#: qms_cherga/qms_cherga/doctype/qms_ticket/qms_ticket.json
+msgid "Target Operator"
+msgstr ""
+
+#. Option for the 'Day of Week' (Select) field in DocType 'QMS Schedule Rule
+#. Child'
+#: qms_cherga/qms_cherga/doctype/qms_schedule_rule_child/qms_schedule_rule_child.json
+msgid "Thursday"
+msgstr ""
+
+#. Label of a shortcut in the QMS CherGa Workspace
+#: qms_cherga/qms_cherga/workspace/qms_cherga/qms_cherga.json
+msgid "Ticket"
+msgstr ""
+
+#. Label of the ticket_number (Data) field in DocType 'QMS Ticket'
+#: qms_cherga/qms_cherga/doctype/qms_ticket/qms_ticket.json
+msgid "Ticket Number"
+msgstr ""
+
+#. Label of the timezone (Data) field in DocType 'QMS Office'
+#: qms_cherga/qms_cherga/doctype/qms_office/qms_office.json
+msgid "Timezone"
+msgstr ""
+
+#. Label of the timing_tab (Tab Break) field in DocType 'QMS Ticket'
+#: qms_cherga/qms_cherga/doctype/qms_ticket/qms_ticket.json
+msgid "Timing"
+msgstr ""
+
+#. Option for the 'Skill Level' (Select) field in DocType 'QMS Operator Skill'
+#: qms_cherga/qms_cherga/doctype/qms_operator_skill/qms_operator_skill.json
+msgid "Trainee"
+msgstr ""
+
+#. Option for the 'Day of Week' (Select) field in DocType 'QMS Schedule Rule
+#. Child'
+#: qms_cherga/qms_cherga/doctype/qms_schedule_rule_child/qms_schedule_rule_child.json
+msgid "Tuesday"
+msgstr ""
+
+#. Label of the user (Link) field in DocType 'QMS Operator'
+#: qms_cherga/qms_cherga/doctype/qms_operator/qms_operator.json
+msgid "User"
+msgstr ""
+
+#. Label of the tab_visitor_appointment (Tab Break) field in DocType 'QMS
+#. Ticket'
+#: qms_cherga/qms_cherga/doctype/qms_ticket/qms_ticket.json
+msgid "Visitor & Appointment"
+msgstr ""
+
+#. Label of the visitor_phone (Phone) field in DocType 'QMS Ticket'
+#: qms_cherga/qms_cherga/doctype/qms_ticket/qms_ticket.json
+msgid "Visitor Phone"
+msgstr ""
+
+#. Option for the 'Status' (Select) field in DocType 'QMS Ticket'
+#: qms_cherga/qms_cherga/doctype/qms_ticket/qms_ticket.json
+msgid "Waiting"
+msgstr ""
+
+#. Option for the 'Day of Week' (Select) field in DocType 'QMS Schedule Rule
+#. Child'
+#: qms_cherga/qms_cherga/doctype/qms_schedule_rule_child/qms_schedule_rule_child.json
+msgid "Wednesday"
+msgstr ""
+
+#. Label of a Link in the QMS CherGa Workspace
+#: qms_cherga/qms_cherga/workspace/qms_cherga/qms_cherga.json
+msgid "Графік роботи"
+msgstr ""
+
+#. Description of the 'Schedule' (Link) field in DocType 'QMS Office'
+#: qms_cherga/qms_cherga/doctype/qms_office/qms_office.json
+msgid "Графік роботи офісу. Якщо не вказано, можна використовувати графік організації."
+msgstr ""
+
+#. Description of the 'Organization' (Link) field in DocType 'QMS Office'
+#: qms_cherga/qms_cherga/doctype/qms_office/qms_office.json
+msgid "До якої організації належить офіс."
+msgstr ""
+
+#. Description of a DocType
+#: qms_cherga/qms_cherga/doctype/qms_service_category/qms_service_category.json
+msgid "Доктайп для визначення категорій, до яких можуть належати послуги (QMS Service)."
+msgstr ""
+
+#. Description of a DocType
+#: qms_cherga/qms_cherga/doctype/qms_operator/qms_operator.json
+msgid "Доктайп для представлення співробітника, що виконує роль оператора в системі керування чергою."
+msgstr ""
+
+#. Description of a DocType
+#: qms_cherga/qms_cherga/doctype/qms_organization/qms_organization.json
+msgid "Основний доктайп для представлення організації, що використовує систему"
+msgstr ""
+
+#. Description of a DocType
+#: qms_cherga/qms_cherga/doctype/qms_schedule_exception_child/qms_schedule_exception_child.json
+msgid "Це дитячий доктайп для таблиці schedule_exceptions у QMS Schedule."
+msgstr ""
+
+#. Description of a DocType
+#: qms_cherga/qms_cherga/doctype/qms_schedule_rule_child/qms_schedule_rule_child.json
+msgid "Це дитячий доктайп для таблиці schedule_rules у QMS Schedule."
+msgstr ""
+
+#. Description of a DocType
+#: qms_cherga/qms_cherga/doctype/qms_schedule/qms_schedule.json
+msgid "Це новий доктайп для керування гнучкими графіками роботи."
+msgstr ""
+
+#. Description of a DocType
+#: qms_cherga/qms_cherga/doctype/qms_ticket/qms_ticket.json
+msgid "Цей доктайп представляє кожен окремий запис відвідувача в черзі, чи то \"жива черга\", чи попередній запис."
+msgstr ""
+
+#. Description of a DocType
+#: qms_cherga/qms_cherga/doctype/qms_service_point/qms_service_point.json
+msgid "Цей доктайп представляє конкретне місце, де відбувається обслуговування клієнта (вікно, кабінет, стійка)"
+msgstr ""
+
+#. Description of the 'Live Queue Enabled' (Check) field in DocType 'QMS
+#. Service'
+#: qms_cherga/qms_cherga/doctype/qms_service/qms_service.json
+msgid "Чи можна взяти талон на цю послугу в кіоску"
+msgstr ""
+
+#. Description of the 'Requires Appointment' (Check) field in DocType 'QMS
+#. Service'
+#: qms_cherga/qms_cherga/doctype/qms_service/qms_service.json
+msgid "Якщо відмічено, не доступна для \"живої черги\"? (або потрібна логіка)"
+msgstr ""
+
