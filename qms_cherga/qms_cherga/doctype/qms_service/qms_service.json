@@ -10,6 +10,7 @@
   "service_name",
   "category",
   "avg_duration_mins",
+  "icon",
   "description",
   "requires_appointment",
   "live_queue_enabled",
@@ -65,12 +66,17 @@
    "fieldtype": "Link",
    "label": "Organization",
    "options": "QMS Organization"
+  },
+  {
+   "fieldname": "icon",
+   "fieldtype": "Data",
+   "label": "Icon"
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-04-26 13:30:25.865801",
+ "modified": "2025-04-28 23:24:54.823555",
  "modified_by": "Administrator",
  "module": "Qms Cherga",
  "name": "QMS Service",

@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="uk">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Електронна Черга</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;700&family=Roboto:wght@400;500;700&display=swap"
+        rel="stylesheet">
+    <link rel="stylesheet" href="/assets/qms_cherga/css/qms_display_board.css?v={{ build_version }}">
+</head>
+
+<body>
+    <div class="container">
+        <header id="time-bar">
+            <span id="current-date">--.--.----</span>
+            <span id="current-time">--:--:--</span>
+        </header>
+
+        <section id="last-called-bar" class="card highlight-bar">
+            <h2>ОСТАННІ ВИКЛИКАНІ / LAST CALLED</h2>
+            <div id="last-calls-list">
+                <span class="placeholder" style="color: #ccc;">Очікування даних...</span>
+            </div>
+        </section>
+
+        <hr class="separator">
+
+        <main id="main-content">
+            <section id="kiosk-next" class="queue-tile">
+                <h2>НАСТУПНІ ОЧІКУЮТЬСЯ (Жива черга)</h2>
+                <div class="tile-content">
+                    <ul id="kiosk-next-list">
+                        <li class="placeholder">Очікування даних...</li>
+                    </ul>
+                </div>
+            </section>
+        </main>
+    </div>
+    <script src="/assets/qms_cherga/js/qms_display_board.js?v={{ build_version }}"></script>
+
+</body>
+
+</html>

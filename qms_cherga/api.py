@@ -333,3 +333,273 @@ def call_next_visitor(service_point_name: str):
             "status": "error",
             "message": f"Помилка під час виклику наступного талону: {e}"
         }
+
+
+@frappe.whitelist(allow_guest=True)
+def get_display_data(office: str, limit_called: int = 3, limit_waiting: int = 20):
+    """
+    Отримує комбіновані дані для публічного дисплея черги (версія з ORM):
+    останні викликані та наступні очікуючі талони.
+    """
+    limit_called = frappe.cint(
+        limit_called)  # Перетворюємо на цілі числа [cite: 138]
+    limit_waiting = frappe.cint(limit_waiting)  # [cite: 138]
+
+    if not office:  # [cite: 138]
+        frappe.log_error(
+            "Office ID not provided for get_display_data", "Display API ORM")  # [cite: 138]
+        return {"error": "Office ID is required."}  # [cite: 138]
+
+    if not frappe.db.exists("QMS Office", office):  # [cite: 138]
+        frappe.log_error(
+            f"Office ID '{office}' not found for get_display_data", "Display API ORM")  # [cite: 138]
+        return {"error": f"Office '{office}' not found."}  # [cite: 138]
+
+    # --- Отримуємо останні викликані/обслужені (ORM + сортування в Python) ---
+    last_called = []  # [cite: 138]
+    try:
+        called_statuses = ["Called", "Serving",
+                           "Completed", "NoShow", "Postponed"]  # [cite: 138]
+        # Отримуємо більше записів, щоб потім відсортувати в Python
+        potential_called = frappe.get_all(
+            "QMS Ticket",
+            filters={
+                "office": office,
+                "status": ["in", called_statuses]
+            },
+            fields=[
+                "name", "ticket_number", "status", "service", "service_point",
+                "call_time", "start_service_time", "completion_time",
+                "modified"  # <--- Додано 'modified' для можливості використання як fallback
+            ],
+            # Попереднє сортування для оптимізації [cite: 138]
+            order_by="modified desc",
+            # Беремо з запасом для сортування
+            limit_page_length=max(20, limit_called * 3)  # [cite: 138]
+        )
+
+        # Розраховуємо "найпізніший час" для кожного талону
+        tickets_with_latest_time = []  # [cite: 138]
+        for ticket in potential_called:  # [cite: 138]
+            # Отримуємо datetime об'єкти або None
+            call_dt = get_datetime(ticket.get('call_time'))  # [cite: 138]
+            start_dt = get_datetime(ticket.get(
+                'start_service_time'))  # [cite: 138]
+            completion_dt = get_datetime(
+                ticket.get('completion_time'))  # [cite: 138]
+            # [cite: 138] # Отримуємо час модифікації
+            modified_dt = get_datetime(ticket.get('modified'))
+
+            # Знаходимо максимальний з перших трьох (час події)
+            latest_event_dt = max(
+                filter(None, [call_dt, start_dt, completion_dt]), default=None)  # [cite: 138]
+
+            # Використовуємо час події, або час модифікації якщо подій не було
+            # (Можна закоментувати 'or modified_dt', якщо fallback не потрібен)
+            display_dt = latest_event_dt or modified_dt  # [cite: 138]
+
+            if display_dt:  # Переконуємось, що хоч якийсь час є [cite: 138]
+                tickets_with_latest_time.append({  # [cite: 138]
+                    "data": ticket,  # [cite: 138]
+                    # Зберігаємо display_dt для сортування/відображення
+                    "display_dt": display_dt  # [cite: 138]
+                })
+
+        # Сортуємо в Python за display_dt (від новішого до старішого)
+        tickets_with_latest_time.sort(  # [cite: 138]
+            key=lambda x: x["display_dt"], reverse=True)  # [cite: 138]
+
+        # Беремо потрібну кількість (limit_called)
+        top_called_tickets = [item["data"]  # [cite: 138]
+                              for item in tickets_with_latest_time[:limit_called]]  # [cite: 138]
+        # Отримуємо відповідний display_dt для відібраних талонів
+        top_called_times = {item["data"]["name"]: item["display_dt"]
+                            for item in tickets_with_latest_time[:limit_called]}  # [cite: 138]
+
+        # Отримуємо назви точок та послуг для відібраних талонів
+        point_ids = [t["service_point"]  # [cite: 138]
+                     for t in top_called_tickets if t.get("service_point")]  # [cite: 138]
+        service_ids_called = [t["service"]  # [cite: 138]
+                              for t in top_called_tickets if t.get("service")]  # [cite: 138]
+
+        point_names_map = {}  # [cite: 138]
+        if point_ids:  # [cite: 138]
+            points = frappe.get_all("QMS Service Point", filters={  # [cite: 138]
+                                    "name": ["in", list(set(point_ids))]}, fields=["name", "point_name"])  # [cite: 138]
+            point_names_map = {
+                p.name: p.point_name for p in points}  # [cite: 138]
+
+        service_names_map_called = {}  # [cite: 138]
+        if service_ids_called:  # [cite: 138]
+            services = frappe.get_all("QMS Service", filters={"name": ["in", list(  # [cite: 138]
+                set(service_ids_called))]}, fields=["name", "service_name"])  # [cite: 138]
+            service_names_map_called = {  # [cite: 138]
+                s.name: s.service_name for s in services}  # [cite: 138]
+
+        # Форматуємо результат для last_called
+        for ticket_data in top_called_tickets:  # [cite: 138]
+            # Беремо збережений час для цього талону
+            display_time_dt = top_called_times.get(
+                ticket_data.name)  # [cite: 138]
+
+            # Скорочений номер талону
+            short_ticket_number = ticket_data.ticket_number.split(  # [cite: 138]
+                '-')[-1] if ticket_data.ticket_number and '-' in ticket_data.ticket_number else ticket_data.ticket_number  # [cite: 138]
+
+            last_called.append({  # [cite: 138]
+                # [cite: 138]
+                "ticket": short_ticket_number or ticket_data.name,
+                # [cite: 138]
+                "window": point_names_map.get(ticket_data.get("service_point"), "N/A"),
+                # Форматуємо знайдений час
+                # [cite: 138]
+                "time": display_time_dt.strftime("%H:%M") if display_time_dt else "--:--"
+            })
+
+    except Exception as e:
+        frappe.log_error(  # [cite: 138]
+            f"Error fetching/sorting last called tickets (ORM) for office {office}: {e}\n{frappe.get_traceback()}", "Display API ORM")  # [cite: 138]
+        # [cite: 138]
+        last_called = [{"ticket": "Error", "window": "ORM Error", "time": ""}]
+
+    # --- Отримуємо наступних у черзі (ORM) ---
+    waiting_tickets = []  # [cite: 138]
+    try:
+        waiting_raw = frappe.get_list(  # [cite: 138]
+            "QMS Ticket",
+            filters={
+                "office": office,
+                "status": "Waiting"
+            },
+            fields=["name", "ticket_number", "service"],
+            order_by="priority desc, creation asc",  # [cite: 138]
+            limit_page_length=limit_waiting  # Використовуємо ліміт [cite: 138]
+        )
+
+        # Отримуємо назви послуг одним запитом
+        service_ids_waiting = [  # [cite: 138]
+            row.service for row in waiting_raw if row.service]  # [cite: 138]
+        service_names_map_waiting = {}  # [cite: 138]
+        if service_ids_waiting:  # [cite: 138]
+            services = frappe.get_all("QMS Service", filters={"name": ["in", list(  # [cite: 138]
+                set(service_ids_waiting))]}, fields=["name", "service_name"])  # [cite: 138]
+            service_names_map_waiting = {  # [cite: 138]
+                s.name: s.service_name for s in services}  # [cite: 138]
+
+        # Форматуємо дані для waiting
+        for row in waiting_raw:  # [cite: 138]
+            # Скорочений номер талону
+            short_ticket_number = row.ticket_number.split(  # [cite: 138]
+                '-')[-1] if row.ticket_number and '-' in row.ticket_number else row.ticket_number  # [cite: 138]
+            waiting_tickets.append({  # [cite: 138]
+                "ticket": short_ticket_number or row.name,  # [cite: 138]
+                # [cite: 138]
+                "service": service_names_map_waiting.get(row.service, "Послуга не вказана")
+            })
+    except Exception as e:
+        frappe.log_error(  # [cite: 138]
+            f"Error fetching waiting tickets (ORM) for office {office}: {e}\n{frappe.get_traceback()}", "Display API ORM")  # [cite: 138]
+        waiting_tickets = [
+            {"ticket": "Error", "service": "ORM Error"}]  # [cite: 138]
+
+    # Логування перед поверненням (можна закоментувати після відладки)
+    # frappe.log_error(f"Formatted last_called data for display: {last_called}", "Display API Debug")
+
+    return {  # [cite: 138]
+        "last_called": last_called,  # [cite: 138]
+        "waiting": waiting_tickets  # [cite: 138]
+    }
+
+
+# ... (існуючий код в api.py) ...
+@frappe.whitelist(allow_guest=True)
+def get_kiosk_services(office: str):
+    """
+    Отримує список доступних для кіоску послуг для вказаного офісу,
+    згрупованих за категоріями та ВІДСОРТОВАНИХ згідно з порядком
+    у таблиці 'available_services' документа QMS Office.
+    Включає іконки для послуг.
+
+    :param office: ID офісу (QMS Office).
+    :return: Словник зі структурою {categories: [...], services_no_category: [...]}.
+    """
+    if not office or not frappe.db.exists("QMS Office", office):
+        return {"error": f"Офіс '{office}' не знайдений або не вказаний."}
+
+    assignments = frappe.get_all(
+        "QMS Office Service Assignment",
+        filters={"parent": office, "is_active_in_office": 1},
+        fields=["service"],
+        order_by="idx asc"
+    )
+    if not assignments:
+        return {"categories": [], "services_no_category": []}
+
+    ordered_service_ids = [a.service for a in assignments]
+    if not ordered_service_ids:
+        return {"categories": [], "services_no_category": []}
+
+    # --- ЗМІНА: Додаємо 'icon' до списку полів ---
+    services_details = frappe.get_all(
+        "QMS Service",
+        filters={
+            "name": ["in", ordered_service_ids],
+            "enabled": 1,
+            "live_queue_enabled": 1
+        },
+        fields=["name", "service_name", "category",
+                "icon"]  # <-- Додано 'icon'
+    )
+    # ----------------------------------------------
+
+    active_services_map = {s.name: s for s in services_details}
+
+    category_ids = list(
+        set(s.category for s in services_details if s.category))
+    categories_map = {}
+    if category_ids:
+        categories_data = frappe.get_all(
+            "QMS Service Category",
+            filters={"name": ["in", category_ids]},
+            fields=["name", "category_name", "display_order"],
+            order_by="display_order asc, category_name asc"
+        )
+        categories_map = {
+            cat.name: {"label": cat.category_name, "services": []}
+            for cat in categories_data
+        }
+
+    services_no_category_ordered = []
+    final_categories_map = {
+        cat_id: {"label": data["label"], "services": []}
+        for cat_id, data in categories_map.items()
+    }
+
+    for service_id in ordered_service_ids:
+        if service_id in active_services_map:
+            service_info = active_services_map[service_id]
+            # --- ЗМІНА: Додаємо іконку до даних послуги ---
+            service_data = {
+                "id": service_info.name,
+                "label": service_info.service_name,
+                "icon": service_info.icon  # <-- Передаємо іконку
+            }
+            # --------------------------------------------
+
+            if service_info.category and service_info.category in final_categories_map:
+                final_categories_map[service_info.category]["services"].append(
+                    service_data)
+            else:
+                services_no_category_ordered.append(service_data)
+
+    final_categories_list = []
+    if category_ids and categories_map:
+        sorted_cat_ids = [cat.name for cat in categories_data]
+        for cat_id in sorted_cat_ids:
+            if cat_id in final_categories_map and final_categories_map[cat_id]["services"]:
+                final_categories_list.append(final_categories_map[cat_id])
+
+    return {
+        "categories": final_categories_list,
+        "services_no_category": services_no_category_ordered
+    }

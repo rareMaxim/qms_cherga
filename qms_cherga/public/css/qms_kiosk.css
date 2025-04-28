@@ -1,0 +1,487 @@
+/* --- CSS Styles for QMS Kiosk --- */
+
+/* --- Basic settings --- */
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+html,
+body {
+    height: 100%;
+    font-family: 'Montserrat', sans-serif;
+    /* Use the connected font */
+    background-color: #f4f7f6;
+    /* Light background */
+    color: #333;
+    /* Prevent text selection on touch interfaces */
+    -webkit-user-select: none;
+    /* Safari */
+    -ms-user-select: none;
+    /* IE 10 and IE 11 */
+    user-select: none;
+    /* Standard syntax */
+}
+
+/* --- Main Container --- */
+#kiosk-container {
+    width: 100%;
+    height: 100vh;
+    /* Full screen height */
+    margin: 0 auto;
+    background-color: #fff;
+    display: flex;
+    flex-direction: column;
+    position: relative;
+    /* For positioning screens */
+    overflow: hidden;
+    /* Hide inactive screens */
+}
+
+/* --- Screen Styles --- */
+.screen {
+    position: absolute;
+    /* Absolute positioning for overlay */
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    padding: 30px;
+    opacity: 0;
+    /* Hide the screen */
+    visibility: hidden;
+    /* Completely hide */
+    transition: opacity 0.3s ease, visibility 0.3s ease;
+    /* Smooth transition */
+    background-color: #fff;
+    /* Screen background */
+}
+
+.screen.active {
+    opacity: 1;
+    /* Show the active screen */
+    visibility: visible;
+    z-index: 1;
+    /* Active screen on top */
+}
+
+/* Screen header */
+.screen-header {
+    text-align: center;
+    margin-bottom: 20px;
+    position: relative;
+    /* For the "Back" button */
+    padding-top: 10px;
+}
+
+.screen-header h1 {
+    font-size: 2.5em;
+    /* Large title */
+    color: #0056b3;
+    /* Brand color */
+    margin-bottom: 10px;
+}
+
+.screen-header h2 {
+    font-size: 1.8em;
+    color: #555;
+    font-weight: 500;
+}
+
+.logo {
+    max-width: 150px;
+    margin-bottom: 20px;
+}
+
+/* Main content area */
+.screen-content {
+    flex-grow: 1;
+    /* Takes up all available space */
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    width: 100%;
+    overflow-y: auto;
+    /* Enable vertical scrolling if content overflows */
+    padding-bottom: 20px;
+    /* Space at the bottom */
+}
+
+/* Back button */
+#back-button {
+    position: absolute;
+    top: 5px;
+    left: 0px;
+    font-size: 1.1em;
+    padding: 10px 20px;
+    background-color: transparent;
+    border: none;
+    color: #007bff;
+    font-weight: 500;
+}
+
+#back-button:hover {
+    text-decoration: underline;
+    background-color: transparent;
+    box-shadow: none;
+}
+
+#back-button:active {
+    transform: none;
+    box-shadow: none;
+}
+
+/* Search input field */
+#service-search-input {
+    width: 100%;
+    max-width: 650px;
+    padding: 15px 20px;
+    font-size: 1.1em;
+    border: 1px solid #ced4da;
+    border-radius: 8px;
+    margin-bottom: 20px;
+    font-family: inherit;
+}
+
+#service-search-input:focus {
+    outline: none;
+    border-color: #86b7fe;
+    box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.25);
+}
+
+/* --- Button Grid (for categories or services on main screen) --- */
+.button-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    /* Adjusted min width */
+    gap: 20px;
+    /* Adjusted gap */
+    width: 100%;
+    max-width: 1000px;
+    /* Adjusted max width */
+    padding: 20px 0;
+}
+
+/* Category groups (if used on main screen) */
+.category-group h3 {
+    font-size: 1.4em;
+    /* Adjusted font size */
+    color: #495057;
+    /* Adjusted color */
+    margin-top: 25px;
+    margin-bottom: 15px;
+    border-bottom: 1px solid #e9ecef;
+    /* Adjusted border color */
+    padding-bottom: 8px;
+}
+
+/* --- Styles for Service List and Buttons --- */
+#service-list {
+    width: 100%;
+    max-width: 650px;
+    /* Or other desired width */
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+    /* Space between buttons */
+}
+
+/* General styles for service buttons */
+#service-list button.service-button,
+.button-grid button.service-button
+
+/* Apply to grid buttons too if they are service buttons */
+    {
+    width: 100%;
+    border: 1px solid #dee2e6;
+    /* Clearer border */
+    border-radius: 8px;
+    /* Less rounded corners */
+    background-color: #ffffff;
+    /* White background */
+    color: #343a40;
+    /* Darker text */
+    cursor: pointer;
+    transition: background-color 0.2s ease, box-shadow 0.2s ease, transform 0.1s ease;
+    text-align: left;
+    /* Align text left by default */
+    overflow: hidden;
+    /* Clip content if it overflows */
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+    /* Light shadow */
+    /* Set padding to 0 because flexbox is used for internal content */
+    padding: 0;
+    font-size: 1.1em;
+    /* Slightly larger base font */
+    min-height: 70px;
+    /* Minimum button height */
+}
+
+/* Container for icon and text inside the button */
+.service-button .service-button-content {
+    display: flex;
+    /* !!! Enable Flexbox !!! */
+    align-items: center;
+    /* Align vertically */
+    gap: 15px;
+    /* Space between icon and text */
+    padding: 15px 20px;
+    /* Inner padding */
+    width: 100%;
+    height: 100%;
+}
+
+/* Styles for the icon/emoji container */
+.service-button .service-icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    /* Prevent icon container from shrinking */
+    width: 2em;
+    /* Fixed width for the icon container */
+    height: 2em;
+    /* Fixed height for the icon container */
+    font-size: 1.2em;
+    /* Size of the icon/emoji itself */
+    color: #0056b3;
+    /* Icon color (if FA) */
+    /* background-color: #e7f5ff; */
+    /* Optional light background for icon */
+    /* border-radius: 50%; */
+    /* Optional round background */
+}
+
+/* Styles for Font Awesome within the container */
+.service-button .service-icon i {
+    /* Font Awesome will generally size itself, can override if needed */
+}
+
+/* Styles for Emoji within the container */
+.service-button .emoji-icon {
+    line-height: 1;
+    /* Improves vertical centering of emoji */
+}
+
+/* Placeholder if no icon is present */
+.service-button .icon-placeholder {
+    /* Can be left empty or styled */
+    /* background-color: #f8f9fa; */
+    /* border-radius: 50%; */
+}
+
+/* Styles for the service text label */
+.service-button .service-label {
+    flex-grow: 1;
+    /* Takes up remaining space */
+    font-weight: 500;
+    /* Slightly bolder font */
+    line-height: 1.4;
+    /* Line height for wrapped text */
+}
+
+/* Hover and active effects */
+#service-list button.service-button:hover:not(.hidden),
+.button-grid button.service-button:hover:not(.hidden) {
+    background-color: #f8f9fa;
+    /* Background change on hover */
+    border-color: #ced4da;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.08);
+}
+
+#service-list button.service-button:active:not(.hidden),
+.button-grid button.service-button:active:not(.hidden) {
+    transform: scale(0.98);
+    /* Press effect */
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+}
+
+/* Hiding filtered service buttons */
+#service-list button.hidden {
+    opacity: 0;
+    height: 0;
+    padding-top: 0;
+    padding-bottom: 0;
+    margin-top: 0;
+    margin-bottom: 0;
+    border: none;
+    pointer-events: none;
+    overflow: hidden;
+}
+
+/* --- Ticket Screen --- */
+.ticket-info {
+    justify-content: center;
+    text-align: center;
+}
+
+#ticket-number {
+    font-size: 7em;
+    font-weight: 700;
+    color: #dc3545;
+    /* Red for emphasis */
+    margin: 20px 0;
+    line-height: 1;
+}
+
+#ticket-service-name {
+    font-weight: 500;
+    font-size: 1.1em;
+    color: #555;
+}
+
+.instruction {
+    font-size: 1.5em;
+    margin-top: 35px;
+    color: #28a745;
+    /* Green for positive instruction */
+    font-weight: 500;
+}
+
+.printer-icon {
+    font-size: 4.5em;
+    margin-top: 25px;
+    color: #6c757d;
+}
+
+/* --- Screen Footer --- */
+.screen-footer {
+    margin-top: auto;
+    /* Pushes footer to the bottom */
+    padding-top: 20px;
+    text-align: center;
+    font-size: 0.9em;
+    color: #6c757d;
+    border-top: 1px solid #eee;
+    /* Light separator line */
+    width: 100%;
+    /* Ensure footer spans width */
+}
+
+#timeout-counter {
+    font-weight: bold;
+}
+
+/* --- Loading/Error Indicators --- */
+.loading-indicator,
+.error-message {
+    text-align: center;
+    padding: 40px;
+    font-size: 1.2em;
+}
+
+.loading-indicator {
+    color: #007bff;
+}
+
+.error-message {
+    color: #dc3545;
+}
+
+
+/* --- Responsive Adjustments --- */
+@media (max-width: 768px) {
+
+    /* Adjusted breakpoint */
+    .screen {
+        padding: 25px;
+    }
+
+    /* Slightly more padding */
+    .screen-header h1 {
+        font-size: 2.2em;
+    }
+
+    .screen-header h2 {
+        font-size: 1.6em;
+    }
+
+    .button-grid {
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        /* Narrower columns */
+    }
+
+    #service-list button.service-button,
+    .button-grid button.service-button {
+        min-height: 65px;
+    }
+
+    .service-button .service-button-content {
+        padding: 12px 18px;
+    }
+
+    .service-button .service-icon {
+        width: 1.8em;
+        height: 1.8em;
+        font-size: 1.1em;
+    }
+
+    #ticket-number {
+        font-size: 6em;
+    }
+
+    .instruction {
+        font-size: 1.3em;
+    }
+}
+
+@media (max-width: 600px) {
+    .screen {
+        padding: 20px;
+    }
+
+    .screen-header h1 {
+        font-size: 2em;
+    }
+
+    .screen-header h2 {
+        font-size: 1.5em;
+    }
+
+    .button-grid {
+        grid-template-columns: 1fr;
+        /* Single column */
+        gap: 15px;
+    }
+
+    #service-list button.service-button,
+    .button-grid button.service-button {
+        font-size: 1em;
+        min-height: 60px;
+    }
+
+    .service-button .service-button-content {
+        padding: 10px 15px;
+        gap: 10px;
+    }
+
+    .service-button .service-icon {
+        width: 1.6em;
+        height: 1.6em;
+        font-size: 1em;
+    }
+
+    .service-button .emoji-icon {
+        font-size: 1.2em;
+    }
+
+    #ticket-number {
+        font-size: 5em;
+    }
+
+    .instruction {
+        font-size: 1.2em;
+    }
+
+    .printer-icon {
+        font-size: 3.5em;
+    }
+
+    #back-button {
+        top: 8px;
+        font-size: 1em;
+    }
+}

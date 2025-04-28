@@ -1,0 +1,436 @@
+/* Базові стилі та шрифти */
+html,
+body {
+    height: 100%;
+    /* Ensure body takes full height */
+    margin: 0;
+    padding: 0;
+}
+
+body {
+    font-family: 'Roboto', sans-serif;
+    background-color: #f0f2f5;
+    /* Світло-сірий фон */
+    padding: 10px 0;
+    /* Зменшено загальний відступ, прибрано бічний */
+    color: #333;
+    line-height: 1.5;
+    /* Трохи зменшено міжрядковий інтервал */
+    display: flex;
+    /* Use flex to center container vertically if needed */
+    justify-content: center;
+    align-items: flex-start;
+    /* Align container to top */
+}
+
+.container {
+    max-width: 1200px;
+    /* Або ширина вашого екрану */
+    width: 100%;
+    /* Take full width up to max-width */
+    margin: 0 auto;
+    background-color: #fff;
+    /* Білий фон для основного контейнера */
+    padding: 15px 0;
+    /* Зменшено внутрішній відступ контейнера, ПРИБРАНО БІЧНИЙ */
+    border-radius: 0;
+    /* Прибрано радіус, якщо контент йде до країв */
+    box-shadow: 0 1px 6px rgba(0, 0, 0, 0.1);
+    /* Менша тінь */
+    display: flex;
+    /* Use flexbox for layout */
+    flex-direction: column;
+    max-height: calc(100vh - 20px);
+    /* Limit container height to viewport minus padding */
+    box-sizing: border-box;
+    /* Include padding in height calculation */
+}
+
+h2,
+h3 {
+    font-family: 'Montserrat', sans-serif;
+    margin-top: 0;
+    color: #1a253c;
+    /* Темно-синій для заголовків */
+    margin-bottom: 10px;
+    /* Зменшено відступ під заголовками */
+    padding: 0 15px;
+    /* Додаємо відступ для заголовків, щоб текст не прилипав до країв */
+}
+
+ul {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+li {
+    padding: 0;
+    /* Reset padding for grid items */
+}
+
+.placeholder {
+    color: #999;
+    font-style: italic;
+    text-align: center;
+    padding: 15px;
+    /* Зменшено відступ */
+    font-size: 1em;
+    /* Зменшено шрифт */
+    grid-column: 1 / -1;
+    /* Make placeholder span all columns */
+}
+
+/* Блок часу та дати */
+#time-bar {
+    display: flex;
+    justify-content: space-between;
+    font-size: 0.9em;
+    /* Трохи менший шрифт */
+    color: #555;
+    padding: 0 15px 10px 15px;
+    /* Додаємо бічні відступи тут */
+    margin-bottom: 10px;
+    /* Зменшено відступ */
+    border-bottom: 1px solid #eee;
+    font-weight: 500;
+    flex-shrink: 0;
+    /* Prevent shrinking */
+}
+
+/* Верхній блок "Останні викликані" */
+#last-called-bar {
+    background-color: #0a2342;
+    /* Темно-синій фон */
+    color: #fff;
+    /* Білий текст */
+    padding: 15px;
+    /* Залишаємо внутрішній відступ */
+    text-align: center;
+    border-radius: 0;
+    /* Прибираємо радіус */
+    margin: 0 0 15px 0;
+    /* Прибираємо бічні відступи */
+    transition: background-color 0.3s ease;
+    /* Плавний перехід для анімації */
+    flex-shrink: 0;
+    /* Prevent shrinking */
+}
+
+#last-called-bar h2 {
+    color: #fff;
+    margin-bottom: 10px;
+    /* Зменшено відступ */
+    font-size: 1.3em;
+    /* Зменшено шрифт */
+    padding: 0;
+    /* Прибираємо зайвий відступ */
+}
+
+#last-calls-list {
+    display: flex;
+    justify-content: space-around;
+    /* Рівномірний розподіл */
+    flex-wrap: wrap;
+    /* Перенос на новий рядок при потребі */
+    gap: 10px;
+    /* Зменшено відступ між елементами */
+    font-size: 1.6em;
+    /* Зменшено шрифт */
+    font-weight: 700;
+}
+
+#last-calls-list .call-item {
+    background-color: rgba(255, 255, 255, 0.1);
+    /* Ледь помітний фон для кожного виклику */
+    padding: 8px 12px;
+    /* Зменшено відступ */
+    border-radius: 3px;
+    /* Менший радіус */
+    flex-basis: calc(33.333% - 7px);
+    /* Розмір для 3 елементів в рядку, враховуючи gap */
+    min-width: 140px;
+    /* Зменшено */
+    box-sizing: border-box;
+    text-align: center;
+}
+
+#last-calls-list .call-item .window-info {
+    font-size: 0.65em;
+    /* Зменшено шрифт */
+    font-weight: 400;
+    display: block;
+    /* Щоб був під номером */
+    margin-top: 3px;
+    /* Зменшено відступ */
+    opacity: 0.9;
+}
+
+#last-calls-list .call-item .time-info {
+    font-size: 0.45em;
+    /* Зменшено шрифт */
+    font-weight: 400;
+    display: block;
+    margin-top: 2px;
+    /* Зменшено відступ */
+    opacity: 0.7;
+}
+
+
+/* Анімація оновлення для верхнього блоку */
+#last-called-bar.updated {
+    background-color: #2ca5e0;
+    /* Яскраво-блакитний при оновленні */
+    animation: flash 0.5s ease;
+}
+
+@keyframes flash {
+    0% {
+        background-color: #2ca5e0;
+    }
+
+    100% {
+        background-color: #0a2342;
+    }
+
+    /* Повернення до основного кольору */
+}
+
+
+/* Розділювач */
+.separator {
+    border: none;
+    height: 1px;
+    background-color: #eee;
+    margin: 15px 0;
+    /* Зменшено відступи */
+    flex-shrink: 0;
+    /* Prevent shrinking */
+}
+
+/* Основний контент - плитка "Наступні очікуються" */
+#main-content {
+    display: flex;
+    /* Use flex to allow tile to grow */
+    flex-direction: column;
+    flex-grow: 1;
+    /* Allow this section to grow */
+    overflow: hidden;
+    /* Hide overflow if content exceeds container height */
+    padding: 0 15px;
+    /* Додаємо бічні відступи сюди, щоб сітка не прилипала */
+}
+
+.queue-tile {
+    padding: 15px 0;
+    /* Прибираємо бічний відступ, залишаємо верхній/нижній */
+    border-radius: 0;
+    /* Прибираємо радіус */
+    display: flex;
+    /* Use flex for internal layout */
+    flex-direction: column;
+    flex-grow: 1;
+    /* Allow tile to grow */
+    overflow: hidden;
+    /* Hide overflow within the tile */
+    background-color: #ffffff;
+    /* Білий фон */
+    border: none;
+    /* Прибираємо рамку плитки */
+    border-top: 1px solid #e0e0e0;
+    /* Можна додати верхню рамку для візуального розділення */
+}
+
+.queue-tile h2 {
+    font-size: 1.2em;
+    /* Зменшено шрифт */
+    margin-bottom: 10px;
+    /* Зменшено відступ */
+    border-bottom: 1px solid #eee;
+    padding-bottom: 8px;
+    /* Зменшено відступ */
+    flex-shrink: 0;
+    /* Prevent shrinking */
+    padding: 0;
+    /* Прибираємо зайвий відступ */
+}
+
+.tile-content {
+    flex-grow: 1;
+    /* Allow content area to grow */
+    overflow-y: auto;
+    /* ПОВЕРТАЄМО SCROLL! Це найкращий спосіб гарантувати, що всі елементи видно */
+    padding-right: 5px;
+    /* Невеликий відступ для скролбару, якщо він з'явиться */
+    margin-right: -5px;
+}
+
+.tile-content ul {
+    padding: 0;
+    /* Remove default padding */
+    /* --- Grid Layout --- */
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    /* Або фіксовані 4 колонки */
+    gap: 10px;
+    /* Зменшено Gap between grid items */
+    grid-auto-rows: minmax(min-content, max-content);
+}
+
+/* Стиль для плитки "Наступні очікуються" */
+/* #kiosk-next вже стилізовано через .queue-tile */
+
+#kiosk-next-list li {
+    font-weight: 500;
+    padding: 10px;
+    /* Зменшено Padding inside each grid cell */
+    border: 1px solid #f0f0f0;
+    /* Border for each cell */
+    border-radius: 3px;
+    /* Менший радіус */
+    display: flex;
+    /* Use flex for vertical alignment inside cell */
+    flex-direction: column;
+    /* Stack ticket and service vertically */
+    justify-content: center;
+    /* Center content vertically */
+    align-items: center;
+    /* Center content horizontally */
+    text-align: center;
+    /* Center text */
+    box-sizing: border-box;
+    overflow-wrap: break-word;
+    /* Break long words if needed */
+    word-break: break-word;
+    /* Ensure words break */
+}
+
+#kiosk-next-list .ticket-number {
+    font-size: 1.3em;
+    /* Зменшено шрифт */
+    font-weight: 700;
+    color: #1a253c;
+    /* Темно-синій */
+    display: block;
+    /* Ensure it takes its own line */
+    margin-bottom: 3px;
+    /* Зменшено Space below ticket number */
+}
+
+#kiosk-next-list .service-name {
+    font-size: 0.8em;
+    /* Зменшено шрифт */
+    color: #555;
+    line-height: 1.2;
+    /* Зменшено */
+    display: block;
+    /* Ensure it takes its own line */
+}
+
+
+/* Адаптивність */
+@media (max-width: 992px) {
+
+    /* Tablet */
+    .tile-content ul {
+        grid-template-columns: repeat(3, 1fr);
+        /* 3 columns */
+    }
+
+    #last-calls-list .call-item {
+        flex-basis: calc(50% - 5px);
+        /* 2 items per row, враховуючи gap */
+    }
+}
+
+@media (max-width: 768px) {
+
+    /* Mobile landscape / Large mobile */
+    .tile-content ul {
+        grid-template-columns: repeat(2, 1fr);
+        /* 2 columns */
+        gap: 8px;
+        /* Зменшено */
+    }
+
+    #last-calls-list {
+        font-size: 1.4em;
+        /* Зменшено */
+        flex-direction: column;
+        align-items: center;
+    }
+
+    #last-calls-list .call-item {
+        flex-basis: auto;
+        width: 90%;
+    }
+
+    #kiosk-next-list li {
+        padding: 8px;
+        /* Зменшено */
+    }
+
+    #kiosk-next-list .ticket-number {
+        font-size: 1.2em;
+        /* Зменшено */
+    }
+
+    #kiosk-next-list .service-name {
+        font-size: 0.75em;
+        /* Зменшено */
+    }
+
+    #main-content {
+        padding: 0 10px;
+        /* Зменшуємо бічні відступи на мобільних */
+    }
+
+    #time-bar {
+        padding: 0 10px 10px 10px;
+    }
+
+    h2 {
+        padding: 0 10px;
+    }
+}
+
+@media (max-width: 480px) {
+
+    /* Mobile portrait */
+    .tile-content ul {
+        grid-template-columns: repeat(1, 1fr);
+        /* 1 column */
+    }
+
+    #kiosk-next-list li {
+        flex-direction: row;
+        /* Back to row layout */
+        justify-content: space-between;
+        text-align: left;
+        align-items: center;
+        padding: 8px 10px;
+        /* Змінено */
+    }
+
+    #kiosk-next-list .service-name {
+        text-align: right;
+    }
+
+    #kiosk-next-list .ticket-number {
+        margin-bottom: 0;
+        /* Прибрати відступ */
+    }
+
+    #main-content {
+        padding: 0 5px;
+        /* Ще менші відступи */
+    }
+
+    #time-bar {
+        padding: 0 5px 10px 5px;
+    }
+
+    h2 {
+        padding: 0 5px;
+    }
+}
