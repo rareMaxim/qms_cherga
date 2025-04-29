@@ -358,14 +358,14 @@ def get_display_data(office: str, limit_called: int = 3, limit_waiting: int = 20
     # --- Отримуємо останні викликані/обслужені (ORM + сортування в Python) ---
     last_called = []  # [cite: 138]
     try:
-        called_statuses = ["Called", "Serving",
-                           "Completed", "NoShow", "Postponed"]  # [cite: 138]
+        called_statuses = ["Called"]  # [cite: 138]
         # Отримуємо більше записів, щоб потім відсортувати в Python
         potential_called = frappe.get_all(
             "QMS Ticket",
             filters={
                 "office": office,
-                "status": ["in", called_statuses]
+                "status": ["in", called_statuses],
+                "issue_time": ["Timespan", "today"],
             },
             fields=[
                 "name", "ticket_number", "status", "service", "service_point",
@@ -465,14 +465,16 @@ def get_display_data(office: str, limit_called: int = 3, limit_waiting: int = 20
     # --- Отримуємо наступних у черзі (ORM) ---
     waiting_tickets = []  # [cite: 138]
     try:
-        waiting_raw = frappe.get_list(  # [cite: 138]
+        waiting_raw = frappe.get_all(  # [cite: 138]
             "QMS Ticket",
             filters={
                 "office": office,
-                "status": "Waiting"
+                "status": "Waiting",
+                "issue_time": ["Timespan", "today"]
             },
             fields=["name", "ticket_number", "service"],
             order_by="priority desc, creation asc",  # [cite: 138]
+            ignore_permissions=True,  # [cite: 138]
             limit_page_length=limit_waiting  # Використовуємо ліміт [cite: 138]
         )
 
