@@ -355,6 +355,31 @@ def get_display_data(office: str, limit_called: int = 3, limit_waiting: int = 20
             f"Office ID '{office}' not found for get_display_data", "Display API ORM")  # [cite: 138]
         return {"error": f"Office '{office}' not found."}  # [cite: 138]
 
+    # Перевірка графіка роботи
+    office_doc = frappe.get_cached_doc("QMS Office", office)
+    schedule_name = office_doc.schedule or frappe.db.get_value(
+        "QMS Organization", office_doc.organization, "default_schedule"
+    )
+
+    office_is_open = False
+    closed_message = "Графік роботи не налаштовано."
+
+    if schedule_name:
+        office_is_open = is_office_open(schedule_name, office_doc.timezone)
+        if not office_is_open:
+            closed_message = f"Офіс '{office_doc.office_name}' наразі зачинено."
+    else:
+        closed_message = f"Для офісу '{office_doc.office_name}' не налаштовано графік роботи."
+        office_is_open = False
+
+    if not office_is_open:
+        return {
+            "office_status": "closed",  # Статус
+            "message": closed_message,  # Повідомлення
+            "last_called": [],
+            "waiting": []
+        }
+
     # --- Отримуємо останні викликані/обслужені (ORM + сортування в Python) ---
     last_called = []  # [cite: 138]
     try:
@@ -508,6 +533,7 @@ def get_display_data(office: str, limit_called: int = 3, limit_waiting: int = 20
     # frappe.log_error(f"Formatted last_called data for display: {last_called}", "Display API Debug")
 
     return {  # [cite: 138]
+        "office_status": "open",  # Додаємо статус
         "last_called": last_called,  # [cite: 138]
         "waiting": waiting_tickets  # [cite: 138]
     }
@@ -528,6 +554,34 @@ def get_kiosk_services(office: str):
     if not office or not frappe.db.exists("QMS Office", office):
         return {"error": f"Офіс '{office}' не знайдений або не вказаний."}
 
+    # Отримуємо дані офісу та перевіряємо графік
+    office_doc = frappe.get_cached_doc("QMS Office", office)
+    schedule_name = office_doc.schedule or frappe.db.get_value(
+        "QMS Organization", office_doc.organization, "default_schedule"
+    )
+
+    office_is_open = False
+    closed_message = "Графік роботи не налаштовано."  # Повідомлення за замовчуванням
+
+    if schedule_name:
+        # ВАЖЛИВО: is_office_open використовує СИСТЕМНИЙ ЧАС сервера.
+        # Переконайтесь, що він збігається з часом офісу, або покращіть is_office_open.
+        office_is_open = is_office_open(schedule_name, office_doc.timezone)
+        if not office_is_open:
+            # TODO: Можна додати логіку отримання годин роботи з графіка для повідомлення
+            closed_message = f"Офіс '{office_doc.office_name}' наразі зачинено згідно з графіком роботи."
+    else:
+        # Якщо графік не вказано, вважаємо зачиненим або видаємо помилку конфігурації
+        closed_message = f"Для офісу '{office_doc.office_name}' не налаштовано графік роботи."
+        office_is_open = False  # Явно вказуємо, що зачинено без графіка
+
+    if not office_is_open:
+        return {
+            "status": "closed",
+            "message": closed_message,
+            "categories": [],  # Повертаємо порожні списки
+            "services_no_category": []
+        }
     assignments = frappe.get_all(
         "QMS Office Service Assignment",
         filters={"parent": office, "is_active_in_office": 1},

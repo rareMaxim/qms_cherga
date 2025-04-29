@@ -185,7 +185,10 @@ document.addEventListener('DOMContentLoaded', () => {
             console.warn("fetchData called but officeId is not set. Skipping.");
             return;
         }
-        // console.log(`Workspaceing data for office: ${officeId}...`); // Можна закоментувати для чистоти логів
+        const overlayElement = document.getElementById('office-closed-overlay');
+        const mainContentElement = document.getElementById('main-content'); // Можливо, сховати і його
+        const lastCalledBarElement = document.getElementById('last-called-bar'); // І його теж
+
         try {
             const url = new URL(API_ENDPOINT, window.location.origin);
             url.searchParams.append('office', officeId);
@@ -193,40 +196,86 @@ document.addEventListener('DOMContentLoaded', () => {
             url.searchParams.append('limit_waiting', WAITING_LIMIT);
 
             const response = await fetch(url);
-
             if (!response.ok) {
                 console.error(`API Error: ${response.status} ${response.statusText}`);
-                updateLastCalled([{ ticket: "API Error", window: response.status, time: "" }]);
-                updateKioskNext([{ ticket: "API Error", service: response.statusText }]);
+                // Показуємо оверлей з помилкою
+                if (overlayElement) {
+                    overlayElement.querySelector('span').textContent = `Помилка ${response.status}: Не вдалося завантажити дані.`;
+                    overlayElement.style.display = 'flex'; // Показати оверлей
+                }
+                // Ховаємо основний контент
+                if (mainContentElement) mainContentElement.style.visibility = 'hidden';
+                if (lastCalledBarElement) lastCalledBarElement.style.visibility = 'hidden';
                 return;
             }
 
             const data = await response.json();
 
-            if (data.error) {
-                console.error(`API returned error: ${data.error}`);
-                updateLastCalled([{ ticket: "API Error", window: "Config?", time: "" }]);
-                updateKioskNext([{ ticket: "API Error", service: data.error }]);
-            } else if (data.message) {
+            if (data.message) {
                 const displayData = data.message;
-                // console.log("Data received:", displayData); // Можна закоментувати
-                updateLastCalled(displayData.last_called || []); // Ця функція тепер відтворює звук при потребі
-                updateKioskNext(displayData.waiting || []);
+                console.log("Data received:", displayData);
+
+                // Перевіряємо статус офісу
+                if (displayData.office_status === "closed") {
+                    console.log("Office is closed:", displayData.message);
+                    if (overlayElement) {
+                        overlayElement.querySelector('span').textContent = displayData.message || "Електронна черга наразі не працює.";
+                        overlayElement.style.display = 'flex'; // Показати оверлей
+                    }
+                    // Ховаємо основний контент
+                    if (mainContentElement) mainContentElement.style.visibility = 'hidden';
+                    if (lastCalledBarElement) lastCalledBarElement.style.visibility = 'hidden';
+                    // Очистити списки не обов'язково, бо вони приховані
+                    updateLastCalled([]); // Очистка для консистентності
+                    updateKioskNext([]); // Очистка для консистентності
+
+                } else if (displayData.office_status === "open") {
+                    console.log("Office is open.");
+                    if (overlayElement) {
+                        overlayElement.style.display = 'none'; // Сховати оверлей
+                    }
+                    // Показуємо основний контент
+                    if (mainContentElement) mainContentElement.style.visibility = 'visible';
+                    if (lastCalledBarElement) lastCalledBarElement.style.visibility = 'visible';
+                    // Оновлюємо дані як зазвичай
+                    updateLastCalled(displayData.last_called || []);
+                    updateKioskNext(displayData.waiting || []);
+                } else {
+                    // Невідомий статус або помилка з бекенду
+                    console.error("Unknown office_status or error from API:", displayData);
+                    if (overlayElement) {
+                        overlayElement.querySelector('span').textContent = displayData.message || "Помилка: Не вдалося визначити статус черги.";
+                        overlayElement.style.display = 'flex';
+                    }
+                    if (mainContentElement) mainContentElement.style.visibility = 'hidden';
+                    if (lastCalledBarElement) lastCalledBarElement.style.visibility = 'hidden';
+                }
             } else {
+                // Неочікуваний формат відповіді (немає message)
                 console.error("Unexpected API response format:", data);
-                updateLastCalled([{ ticket: "API Format Error", window: "", time: "" }]);
-                updateKioskNext([{ ticket: "API Format Error", service: "" }]);
+                if (overlayElement) {
+                    overlayElement.querySelector('span').textContent = "Помилка: Неочікувана відповідь сервера.";
+                    overlayElement.style.display = 'flex';
+                }
+                if (mainContentElement) mainContentElement.style.visibility = 'hidden';
+                if (lastCalledBarElement) lastCalledBarElement.style.visibility = 'hidden';
             }
 
         } catch (error) {
             console.error("Error fetching display data:", error);
-            // Уникаємо очищення previousCallItemsSet при помилці мережі,
-            // щоб не спрацював звук при відновленні з'єднання з тими ж даними
-            // updateLastCalled([{ ticket: "Network Error", window: "", time: "" }]);
-            // updateKioskNext([{ ticket: "Network Error", service: "" }]);
-            // Просто логуємо помилку, стан на екрані не змінюємо або показуємо індикатор помилки
-            console.warn("Network error during fetch. Display not updated.");
+            // Показуємо оверлей з помилкою зв'язку
+            if (overlayElement) {
+                overlayElement.querySelector('span').textContent = "Помилка зв'язку з сервером.";
+                overlayElement.style.display = 'flex'; // Показати оверлей
+            }
+            // Ховаємо основний контент
+            if (mainContentElement) mainContentElement.style.visibility = 'hidden';
+            if (lastCalledBarElement) lastCalledBarElement.style.visibility = 'hidden';
+            // Очищення даних тут не обов'язкове, але можна зробити
+            updateLastCalled([]);
+            updateKioskNext([]);
         }
+
     }
     // ------------------------------------
 

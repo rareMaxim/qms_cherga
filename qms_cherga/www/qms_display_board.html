@@ -28,7 +28,22 @@
         </section>
 
         <hr class="separator">
-
+        <div id="office-closed-overlay" style="display: none; /* Початково приховано */
+                                                position: absolute; /* Або fixed, якщо треба покрити весь екран */
+                                                top: 0; left: 0; right: 0; bottom: 0; /* Покрити весь контейнер */
+                                                background-color: rgba(50, 50, 50, 0.85); /* Напівпрозорий темний фон */
+                                                color: white;
+                                                display: flex; /* Для центрування тексту */
+                                                justify-content: center;
+                                                align-items: center;
+                                                text-align: center;
+                                                padding: 20px;
+                                                font-size: 1.8em; /* Розмір тексту */
+                                                z-index: 10; /* Щоб був поверх іншого контенту */
+                                                border-radius: 8px; /* Якщо контейнер має радіус */
+                                                ">
+            <span>Електронна черга наразі не працює.<br> Будь ласка, перевірте графік роботи.</span>
+        </div>
         <main id="main-content">
             <section id="kiosk-next" class="queue-tile">
                 <h2>НАСТУПНІ ОЧІКУЮТЬСЯ (Жива черга)</h2>

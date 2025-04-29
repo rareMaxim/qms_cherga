@@ -132,56 +132,9 @@ document.addEventListener('DOMContentLoaded', () => {
             });
         } else {
             console.warn("frappe.call not available. Using fetch.");
-            const apiUrl = "/api/method/qms_cherga.api.create_live_queue_ticket";
-            const fetchOptions = {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Accept': 'application/json'
-                },
-                body: JSON.stringify({
-                    service: serviceId,
-                    office: officeId // Використовуємо змінну officeId
-                })
-            };
-
-            if (typeof frappe !== 'undefined' && frappe.csrf_token) {
-                fetchOptions.headers['X-Frappe-CSRF-Token'] = frappe.csrf_token;
-                console.log("CSRF token found and added to headers.");
-            } else {
-                console.log("CSRF token not found (frappe object or token missing).");
-            }
-
-            fetch(apiUrl, fetchOptions)
-                .then(response => {
-                    if (!response.ok) {
-                        return response.text().then(text => {
-                            throw new Error(`HTTP error ${response.status} (${response.statusText}): ${text || 'No details'}`);
-                        });
-                    }
-                    return response.json();
-                })
-                .then(data => {
-                    if (data.message && data.message.status === "success") {
-                        ticketNumberDisplay.textContent = data.message.ticket_number;
-                        ticketServiceNameDisplay.textContent = serviceName;
-                        showScreen('ticket-screen');
-                        startTicketTimeout();
-                    } else {
-                        console.error("Error creating ticket (API response):", data.message || data);
-                        alert("Помилка створення талону: " + (data.message ? data.message.message : "Неочікувана відповідь сервера."));
-                        showScreen('main-screen');
-                    }
-                })
-                .catch(error => {
-                    console.error('Fetch error during ticket creation:', error);
-                    alert(`Помилка зв'язку з сервером (${error.message || 'Fetch failed'}). Спробуйте пізніше.`);
-                    showScreen('main-screen');
-                });
         }
     }
 
-    // --- Функції для відображення послуг (без змін) ---
     // --- Функції для відображення послуг ---
     function renderServices(container, services) {
         container.innerHTML = ''; // Очищуємо контейнер
@@ -292,6 +245,7 @@ document.addEventListener('DOMContentLoaded', () => {
         mainServiceContainer.innerHTML = '<div class="loading-indicator">Завантаження послуг...</div>';
 
         if (typeof frappe !== 'undefined' && frappe.call) {
+            console.info("Using frappe.call to load services.");
             frappe.call({
                 method: "qms_cherga.api.get_kiosk_services",
                 args: { office: officeId }, // Використовуємо змінну officeId
@@ -312,27 +266,6 @@ document.addEventListener('DOMContentLoaded', () => {
             });
         } else {
             console.warn("frappe.call not available. Using fetch to load services.");
-            // Використовуємо змінну officeId
-            const apiUrl = `/api/method/qms_cherga.api.get_kiosk_services?office=${encodeURIComponent(officeId)}`;
-            fetch(apiUrl)
-                .then(response => {
-                    if (!response.ok) { throw new Error(`HTTP error! status: ${response.status}`); }
-                    return response.json();
-                })
-                .then(data => {
-                    if (data.message && !data.message.error) {
-                        console.log("Services loaded (fetch):", data.message);
-                        allServicesData = data.message;
-                        renderMainScreen(allServicesData);
-                    } else {
-                        console.error("Error loading services (fetch):", data.message);
-                        mainServiceContainer.innerHTML = `<div class="error-message">Помилка завантаження послуг: ${data.message ? data.message.error : 'Невідома помилка'}</div>`;
-                    }
-                })
-                .catch(error => {
-                    console.error('Fetch error loading services:', error);
-                    mainServiceContainer.innerHTML = `<div class="error-message">Помилка зв'язку з сервером при завантаженні послуг (fetch).</div>`;
-                });
         }
     }
 

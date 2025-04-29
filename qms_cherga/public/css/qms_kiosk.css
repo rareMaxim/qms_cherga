@@ -1,4 +1,20 @@
 /* --- CSS Styles for QMS Kiosk --- */
+/* Hide Frappe header, footer, navbar */
+.navbar,
+.web-footer,
+.page-head,
+.main-section .container,
+.header,
+.footer {
+    display: none !important;
+}
+
+.container.page-body {
+    margin: 0;
+    padding: 0;
+    width: 100%;
+    max-width: none;
+}
 
 /* --- Basic settings --- */
 * {
@@ -9,10 +25,10 @@
 
 html,
 body {
-    height: 100%;
+    width: 100%;
     font-family: 'Montserrat', sans-serif;
     /* Use the connected font */
-    background-color: #f4f7f6;
+    /* background-color: #f4f7f6; */
     /* Light background */
     color: #333;
     /* Prevent text selection on touch interfaces */
@@ -22,6 +38,14 @@ body {
     /* IE 10 and IE 11 */
     user-select: none;
     /* Standard syntax */
+
+    background-color: var(--background-color);
+    margin: 0;
+    padding: 0;
+    /* display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh; */
 }
 
 /* --- Main Container --- */
@@ -29,7 +53,7 @@ body {
     width: 100%;
     height: 100vh;
     /* Full screen height */
-    margin: 0 auto;
+    margin: 0 0;
     background-color: #fff;
     display: flex;
     flex-direction: column;
