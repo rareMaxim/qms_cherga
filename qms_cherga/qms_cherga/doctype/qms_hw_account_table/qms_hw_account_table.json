@@ -1,0 +1,48 @@
+{
+ "actions": [],
+ "allow_rename": 1,
+ "creation": "2025-04-30 13:14:12.047672",
+ "doctype": "DocType",
+ "editable_grid": 1,
+ "engine": "InnoDB",
+ "field_order": [
+  "login",
+  "password",
+  "type"
+ ],
+ "fields": [
+  {
+   "fieldname": "login",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Login",
+   "reqd": 1
+  },
+  {
+   "fieldname": "password",
+   "fieldtype": "Password",
+   "in_standard_filter": 1,
+   "label": "Password"
+  },
+  {
+   "fieldname": "type",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Type"
+  }
+ ],
+ "grid_page_length": 50,
+ "index_web_pages_for_search": 1,
+ "istable": 1,
+ "links": [],
+ "modified": "2025-04-30 13:38:35.437384",
+ "modified_by": "Administrator",
+ "module": "Qms Cherga",
+ "name": "QMS HW Account Table",
+ "owner": "Administrator",
+ "permissions": [],
+ "row_format": "Dynamic",
+ "sort_field": "creation",
+ "sort_order": "DESC",
+ "states": []
+}
