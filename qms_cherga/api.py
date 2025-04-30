@@ -11,11 +11,14 @@ import frappe
 # часові пояси, винятки (QMS Schedule Exception Child) та може бути складнішою.
 
 
-def is_office_open(schedule_name: str, timezone: str):  # timezone тут ігнорується!
+def is_office_open(schedule_name: str, timezone: str):
     """
-    Перевіряє, чи відкритий офіс зараз згідно з графіком, враховуючи винятки.
+    Перевіряє, чи відкритий офіс зараз згідно з графіком, враховуючи винятки
+    та можливість кількох робочих інтервалів на день.
     УВАГА: Ця версія ІГНОРУЄ параметр 'timezone' і використовує СИСТЕМНИЙ ЧАС сервера Frappe.
     Працюватиме коректно тільки якщо часова зона офісу = системна зона сервера.
+    Для коректної роботи з часовими поясами потрібна бібліотека pytz або zoneinfo
+    та конвертація now_datetime() у часову зону офісу перед порівняннями.
     """
     if not schedule_name:
         frappe.log_error("Schedule name not provided.", "Schedule Check Info")
@@ -25,45 +28,96 @@ def is_office_open(schedule_name: str, timezone: str):  # timezone тут ігн
         # --- Отримання поточного часу та дати в СИСТЕМНІЙ зоні Frappe ---
         now_system_dt = now_datetime()  # Це вже об'єкт datetime в системній зоні
         current_date_str = now_system_dt.strftime('%Y-%m-%d')
+        # День тижня англійською (Monday, Tuesday, ...)
         current_day_name = now_system_dt.strftime('%A')
-        current_time_obj = get_time(now_system_dt.strftime('%H:%M:%S'))
+        current_time_obj = get_time(now_system_dt.strftime(
+            '%H:%M:%S'))  # Об'єкт time для порівняння
 
         # Попередження, якщо зона офісу не співпадає з системною (опціонально)
         system_tz = frappe.utils.get_system_timezone()
         if timezone and timezone != system_tz:
+            # Це попередження, а не помилка. Логіка продовжиться з системним часом.
             frappe.log_error(
-                f"Schedule check for office timezone '{timezone}' is using system time '{system_tz}' instead.", "Schedule Check Warning")
+                title="Schedule Check Warning",
+                message=f"Schedule check for office timezone '{timezone}' is using system time '{system_tz}' instead.",
 
-        # --- Перевірка Винятків (логіка без змін, але порівняння з системним часом) ---
-        exception = frappe.db.get_value(
+            )
+            # TODO: В майбутньому реалізувати конвертацію часу в timezone офісу
+            # try:
+            #     office_tz = ZoneInfo(timezone)
+            #     now_office_dt = now_datetime().astimezone(office_tz)
+            #     current_date_str = now_office_dt.strftime('%Y-%m-%d')
+            #     current_day_name = now_office_dt.strftime('%A')
+            #     current_time_obj = get_time(now_office_dt.strftime('%H:%M:%S'))
+            # except ZoneInfoNotFoundError:
+            #     frappe.log_error(f"Timezone '{timezone}' not found. Falling back to system time.", "Schedule Check Error")
+            #     # Залишаємо системний час
+
+        # --- Перевірка Винятків ---
+        # Отримуємо ВСІ винятки на поточну дату
+        exceptions = frappe.get_all(
             "QMS Schedule Exception Child",
             filters={"parenttype": "QMS Schedule",
-                     "parent": schedule_name, "exception_date": current_date_str},
-            fieldname=["is_workday", "start_time", "end_time"], as_dict=True
+                     "parent": schedule_name,
+                     "exception_date": current_date_str},
+            fields=["is_workday", "start_time", "end_time"],
+            # Зазвичай виняток один на день, але отримуємо всі про всяк випадок
         )
-        if exception:
-            if not exception.is_workday:
+
+        if exceptions:
+            # Перевіряємо, чи є хоч один запис, що явно вказує на неробочий день
+            is_explicitly_non_workday = any(
+                not exc.is_workday for exc in exceptions)
+            if is_explicitly_non_workday:
+                # Якщо знайдено запис 'is_workday = 0', то день точно неробочий
                 return False
-            if exception.start_time and exception.end_time:
-                # Порівнюємо системний час з часом винятку
-                return get_time(exception.start_time) <= current_time_obj < get_time(exception.end_time)
+
+            # Якщо не було явного 'неробочий', перевіряємо робочі інтервали з винятків
+            found_working_interval_in_exception = False
+            for exception in exceptions:
+                # Перевіряємо тільки ті записи, де is_workday=1 і є час
+                if exception.is_workday and exception.start_time and exception.end_time:
+                    start_time_exc = get_time(exception.start_time)
+                    end_time_exc = get_time(exception.end_time)
+                    if start_time_exc <= current_time_obj < end_time_exc:
+                        # Знайшли відповідний робочий інтервал у винятках
+                        return True  # Офіс відкритий згідно з винятком
+
+            # Якщо пройшли всі записи винятків і не знайшли відповідного робочого інтервалу
+            # (але день був позначений як робочий виняток без часу, або час не підійшов)
+            # В цьому випадку вважаємо, що офіс зачинений, бо виняток має пріоритет
             return False
 
-        # --- Перевірка стандартних правил (логіка без змін, але порівняння з системним часом) ---
-        rules = frappe.get_all("QMS Schedule Rule Child",
-                               filters={"parent": schedule_name,
-                                        "parenttype": "QMS Schedule"},
-                               fields=["day_of_week", "start_time", "end_time"])
-        rules_dict = {rule.day_of_week: rule for rule in rules}
-        if current_day_name in rules_dict:
-            rule = rules_dict[current_day_name]
-            # Порівнюємо системний час з часом правила
-            return get_time(rule.start_time) <= current_time_obj < get_time(rule.end_time)
+        # --- Якщо винятків на сьогодні немає, перевіряємо стандартні правила ---
+        # Отримуємо ВСІ правила для поточного дня тижня
+        all_rules = frappe.get_all("QMS Schedule Rule Child",
+                                   filters={"parent": schedule_name,
+                                            "parenttype": "QMS Schedule",
+                                            "day_of_week": current_day_name},  # Фільтруємо одразу за днем
+                                   fields=["start_time", "end_time"])
+
+        if not all_rules:  # Якщо на цей день тижня взагалі немає правил
+            return False
+
+        # Перевіряємо кожен робочий інтервал (правило) для цього дня
+        for rule in all_rules:
+            if rule.start_time and rule.end_time:  # Додаткова перевірка на наявність часу
+                start_time_rule = get_time(rule.start_time)
+                end_time_rule = get_time(rule.end_time)
+                if start_time_rule <= current_time_obj < end_time_rule:
+                    # Знайшли відповідний робочий інтервал у правилах
+                    return True  # Офіс відкритий
+
+        # Якщо пройшли всі правила для цього дня і жоден інтервал не підійшов
         return False
 
     except Exception as e:
+        # Логування помилки для діагностики
         frappe.log_error(
-            f"Error checking schedule '{schedule_name}' (system time) for timezone '{timezone}': {e}", "Schedule Check Error")
+            f"Error checking schedule '{schedule_name}' (system time used) for timezone '{timezone}': {e}\n{frappe.get_traceback()}",
+            "Schedule Check Error"
+        )
+        # У разі будь-якої помилки безпечніше вважати, що офіс зачинений
         return False
 
 

@@ -25,6 +25,7 @@
    "fieldtype": "Data",
    "in_list_view": 1,
    "label": "Office Name",
+   "length": 280,
    "reqd": 1
   },
   {
@@ -111,7 +112,7 @@
    "link_fieldname": "office"
   }
  ],
- "modified": "2025-04-27 14:47:10.497573",
+ "modified": "2025-04-30 10:45:05.498658",
  "modified_by": "Administrator",
  "module": "Qms Cherga",
  "name": "QMS Office",

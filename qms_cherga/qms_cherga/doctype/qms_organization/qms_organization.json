@@ -21,6 +21,7 @@
    "fieldtype": "Data",
    "in_list_view": 1,
    "label": "Organization Name",
+   "length": 280,
    "reqd": 1
   },
   {
@@ -61,7 +62,7 @@
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-04-27 14:47:22.670971",
+ "modified": "2025-04-30 10:45:17.296765",
  "modified_by": "Administrator",
  "module": "Qms Cherga",
  "name": "QMS Organization",
