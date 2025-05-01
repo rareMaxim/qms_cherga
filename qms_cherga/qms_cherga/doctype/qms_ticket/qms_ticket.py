@@ -1,102 +1,148 @@
-# Copyright (c) 2025, Maxym Sysoiev and contributors
-# For license information, please see license.txt
+# qms_ticket.py
 
-import time  # Для невеликої затримки при повторі
-from frappe.utils import today, cint, now_datetime, get_date_str
 import time
 import frappe
 from frappe.model.document import Document
-from frappe.utils import today, cint  # cint for safe integer conversion
+from frappe.utils import today, cint, get_date_str
 
 
 class QMSTicket(Document):
-    def before_insert(self):
-        # Встановлюємо номер талону перед першим збереженням
-        # Перевіряємо, можливо він вже встановлений (малоймовірно)
-        if not self.ticket_number:
-            next_num = self.get_next_ticket_sequence()
-            print(f"Next ticket number: {next_num}")
-            # Записуємо тільки номер послідовності
-            self.ticket_number = str(next_num).zfill(4)
 
+    # --- Налаштування DocType ---
+    # У визначенні DocType 'QMS Ticket' (через UI або qms_ticket.json):
+    # 1. Встановіть властивість 'Autoname' на 'method'.
+    #    (Або 'python:autoname', якщо ви хочете вказати ім'я методу явно).
+    # 2. Приберіть інші правила Autoname ('naming_series', 'prompt', 'field:...' тощо).
 
-class QMSTicket(Document):
-    # Переконайтесь, що методу autoname(self) НЕМАЄ
-
-    def before_insert(self):
-        # Встановлюємо номер талону перед першим збереженням
-        if not self.ticket_number:  # Перевірка, чи поле ще не заповнене
-            next_num = self.get_next_ticket_sequence_orm()  # Викликаємо ORM версію
-            self.ticket_number = str(next_num).zfill(4)
-
-    def get_next_ticket_sequence_orm(self):
+    def autoname(self):
         """
-        Отримує наступний номер послідовності з QMS Daily Counter,
-        використовуючи Frappe ORM та цикл повторних спроб.
-        УВАГА: Менш надійно при високому навантаженні, ніж SQL FOR UPDATE.
+        Цей метод автоматично викликається Frappe для встановлення
+        первинного ключа документа (self.name), якщо Autoname='method'.
+        Він виконується *перед* before_insert.
         """
+        # 1. Перевірка наявності офісу
         if not self.office:
             frappe.throw(
-                "Office is required to generate Ticket Number Sequence")
+                "Необхідно вказати 'Office' для генерації імені талону")
 
-        current_date_str = today()
+        # 2. Отримання поточної дати
+        current_date_str = today()  # Формат: YYYY-MM-DD
+
+        # 3. Отримання наступного номера послідовності
+        try:
+            # Передаємо дату для консистентності
+            next_num = self.get_next_ticket_sequence_orm(current_date_str)
+        except Exception as e:
+            # Логуємо помилку і перериваємо процес, якщо лічильник недоступний
+            frappe.log_error(frappe.get_traceback(),
+                             "QMSTicket Autoname Counter Fetch Error")
+            frappe.throw(
+                f"Не вдалося отримати лічильник для автоматичного іменування: {e}")
+
+        # 4. Форматування лічильника (наприклад, 4 цифри)
+        counter_str = str(next_num).zfill(4)
+
+        # 5. Форматування дати (наприклад, YYYYMMDD)
+        date_str_formatted = current_date_str.replace("-", "")
+
+        # 6. Отримання абревіатури (ABBR) з поля 'office'
+        abbr = self.office
+
+        # 7. Створення фінального імені: TIKET-OFFICE ABBR-Date-COunter
+        # Налаштуйте префікс та роздільники відповідно до ваших вимог
+        generated_name = f"TIKET-{abbr}-{date_str_formatted}-{counter_str}"
+
+        # 8. Присвоєння згенерованого імені полю self.name
+        self.name = generated_name
+
+        # --- Опціонально: Встановлення поля ticket_number ---
+        # Якщо ви хочете, щоб поле ticket_number також встановлювалось тут
+        # (це може бути логічніше, ніж у before_insert)
+        if not self.ticket_number:
+            self.ticket_number = counter_str
+            # Або якщо потрібне числове значення:
+            # self.ticket_number = next_num
+
+    def before_insert(self):
+        # Метод autoname вже встановив self.name.
+        # Цей метод тепер можна використовувати для іншої логіки,
+        # яка має виконатися після autoname, але перед першим збереженням.
+        # Наприклад, валідації, встановлення інших полів тощо.
+
+        # Якщо ви НЕ встановили self.ticket_number у методі autoname,
+        # це можна зробити тут, хоча це менш чисто.
+        # Наприклад, витягнувши лічильник з self.name (але краще встановити в autoname).
+        #
+        # if not self.ticket_number and self.name:
+        #     try:
+        #         self.ticket_number = self.name.split('-')[-1]
+        #     except Exception:
+        #         pass # Обробка помилки, якщо формат імені несподіваний
+
+        # Наразі метод може бути порожнім, якщо інша логіка не потрібна
+        pass
+
+    # Метод get_next_ticket_sequence_orm залишається без змін (як у попередньому варіанті)
+    def get_next_ticket_sequence_orm(self, current_date_str):
+        """
+        Отримує наступний номер послідовності з 'QMS Daily Counter'.
+        (Код ідентичний попередньому)
+        """
+        if not self.office:
+            frappe.throw("Не вказано 'Office' для генерації послідовності")
+
         counter_doc_name = f"{self.office}-{current_date_str}"
         new_number = 0
-        max_attempts = 5  # Максимальна кількість спроб
+        max_attempts = 5  # Кількість спроб
 
         for attempt in range(max_attempts):
             counter_doc = None
             try:
-                if frappe.db.exists("QMS Daily Counter", counter_doc_name, debug=True):
-                    print(f"Counter {counter_doc_name} exists.")
-                    # Завантажуємо існуючий лічильник
+                # Use exists for check
+                if frappe.db.exists("QMS Daily Counter", counter_doc_name):
+                    # Use get_doc for loading
                     counter_doc = frappe.get_doc(
                         "QMS Daily Counter", counter_doc_name)
-                    # Перечитуємо з бази, щоб отримати найсвіжіше значення
-                    # (хоча це не гарантує відсутності змін між load і save)
+                    # Re-read from DB before incrementing
                     counter_doc.load_from_db()
-                    new_number = counter_doc.last_number + 1
+                    new_number = cint(counter_doc.last_number) + 1  # Use cint
                     counter_doc.last_number = new_number
-                    # Логування (можна прибрати пізніше)
-                    # frappe.log_error(
-                    #     f"Attempt {attempt+1}: Updating counter {counter_doc_name} from {new_number-1} to {new_number}", "QMSTicket ORM Counter")
-
                 else:
-                    # Створюємо новий лічильник
-                    print(
-                        f"Counter {counter_doc_name} does not exist. Creating new.")
+                    # Create new counter document
                     new_number = 1
                     counter_doc = frappe.new_doc("QMS Daily Counter")
-                    counter_doc.name = counter_doc_name
+                    counter_doc.name = counter_doc_name  # Set name explicitly
                     counter_doc.office = self.office
                     counter_doc.date = current_date_str
                     counter_doc.last_number = new_number
-                    # Логування (можна прибрати пізніше)
-                    frappe.log_error(
-                        f"Attempt {attempt+1}: Creating counter {counter_doc_name} with value {new_number}", "QMSTicket ORM Counter")
 
-                # Зберігаємо лічильник
+                # Save the counter doc
                 counter_doc.flags.ignore_permissions = True
-                counter_doc.save()  # Тут може виникнути DuplicateEntryError при створенні
+                counter_doc.save(ignore_version=True)
+                frappe.db.commit()  # Commit immediately
 
-                # Якщо збереження пройшло успішно, повертаємо номер
+                # If save successful, return the number
                 return new_number
 
             except frappe.DuplicateEntryError:
-                # Колізія при створенні лічильника (insert). Інший процес встиг.
-                # Просто переходимо до наступної спроби, яка має завантажити вже створений документ.
+                frappe.db.rollback()
                 frappe.log_warning(
                     f"Attempt {attempt + 1}: Duplicate entry error for {counter_doc_name}. Retrying.", "QMSTicket ORM Counter")
+
             except Exception as e:
-                # Інша помилка
+                frappe.db.rollback()
                 frappe.log_error(frappe.get_traceback(
-                ), f"QMS Ticket Autoname Counter Error (ORM Attempt {attempt + 1})")
-                frappe.throw(
-                    "Не вдалося згенерувати номер талону через помилку лічильника.")
+                ), f"QMS Ticket Counter Error (ORM Attempt {attempt + 1})")
+                # Перекидаємо помилку, щоб її зловили у методі autoname
+                raise frappe._(
+                    "Не вдалося оновити лічильник талонів: {0}").format(e)
 
-            # Невелика затримка перед наступною спробою
-            time.sleep(0.1 * (attempt + 1))
+            # Wait before retrying
+            time.sleep(0.1 + (0.1 * attempt))  # Progressive delay
 
-        # Якщо всі спроби не вдалися
-        frappe.throw(
-            f"Failed to get unique ticket sequence for office {self.office} after {max_attempts} attempts (ORM method).", title="Counter Error")
+        # If loop finishes without returning
+        frappe.db.rollback()
+        # Перекидаємо помилку, щоб її зловили у методі autoname
+        raise frappe._(
+            f"Не вдалося отримати унікальний номер талону для офісу {self.office} ({current_date_str}) після {max_attempts} спроб (ORM метод). Можливе високе навантаження."
+        )

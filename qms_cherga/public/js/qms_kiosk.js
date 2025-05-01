@@ -118,6 +118,57 @@ document.addEventListener('DOMContentLoaded', () => {
                         ticketServiceNameDisplay.textContent = serviceName;
                         showScreen('ticket-screen');
                         startTicketTimeout();
+                        // --- НОВИЙ КОД: Логіка друку ---
+                        const ticketName = response.message.ticket_name; // Отримуємо унікальне ім'я документу талону
+                        if (ticketName) {
+                            const printFormat = "QMS Ticket Thermal"; // Назва вашого формату друку [cite: 13]
+                            // Формуємо URL для друку, вказуючи doctype, ім'я талону, формат і вимикаємо стандартний хедер/футер
+                            const printUrl = `/printview?doctype=QMS%20Ticket&name=${encodeURIComponent(ticketName)}&format=${encodeURIComponent(printFormat)}&no_letterhead=1`;
+
+                            // Створюємо прихований iframe для завантаження сторінки друку
+                            const printFrame = document.createElement('iframe');
+                            printFrame.style.position = 'absolute';
+                            printFrame.style.width = '0';
+                            printFrame.style.height = '0';
+                            printFrame.style.border = '0';
+                            printFrame.src = printUrl; // Встановлюємо URL
+
+                            // Функція, яка виконається після завантаження iframe
+                            printFrame.onload = function () {
+                                try {
+                                    // Намагаємося викликати друк для вмісту iframe
+                                    printFrame.contentWindow.focus(); // Фокус потрібен для деяких браузерів
+                                    printFrame.contentWindow.print();
+                                    // Необов'язково: видаляємо iframe через деякий час
+                                    setTimeout(() => {
+                                        if (document.body.contains(printFrame)) {
+                                            document.body.removeChild(printFrame);
+                                        }
+                                    }, 3000); // Затримка для завершення друку
+                                } catch (e) {
+                                    console.error("Помилка виклику друку:", e);
+                                    alert("Не вдалося автоматично ініціювати друк. Перевірте налаштування принтера та блокування спливаючих вікон браузера.");
+                                    // Як варіант, можна спробувати відкрити у новому вікні (може бути заблоковано)
+                                    // window.open(printUrl, '_blank');
+                                }
+                            };
+
+                            // Обробка помилки завантаження iframe
+                            printFrame.onerror = function () {
+                                console.error("Помилка завантаження iframe для друку URL: " + printUrl);
+                                alert("Помилка завантаження сторінки для друку.");
+                                if (document.body.contains(printFrame)) {
+                                    document.body.removeChild(printFrame);
+                                }
+                            }
+
+                            // Додаємо iframe до сторінки
+                            document.body.appendChild(printFrame);
+
+                        } else {
+                            console.error("Ім'я талону (ticket_name) не знайдено у відповіді API, друк неможливий.");
+                        }
+                        // --- Кінець нового коду друку ---
                     } else {
                         console.error("Error creating ticket:", response.message);
                         alert("Помилка створення талону: " + (response.message ? response.message.message : "Невідома помилка"));
