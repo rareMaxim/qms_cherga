@@ -1,298 +1,95 @@
-# qms_cherga/tests/test_api.py
+# -*- coding: utf-8 -*-
+# Copyright (c) 2025, Maxym Sysoiev and Contributors
+# See license.txt
+
 import frappe
-# Або IntegrationTestCase, якщо потрібно більше інтеграції
+# Використовуємо FrappeTestCase для автоматичного rollback
 from frappe.tests.utils import FrappeTestCase
-# Для маніпуляцій з часом/запитами
-from frappe.utils import now_datetime, add_days, get_date_str
+from frappe.utils import now_datetime, add_days, get_date_str, get_datetime
+from datetime import time  # Додано для створення об'єктів часу
 
-# Імпортуємо функції, які будемо тестувати
-from qms_cherga.api import create_live_queue_ticket, call_next_visitor, is_office_open
+# Імпортуємо функції, які тестуємо
+from qms_cherga.api import (
+    create_live_queue_ticket,
+    call_next_visitor,
+    is_office_open,
+    get_kiosk_services,  # Додано для повноти, якщо є тести
+    get_display_data    # Додано для повноти, якщо є тести
+)
 
-# Імпортуємо інші потрібні функції або класи, якщо необхідно
-# from unittest.mock import patch # Для мокування часу
-
-
-class TestQMSApi(FrappeTestCase):
-
-    # Метод setUp виконується перед кожним тестом у класі
-    def setUp(self):
-        # Створюємо необхідні базові дані для тестів
-        # Переконайтесь, що ці дані не конфліктують з існуючими, або очищайте їх у tearDown
-        self.organization = create_test_organization()
-        self.schedule = create_test_schedule(self.organization.name)
-        self.office = create_test_office(
-            self.organization.name, self.schedule.name, "TESTOFF")
-        self.service1 = create_test_service(
-            self.organization.name, "Послуга 1", live_queue_enabled=1, enabled=1)
-        self.service2 = create_test_service(
-            self.organization.name, "Послуга 2 (Неактивна)", live_queue_enabled=1, enabled=0)
-        self.service3 = create_test_service(
-            self.organization.name, "Послуга 3 (Не для кіоску)", live_queue_enabled=0, enabled=1)
-        self.service_point = create_test_service_point(
-            self.office.name, "Вікно 1")
-
-        # Створюємо тестового користувача та оператора
-        self.test_user = create_test_user(
-            "test_qms_op@example.com", "Тестовий Оператор")
-        self.operator = create_test_operator(self.test_user.name, self.office.name, [
-                                             self.service1.name])  # Навичка тільки для service1
-
-        # Призначаємо послугу офісу
-        assign_service_to_office(self.office.name, self.service1.name)
-        # Неактивна послуга також призначена
-        assign_service_to_office(self.office.name, self.service2.name)
-        # Послуга не для кіоску також призначена
-        assign_service_to_office(self.office.name, self.service3.name)
-
-        # Перелогінюємось як тестовий оператор для тестів, що потребують авторизації
-        frappe.set_user(self.test_user.name)
-
-    # Метод tearDown виконується після кожного тесту (для очищення)
-    def tearDown(self):
-        # Повертаємо користувача адміністратора
-        frappe.set_user("Administrator")
-        # Видаляємо створені тестові дані (або використовуємо rollback)
-        # frappe.db.rollback() # Якщо ви використовуєте IntegrationTestCase і хочете відкочувати зміни
-        # Або явне видалення:
-        frappe.delete_doc("QMS Ticket", self.get_tickets_created_in_test(
-        ), ignore_permissions=True, force=True)
-        frappe.delete_doc("QMS Operator", self.operator.name,
-                          ignore_permissions=True, force=True)
-        frappe.delete_doc("User", self.test_user.name,
-                          ignore_permissions=True, force=True)
-        frappe.delete_doc("QMS Service Point", self.service_point.name,
-                          ignore_permissions=True, force=True)
-        frappe.delete_doc("QMS Office", self.office.name,
-                          ignore_permissions=True, force=True)  # Видалить і assignments
-        frappe.delete_doc("QMS Service", self.service1.name,
-                          ignore_permissions=True, force=True)
-        frappe.delete_doc("QMS Service", self.service2.name,
-                          ignore_permissions=True, force=True)
-        frappe.delete_doc("QMS Service", self.service3.name,
-                          ignore_permissions=True, force=True)
-        frappe.delete_doc("QMS Schedule", self.schedule.name,
-                          ignore_permissions=True, force=True)
-        frappe.delete_doc("QMS Organization", self.organization.name,
-                          ignore_permissions=True, force=True)
-        frappe.db.commit()  # Підтверджуємо видалення
-
-    # --- Тести для create_live_queue_ticket ---
-
-    def test_create_ticket_success(self):
-        # Тестуємо успішне створення
-        response = create_live_queue_ticket(
-            service=self.service1.name, office=self.office.name)
-        self.assertEqual(response.get("status"), "success")
-        self.assertTrue(response.get("ticket_name"))
-        self.assertTrue(response.get("ticket_number"))
-        self.assertTrue(frappe.db.exists(
-            "QMS Ticket", response.get("ticket_name")))
-        # Перевіряємо, чи номер відповідає формату
-        self.assertTrue(response.get("ticket_number").startswith(
-            self.office.abbreviation))
-
-    def test_create_ticket_missing_params(self):
-        # Тестуємо помилку при відсутності параметрів
-        with self.assertRaises(frappe.ValidationError):
-            create_live_queue_ticket(service=self.service1.name, office="")
-        with self.assertRaises(frappe.ValidationError):
-            create_live_queue_ticket(service="", office=self.office.name)
-
-    def test_create_ticket_invalid_service(self):
-        # Тестуємо помилку при неіснуючій послузі
-        with self.assertRaises(frappe.ValidationError):
-            create_live_queue_ticket(
-                service="Неіснуюча Послуга", office=self.office.name)
-
-    def test_create_ticket_inactive_service(self):
-        # Тестуємо помилку для неактивної послуги
-        with self.assertRaises(frappe.ValidationError) as cm:
-            create_live_queue_ticket(
-                service=self.service2.name, office=self.office.name)
-        self.assertIn("наразі неактивна", str(cm.exception))
-
-    def test_create_ticket_not_live_queue(self):
-        # Тестуємо помилку для послуги, що не для кіоску
-        with self.assertRaises(frappe.ValidationError) as cm:
-            create_live_queue_ticket(
-                service=self.service3.name, office=self.office.name)
-        self.assertIn("недоступна для живої черги", str(cm.exception))
-
-    def test_create_ticket_service_not_in_office(self):
-        # Створюємо послугу, не призначену офісу
-        service_other = create_test_service(
-            self.organization.name, "Інша Послуга", live_queue_enabled=1, enabled=1)
-        with self.assertRaises(frappe.ValidationError) as cm:
-            create_live_queue_ticket(
-                service=service_other.name, office=self.office.name)
-        self.assertIn("недоступна в офісі", str(cm.exception))
-
-        frappe.delete_doc("QMS Service", service_other.name,
-                          ignore_permissions=True, force=True)  # Clean up
-
-    # --- Тести для is_office_open ---
-    # Ці тести потребують контролю часу. Використаємо `frappe.utils.now_datetime`
-    # як орієнтир, але краще використовувати mock або freezegun для надійності.
-
-    # @patch('frappe.utils.now_datetime') # Приклад використання mock
-    def test_is_office_open_during_working_hours(self):  # , mock_now):
-        # Налаштовуємо час на робочий (напр., Середа 10:00)
-        # mock_now.return_value = datetime(2025, 4, 30, 10, 0, 0) # Потрібен імпорт datetime
-        # Поки що просто викликаємо, припускаючи, що СЬОГОДНІ в тестовому графіку є робочий час
-        # і ми використовуємо Варіант 2 (системний час)
-        is_open = is_office_open(self.schedule.name, self.office.timezone)
-        # Потрібно знати, чи зараз дійсно робочий час за графіком 'TESTSCHED'
-        # self.assertTrue(is_open) # Або assertFalse, залежно від реального часу/графіка
-
-    def test_is_office_open_closed_day(self):
-        # Налаштовуємо час на вихідний (напр., Неділя 11:00)
-        # mock_now.return_value = datetime(2025, 4, 27, 11, 0, 0)
-        is_open = is_office_open(self.schedule.name, self.office.timezone)
-        # self.assertFalse(is_open) # Припускаючи, що неділя - вихідний у 'TESTSCHED'
-
-    def test_is_office_open_with_exception_closed(self):
-        # Додаємо виняток - неробочий день на сьогодні
-        today_str = get_date_str(now_datetime())
-        add_schedule_exception(self.schedule.name, today_str, is_workday=0)
-        is_open = is_office_open(self.schedule.name, self.office.timezone)
-        self.assertFalse(is_open)
-
-    def test_is_office_open_with_exception_open_hours(self):
-        # Додаємо виняток - робочий день зі зміненими годинами
-        today_str = get_date_str(now_datetime())
-        # Припустимо, зараз 14:30 (за системним часом)
-        add_schedule_exception(self.schedule.name, today_str,
-                               is_workday=1, start_time="14:00:00", end_time="15:00:00")
-        is_open = is_office_open(self.schedule.name, self.office.timezone)
-        # Повинно бути відкрито, якщо поточний системний час між 14:00 та 15:00
-        # self.assertTrue(is_open)
-
-    # --- Тести для call_next_visitor ---
-
-    def test_call_next_success(self):
-        # Створюємо талон у черзі
-        ticket = create_test_ticket(
-            self.office.name, self.service1.name, status="Waiting")
-        # Перелогінюємось як оператор
-        frappe.set_user(self.test_user.name)
-        response = call_next_visitor(
-            service_point_name=self.service_point.name)
-
-        self.assertEqual(response.get("status"), "success")
-        self.assertEqual(response.get("ticket_info").get("name"), ticket.name)
-        updated_ticket = frappe.get_doc("QMS Ticket", ticket.name)
-        self.assertEqual(updated_ticket.status, "Called")
-        self.assertEqual(updated_ticket.operator, self.test_user.name)
-        self.assertEqual(updated_ticket.service_point, self.service_point.name)
-
-    def test_call_next_no_waiting_tickets(self):
-        # Переконуємось, що немає талонів у черзі
-        frappe.db.delete(
-            "QMS Ticket", {"office": self.office.name, "status": "Waiting"})
-        frappe.set_user(self.test_user.name)
-        response = call_next_visitor(
-            service_point_name=self.service_point.name)
-        self.assertEqual(response.get("status"), "info")
-        self.assertIn("Немає талонів у черзі", response.get("message"))
-
-    def test_call_next_operator_no_skills(self):
-        # Створюємо талон
-        ticket = create_test_ticket(
-            self.office.name, self.service1.name, status="Waiting")
-        # Створюємо оператора без навичок
-        user_no_skill = create_test_user("noskill@example.com", "Без Навичок")
-        op_no_skill = create_test_operator(
-            user_no_skill.name, self.office.name, [])
-        frappe.set_user(user_no_skill.name)
-
-        with self.assertRaises(frappe.ValidationError) as cm:
-            call_next_visitor(service_point_name=self.service_point.name)
-        self.assertIn("не призначено жодних навичок", str(cm.exception))
-
-        # Cleanup
-        frappe.set_user("Administrator")
-        frappe.delete_doc("QMS Operator", op_no_skill.name,
-                          ignore_permissions=True, force=True)
-        frappe.delete_doc("User", user_no_skill.name,
-                          ignore_permissions=True, force=True)
-
-    def test_call_next_no_matching_skill_ticket(self):
-        # Створюємо талон на послугу, якої немає в оператора
-        service_no_skill = create_test_service(
-            self.organization.name, "Послуга Без Навички", live_queue_enabled=1, enabled=1)
-        assign_service_to_office(self.office.name, service_no_skill.name)
-        ticket = create_test_ticket(
-            self.office.name, service_no_skill.name, status="Waiting")
-
-        # У цього оператора є тільки service1
-        frappe.set_user(self.test_user.name)
-        response = call_next_visitor(
-            service_point_name=self.service_point.name)
-        # Немає талонів, бо єдиний у черзі не підходить за навичкою
-        self.assertEqual(response.get("status"), "info")
-        self.assertIn("Немає талонів у черзі", response.get("message"))
-
-        # Cleanup
-        frappe.delete_doc("QMS Service", service_no_skill.name,
-                          ignore_permissions=True, force=True)
-
-    # Допоміжна функція для отримання ID створених у тесті талонів
-
-    def get_tickets_created_in_test(self):
-        # Простий спосіб - за офісом та часом створення (потребує уточнення)
-        # Більш надійний - зберігати ID створених талонів у self під час тестів
-        return [d.name for d in frappe.get_all("QMS Ticket", filters={"office": self.office.name})]
-
+# Імпортуємо freezegun
+from freezegun import freeze_time
 
 # --- Допоміжні функції для створення тестових даних ---
-# (Розмістіть їх у цьому ж файлі або винесіть в окремий утилітарний файл тестів)
+# (Розміщені тут для самодостатності файлу)
 
-def create_test_organization():
-    if frappe.db.exists("QMS Organization", {"organization_name": "Тест Організація"}):
-        return frappe.get_doc("QMS Organization", {"organization_name": "Тест Організація"})
+
+def delete_doc_if_exists(doctype, filters_or_name):
+    """
+    Видаляє документ, якщо він існує, на основі фільтрів або імені.
+
+    :param doctype: Тип документа (DocType).
+    :param filters_or_name: Словник фільтрів або рядок з іменем документа.
+    """
+    doc_name = None
+    if isinstance(filters_or_name, str):
+        # Якщо передано ім'я документа
+        if frappe.db.exists(doctype, filters_or_name):
+            doc_name = filters_or_name
+    elif isinstance(filters_or_name, dict):
+        # Якщо передано фільтри
+        # Використовуємо frappe.db.get_value для пошуку імені
+        existing = frappe.db.get_value(doctype, filters_or_name, "name")
+        if existing:
+            doc_name = existing
+    else:
+        # Непідтримуваний тип фільтра
+        frappe.log_error(
+            f"Unsupported filter type for delete_doc_if_exists: {type(filters_or_name)}", "Test Utils")
+        return
+
+    if doc_name:
+        try:
+            # Видаляємо документ, ігноруючи дозволи та можливу відсутність (про всяк випадок)
+            frappe.delete_doc(
+                doctype,
+                doc_name,
+                ignore_permissions=True,
+                force=True,
+                ignore_missing=True  # Додає стійкості, якщо документ зник між перевіркою та видаленням
+            )
+            # print(f"Deleted existing {doctype}: {doc_name}") # Для дебагу
+        except Exception as e:
+            # Логуємо помилку, якщо видалення не вдалося
+            frappe.log_error(
+                f"Failed to delete {doctype} {doc_name}: {e}", "Test Utils Delete Error")
+
+
+def create_test_organization(org_name="Тест API Організація"):
+    delete_doc_if_exists("QMS Organization", {"organization_name": org_name})
     org = frappe.get_doc({
         "doctype": "QMS Organization",
-        "organization_name": "Тест Організація",
+        "organization_name": org_name,
     }).insert(ignore_permissions=True)
     return org
 
 
-def create_test_schedule(organization_name):
-    schedule_name = "TESTSCHED"
-    if frappe.db.exists("QMS Schedule", schedule_name):
-        # Повертаємо існуючий або оновлюємо? Поки повертаємо.
-        doc = frappe.get_doc("QMS Schedule", schedule_name)
-        # Очистимо старі правила/винятки для чистоти тесту
-        doc.schedule_rules = []
-        doc.schedule_exceptions = []
-        # Додамо дефолтні правила на будні
-        days = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"]
-        for day in days:
-            doc.append("schedule_rules", {
-                "day_of_week": day,
-                "start_time": "09:00:00",
-                "end_time": "18:00:00"
-            })
-        doc.save(ignore_permissions=True)
-        return doc
-
+def create_test_schedule(schedule_name, rules=None, exceptions=None):
+    delete_doc_if_exists("QMS Schedule", schedule_name)
     sched = frappe.get_doc({
         "doctype": "QMS Schedule",
         "schedule_name": schedule_name,
-        # Додаємо правила для будніх днів
-        "schedule_rules": [
-            {"day_of_week": day, "start_time": "09:00:00", "end_time": "18:00:00"}
-            for day in ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"]
-        ]
+        "schedule_rules": rules or [],
+        "schedule_exceptions": exceptions or []
     }).insert(ignore_permissions=True)
     return sched
 
 
 def add_schedule_exception(schedule_name, date_str, is_workday, start_time=None, end_time=None):
     doc = frappe.get_doc("QMS Schedule", schedule_name)
-    # Видалимо попередній виняток на цю дату, якщо він є
-    doc.schedule_exceptions = [
-        exc for exc in doc.schedule_exceptions if exc.exception_date != get_date_str(date_str)]
+    # Видаляємо попередній виняток на цю дату, якщо він є
+    doc.schedule_exceptions = [exc for exc in doc.schedule_exceptions if get_date_str(
+        exc.exception_date) != date_str]
     exc_data = {
         "doctype": "QMS Schedule Exception Child",
         "exception_date": date_str,
@@ -303,37 +100,35 @@ def add_schedule_exception(schedule_name, date_str, is_workday, start_time=None,
         exc_data["start_time"] = start_time
         exc_data["end_time"] = end_time
     doc.append("schedule_exceptions", exc_data)
-    doc.save(ignore_permissions=True)
+    doc.flags.ignore_permissions = True  # Потрібно для save
+    doc.save()  # ignore_permissions тут може не спрацювати, краще ставити прапорець
+    return doc
 
 
-def create_test_office(organization_name, schedule_name, abbr):
-    if frappe.db.exists("QMS Office", {"abbreviation": abbr}):
-        return frappe.get_doc("QMS Office", {"abbreviation": abbr})
+def create_test_office(organization_name, schedule_name, abbr, office_name=None, timezone="UTC"):
+    delete_doc_if_exists("QMS Office", {"abbreviation": abbr})
     office = frappe.get_doc({
         "doctype": "QMS Office",
         "organization": organization_name,
-        "office_name": f"Тест Офіс {abbr}",
+        "office_name": office_name or f"Тест API Офіс {abbr}",
         "abbreviation": abbr,
         "schedule": schedule_name,
-        # Використовуємо системну зону для простоти тестів без pytz/zoneinfo
-        "timezone": frappe.utils.get_system_timezone()
+        "timezone": timezone  # Використовуємо переданий timezone
     }).insert(ignore_permissions=True)
     return office
 
 
 def create_test_service(organization_name, service_name, **kwargs):
-    # Видаляємо існуючий з такою назвою, щоб уникнути конфліктів унікальності
-    frappe.delete_doc("QMS Service", {"service_name": service_name},
-                      ignore_permissions=True, force=True, ignore_missing=True)
-
+    delete_doc_if_exists("QMS Service", {"service_name": service_name})
     data = {
         "doctype": "QMS Service",
         "organization": organization_name,
         "service_name": service_name,
-        "avg_duration_mins": 15,
+        "avg_duration_mins": kwargs.get("avg_duration_mins", 15),
         "enabled": kwargs.get("enabled", 1),
         "live_queue_enabled": kwargs.get("live_queue_enabled", 1),
         "requires_appointment": kwargs.get("requires_appointment", 0),
+        "icon": kwargs.get("icon", "fa fa-cogs")
     }
     service = frappe.get_doc(data).insert(ignore_permissions=True)
     return service
@@ -341,25 +136,20 @@ def create_test_service(organization_name, service_name, **kwargs):
 
 def assign_service_to_office(office_name, service_name):
     office_doc = frappe.get_doc("QMS Office", office_name)
-    # Перевіряємо, чи вже призначено
-    exists = any(item.service ==
-                 service_name for item in office_doc.available_services)
+    exists = any(item.service == service_name for item in office_doc.get(
+        "available_services", []))
     if not exists:
         office_doc.append("available_services", {
             "service": service_name,
             "is_active_in_office": 1
         })
-        office_doc.save(ignore_permissions=True)
+        office_doc.flags.ignore_permissions = True
+        office_doc.save()
 
 
 def create_test_service_point(office_name, point_name):
-    # Видаляємо існуючий з такою назвою в цьому офісі
-    existing = frappe.db.get_value(
-        "QMS Service Point", {"office": office_name, "point_name": point_name})
-    if existing:
-        frappe.delete_doc("QMS Service Point", existing,
-                          ignore_permissions=True, force=True)
-
+    delete_doc_if_exists("QMS Service Point", {
+                         "office": office_name, "point_name": point_name})
     sp = frappe.get_doc({
         "doctype": "QMS Service Point",
         "office": office_name,
@@ -369,78 +159,399 @@ def create_test_service_point(office_name, point_name):
     return sp
 
 
-def create_test_user(email, first_name):
-    if frappe.db.exists("User", email):
-        # Можливо, оновити ролі або просто повернути існуючого
-        user = frappe.get_doc("User", email)
-        # Переконаємось, що користувач активний для тесту
-        if not user.enabled:
-            user.enabled = 1
-            user.save(ignore_permissions=True)
-        return user
+def create_test_user(email, first_name, roles=None):
+    delete_doc_if_exists("User", email)
     user = frappe.get_doc({
         "doctype": "User",
         "email": email,
         "first_name": first_name,
         "send_welcome_email": 0,
         "enabled": 1,
-        # Додайте необхідні ролі
-        "roles": [
-            {"role": "System Manager"}  # Або спеціальна роль Оператора
-        ]
+        "roles": roles or [{"role": "System Manager"}]
     }).insert(ignore_permissions=True)
     return user
 
 
-def create_test_operator(user_name, office_name, skills_list):
-    if frappe.db.exists("QMS Operator", {"user": user_name}):
-        op = frappe.get_doc("QMS Operator", {"user": user_name})
-        # Оновимо навички
-        op.operator_skills = []
-        for skill_service_name in skills_list:
-            op.append("operator_skills", {
-                      "service": skill_service_name, "skill_level": "Proficient"})
-        op.is_active = 1  # Переконуємось, що активний
-        op.default_office = office_name
-        op.save(ignore_permissions=True)
-        return op
-
+def create_test_operator(user_name, office_name, skills_list=None):
+    delete_doc_if_exists("QMS Operator", {"user": user_name})
     op = frappe.get_doc({
         "doctype": "QMS Operator",
         "user": user_name,
         "full_name": frappe.db.get_value("User", user_name, "full_name"),
         "default_office": office_name,
         "is_active": 1,
-        "operator_skills": [{"service": skill, "skill_level": "Proficient"} for skill in skills_list]
+        "operator_skills": [{"service": skill, "skill_level": "Proficient"} for skill in (skills_list or [])]
     }).insert(ignore_permissions=True)
     return op
 
 
 def create_test_ticket(office_name, service_name, status="Waiting", **kwargs):
-    # Простий спосіб створити талон для тесту
-    # УВАГА: Це обходить функцію autoname з qms_ticket.py!
-    # Для тестування самої autoname потрібен інший підхід (виклик new_doc().insert())
-    ticket_data = {
-        "doctype": "QMS Ticket",
-        "office": office_name,
-        "service": service_name,
-        "status": status,
-        "issue_time": now_datetime(),
-        **kwargs  # Додаткові поля, якщо передано
-    }
-    # Генеруємо тимчасовий унікальний номер для тесту, якщо статус не Waiting
-    # (бо autoname не спрацює тут, а поле name/ticket_number унікальне)
-    if status != "Waiting":
-        ticket_data["ticket_number"] = frappe.generate_hash(length=10)
+    # Створюємо талон через стандартний механізм для спрацювання autoname
+    ticket = frappe.new_doc("QMS Ticket")
+    ticket.office = office_name
+    ticket.service = service_name
+    ticket.status = status  # Встановлюємо статус ПІСЛЯ заповнення office
+    ticket.issue_time = now_datetime()
 
-    ticket = frappe.get_doc(ticket_data)
-    # Якщо статус Waiting, autoname має спрацювати при insert
-    if status != "Waiting":
-        ticket.name = ticket.ticket_number  # Встановлюємо name вручну
+    for key, value in kwargs.items():
+        ticket.set(key, value)
 
-     # ignore_permissions важливий для тестів
+    # ignore_permissions важливий для тестів
     ticket.insert(ignore_permissions=True)
-    # Якщо статус був Waiting, поле ticket_number має заповнитись автоматично
-    if status == "Waiting" and not ticket.ticket_number:
-        ticket.reload()  # Перезавантажимо документ, щоб побачити згенерований номер
+    # Перезавантажуємо, щоб отримати згенерований ticket_number
+    ticket.reload()
     return ticket
+
+
+# --- Основний клас тестів ---
+class TestQMSApi(FrappeTestCase):
+
+    @classmethod
+    def setUpClass(cls):
+        super(TestQMSApi, cls).setUpClass()
+        # Створюємо дані один раз для всього класу тестів
+        cls.organization = create_test_organization()
+        cls.test_timezone = "Europe/Kyiv"  # Використовуємо Київський час
+        # Графік: Середа 09:00-13:00, 14:00-18:00 (локальний час)
+        cls.schedule = create_test_schedule(
+            schedule_name="API_TEST_SCHED",
+            rules=[
+                {"day_of_week": "Wednesday", "start_time": time(
+                    9, 0), "end_time": time(13, 0)},
+                {"day_of_week": "Wednesday", "start_time": time(
+                    14, 0), "end_time": time(18, 0)},
+                {"day_of_week": "Thursday", "start_time": time(
+                    10, 0), "end_time": time(16, 0)},  # Інший день
+            ]
+        )
+        cls.office = create_test_office(
+            cls.organization.name, cls.schedule.name, "APITEST", timezone=cls.test_timezone
+        )
+        cls.service1 = create_test_service(
+            cls.organization.name, "API Послуга 1", live_queue_enabled=1, enabled=1)
+        cls.service2 = create_test_service(
+            cls.organization.name, "API Послуга 2 (Неактивна)", live_queue_enabled=1, enabled=0)
+        cls.service3 = create_test_service(
+            cls.organization.name, "API Послуга 3 (Не для кіоску)", live_queue_enabled=0, enabled=1)
+        cls.service_point = create_test_service_point(
+            cls.office.name, "API Вікно 1")
+
+        cls.test_user = create_test_user(
+            "test_api_op@example.com", "API Тест Оператор")
+        cls.operator = create_test_operator(
+            cls.test_user.name, cls.office.name, skills_list=[cls.service1.name])
+
+        assign_service_to_office(cls.office.name, cls.service1.name)
+        assign_service_to_office(cls.office.name, cls.service2.name)
+        assign_service_to_office(cls.office.name, cls.service3.name)
+
+    @classmethod
+    def tearDownClass(cls):
+        # Очищаємо дані після всіх тестів у класі
+        # FrappeTestCase зазвичай робить rollback автоматично, але для надійності можна видалити
+        # delete_doc_if_exists("QMS Operator", {"user": cls.test_user.name})
+        # delete_doc_if_exists("User", cls.test_user.name)
+        # delete_doc_if_exists("QMS Service Point", cls.service_point.name)
+        # delete_doc_if_exists("QMS Office", cls.office.name)
+        # delete_doc_if_exists("QMS Service", cls.service1.name)
+        # delete_doc_if_exists("QMS Service", cls.service2.name)
+        # delete_doc_if_exists("QMS Service", cls.service3.name)
+        # delete_doc_if_exists("QMS Schedule", cls.schedule.name)
+        # delete_doc_if_exists("QMS Organization", cls.organization.name)
+        # frappe.db.commit() # Якщо видаляєте вручну
+        super(TestQMSApi, cls).tearDownClass()
+
+    def setUp(self):
+        # Встановлюємо користувача перед кожним тестом, що потребує авторизації
+        frappe.set_user(self.test_user.name)
+
+    def tearDown(self):
+        # Повертаємо адміністратора після кожного тесту
+        frappe.set_user("Administrator")
+        # FrappeTestCase автоматично відкотить зміни між тестами
+
+    # --- Тести для is_office_open (з freezegun) ---
+
+    # Середа, 11:05 Київ (UTC+3) - Робочий час
+    @freeze_time("2025-04-30 08:05:00")
+    def test_is_office_open_during_working_hours(self):
+        self.assertTrue(is_office_open(self.schedule.name, self.test_timezone))
+
+    # Середа, 08:55 Київ (UTC+3) - Перед відкриттям
+    @freeze_time("2025-04-30 05:55:00")
+    def test_is_office_open_before_opening(self):
+        self.assertFalse(is_office_open(
+            self.schedule.name, self.test_timezone))
+
+    # Середа, 13:15 Київ (UTC+3) - Під час перерви
+    @freeze_time("2025-04-30 10:15:00")
+    def test_is_office_open_during_break(self):
+        self.assertFalse(is_office_open(
+            self.schedule.name, self.test_timezone))
+
+    # Середа, 15:30 Київ (UTC+3) - Після перерви, робочий час
+    @freeze_time("2025-04-30 12:30:00")
+    def test_is_office_open_after_break(self):
+        self.assertTrue(is_office_open(self.schedule.name, self.test_timezone))
+
+    # Середа, 18:05 Київ (UTC+3) - Після закриття
+    @freeze_time("2025-04-30 15:05:00")
+    def test_is_office_open_after_closing(self):
+        self.assertFalse(is_office_open(
+            self.schedule.name, self.test_timezone))
+
+    # Неділя, 12:00 Київ (UTC+3) - Вихідний
+    @freeze_time("2025-05-04 09:00:00")
+    def test_is_office_open_on_weekend(self):
+        self.assertFalse(is_office_open(
+            self.schedule.name, self.test_timezone))
+
+    @freeze_time("2025-05-07 08:30:00")  # Наступна Середа, 11:30 Київ
+    def test_is_office_open_with_exception_closed(self):
+        exception_date = "2025-05-07"
+        add_schedule_exception(
+            self.schedule.name, exception_date, is_workday=0)
+        self.assertFalse(is_office_open(
+            self.schedule.name, self.test_timezone))
+        # Очистка винятку після тесту (або rollback подбає про це)
+        # doc = frappe.get_doc("QMS Schedule", self.schedule.name)
+        # doc.schedule_exceptions = [e for e in doc.schedule_exceptions if get_date_str(e.exception_date) != exception_date]
+        # doc.save()
+
+    @freeze_time("2025-05-14 08:45:00")  # Ще одна Середа, 11:45 Київ
+    def test_is_office_open_with_exception_open_limited_hours(self):
+        exception_date = "2025-05-14"
+        # Виняток: робочий день 11:00 - 12:00 Київського часу
+        add_schedule_exception(self.schedule.name, exception_date,
+                               is_workday=1, start_time=time(11, 0), end_time=time(12, 0))
+        self.assertTrue(is_office_open(
+            self.schedule.name, self.test_timezone), "Should be open during exception hours")
+
+        # Перевірка поза вікном винятку (12:15 Київ = 09:15 UTC)
+        with freeze_time("2025-05-14 09:15:00"):
+            self.assertFalse(is_office_open(
+                self.schedule.name, self.test_timezone), "Should be closed outside exception hours")
+
+    def test_is_office_open_invalid_inputs(self):
+        self.assertFalse(is_office_open(
+            self.schedule.name, "Invalid/Timezone"))
+        self.assertFalse(is_office_open(self.schedule.name, None))
+        self.assertFalse(is_office_open(self.schedule.name, ""))
+        self.assertFalse(is_office_open(
+            None, self.test_timezone))  # Без графіка
+
+    # --- Тести для create_live_queue_ticket ---
+
+    @freeze_time("2025-04-30 08:05:00")  # Середа, 11:05 Київ - Робочий час
+    def test_create_ticket_success(self):
+        frappe.set_user("Guest")  # Імітуємо кіоск
+        response = create_live_queue_ticket(
+            service=self.service1.name, office=self.office.name)
+        self.assertEqual(response.get("status"), "success")
+        self.assertTrue(response.get("ticket_name"))
+        self.assertTrue(response.get("ticket_number"))
+        ticket = frappe.get_doc("QMS Ticket", response.get("ticket_name"))
+        self.assertEqual(ticket.office, self.office.name)
+        self.assertEqual(ticket.service, self.service1.name)
+        self.assertEqual(ticket.status, "Waiting")
+        # Формуємо очікуваний початок імені
+        expected_prefix = f"TKT-{self.office.abbreviation}-"
+        # Перевіряємо, чи ім'я документа починається з цього префіксу
+        self.assertTrue(
+            str(ticket.name).startswith(expected_prefix),
+            # Додано повідомлення про помилку
+            f"Ticket name '{ticket.name}' does not start with expected prefix '{expected_prefix}'"
+        )
+        # Також перевіримо, що поле ticket_number відповідає імені (якщо ви їх синхронізували)
+        self.assertEqual(str(ticket.name), str(ticket.ticket_number))
+
+    # Середа, 08:55 Київ - Перед відкриттям
+    @freeze_time("2025-04-30 05:55:00")
+    def test_create_ticket_office_closed(self):
+        frappe.set_user("Guest")
+        with self.assertRaisesRegex(frappe.ValidationError, "зачинений"):
+            create_live_queue_ticket(
+                service=self.service1.name, office=self.office.name)
+
+    def test_create_ticket_missing_params(self):
+        frappe.set_user("Guest")
+        with self.assertRaisesRegex(frappe.ValidationError, "Не вказано Послугу або Офіс"):
+            create_live_queue_ticket(service=self.service1.name, office="")
+        with self.assertRaisesRegex(frappe.ValidationError, "Не вказано Послугу або Офіс"):
+            create_live_queue_ticket(service="", office=self.office.name)
+
+    def test_create_ticket_invalid_service(self):
+        frappe.set_user("Guest")
+        with self.assertRaisesRegex(frappe.ValidationError, "не знайдена"):
+            create_live_queue_ticket(
+                service="Неіснуюча Послуга API", office=self.office.name)
+
+    @freeze_time("2025-04-30 08:05:00")
+    def test_create_ticket_inactive_service(self):
+        frappe.set_user("Guest")
+        with self.assertRaisesRegex(frappe.ValidationError, "неактивна"):
+            create_live_queue_ticket(
+                service=self.service2.name, office=self.office.name)
+
+    @freeze_time("2025-04-30 08:05:00")
+    def test_create_ticket_not_live_queue(self):
+        frappe.set_user("Guest")
+        with self.assertRaisesRegex(frappe.ValidationError, "недоступна для живої черги"):
+            create_live_queue_ticket(
+                service=self.service3.name, office=self.office.name)
+
+    @freeze_time("2025-04-30 08:05:00")
+    def test_create_ticket_service_not_in_office(self):
+        frappe.set_user("Guest")
+        # Створюємо послугу, не призначену офісу
+        service_other = create_test_service(
+            self.organization.name, "API Інша Послуга")
+        with self.assertRaisesRegex(frappe.ValidationError, "недоступна в офісі"):
+            create_live_queue_ticket(
+                service=service_other.name, office=self.office.name)
+        # Clean up (rollback подбає)
+        # delete_doc_if_exists("QMS Service", service_other.name)
+
+    # --- Тести для call_next_visitor ---
+    # Ці тести виконуються від імені оператора (встановлено в self.setUp)
+
+    @freeze_time("2025-04-30 08:05:00")  # Робочий час
+    def test_call_next_success(self):
+        # Створюємо талон у черзі
+        ticket = create_test_ticket(
+            self.office.name, self.service1.name, status="Waiting")
+        response = call_next_visitor(
+            service_point_name=self.service_point.name)
+
+        self.assertEqual(response.get("status"), "success",
+                         response.get("message"))
+        self.assertIsNotNone(response.get("ticket_info"))
+        self.assertEqual(response.get("ticket_info").get("name"), ticket.name)
+
+        updated_ticket = frappe.get_doc("QMS Ticket", ticket.name)
+        self.assertEqual(updated_ticket.status, "Called")
+        self.assertEqual(updated_ticket.operator, self.test_user.name)
+        self.assertEqual(updated_ticket.service_point, self.service_point.name)
+
+    @freeze_time("2025-04-30 08:05:00")
+    def test_call_next_no_waiting_tickets(self):
+        # Переконуємось, що немає талонів у черзі Waiting для service1
+        frappe.db.delete("QMS Ticket", {
+                         "office": self.office.name, "service": self.service1.name, "status": "Waiting"})
+        frappe.db.commit()  # Потрібно підтвердити видалення перед викликом API
+        response = call_next_visitor(
+            service_point_name=self.service_point.name)
+        self.assertEqual(response.get("status"), "info")
+        self.assertIn("Немає талонів у черзі", response.get("message"))
+
+    @freeze_time("2025-04-30 08:05:00")
+    def test_call_next_operator_no_skills_assigned(self):
+        # Створюємо талон
+        ticket = create_test_ticket(
+            self.office.name, self.service1.name, status="Waiting")
+        # Створюємо оператора без навичок
+        user_no_skill = create_test_user(
+            "noskill_api@example.com", "API Без Навичок")
+        op_no_skill = create_test_operator(
+            user_no_skill.name, self.office.name, skills_list=[])  # Порожній список навичок
+        frappe.set_user(user_no_skill.name)  # Перелогінюємось
+
+        with self.assertRaisesRegex(frappe.ValidationError, "не призначено жодних навичок"):
+            call_next_visitor(service_point_name=self.service_point.name)
+
+        # Повертаємо користувача і очищаємо (rollback подбає)
+        frappe.set_user("Administrator")
+        # delete_doc_if_exists("QMS Operator", op_no_skill.name)
+        # delete_doc_if_exists("User", user_no_skill.name)
+
+    @freeze_time("2025-04-30 08:05:00")
+    def test_call_next_no_matching_skill_ticket(self):
+        # Створюємо талон на послугу, якої немає в оператора
+        service_no_skill = create_test_service(
+            self.organization.name, "API Послуга Без Навички")
+        assign_service_to_office(self.office.name, service_no_skill.name)
+        ticket = create_test_ticket(
+            self.office.name, service_no_skill.name, status="Waiting")
+
+        # У self.operator є навичка тільки для self.service1
+        response = call_next_visitor(
+            service_point_name=self.service_point.name)
+        # Очікуємо "Немає талонів", бо єдиний талон не відповідає навичкам оператора
+        self.assertEqual(response.get("status"), "info")
+        self.assertIn("Немає талонів у черзі", response.get("message"))
+        # Clean up (rollback подбає)
+        # delete_doc_if_exists("QMS Service", service_no_skill.name)
+
+    # --- Додайте тести для інших функцій API (get_kiosk_services, get_display_data) ---
+    # Наприклад:
+    @freeze_time("2025-04-30 08:05:00")
+    def test_get_kiosk_services_returns_active(self):
+        frappe.set_user("Guest")
+        data = get_kiosk_services(office=self.office.name)
+        self.assertNotIn("error", data)
+        # Перевіряємо, що service1 є, а service2 (неактивна) і service3 (не для кіоску) - немає
+        found_service1 = False
+        for cat in data.get("categories", []):
+            for svc in cat.get("services", []):
+                if svc["id"] == self.service1.name:
+                    found_service1 = True
+                    break
+            if found_service1:
+                break
+        if not found_service1:
+            for svc in data.get("services_no_category", []):
+                if svc["id"] == self.service1.name:
+                    found_service1 = True
+                    break
+
+        self.assertTrue(
+            found_service1, f"Service {self.service1.name} not found in kiosk services")
+
+        # Перевіряємо, що інших немає
+        all_service_ids = []
+        for cat in data.get("categories", []):
+            all_service_ids.extend([svc["id"]
+                                   for svc in cat.get("services", [])])
+        all_service_ids.extend([svc["id"]
+                               for svc in data.get("services_no_category", [])])
+
+        self.assertNotIn(self.service2.name, all_service_ids,
+                         f"Inactive service {self.service2.name} should not be in kiosk list")
+        self.assertNotIn(self.service3.name, all_service_ids,
+                         f"Service {self.service3.name} (not live queue) should not be in kiosk list")
+
+    @freeze_time("2025-04-30 08:05:00")
+    def test_get_display_data_structure(self):
+        frappe.set_user("Guest")
+        # Створимо кілька талонів
+        t1_wait = create_test_ticket(
+            self.office.name, self.service1.name, status="Waiting", priority=1)
+        t2_wait = create_test_ticket(
+            self.office.name, self.service1.name, status="Waiting")
+        t3_called = create_test_ticket(self.office.name, self.service1.name, status="Called",
+                                       operator=self.test_user.name, service_point=self.service_point.name, call_time=now_datetime())
+
+        data = get_display_data(office=self.office.name,
+                                limit_called=5, limit_waiting=10)
+
+        self.assertIn("last_called", data)
+        self.assertIn("waiting", data)
+        self.assertIsInstance(data["last_called"], list)
+        self.assertIsInstance(data["waiting"], list)
+
+        # Перевіряємо, що викликаний талон є у списку last_called
+        called_tickets = [t['ticket'] for t in data['last_called']]
+        # Порівнюємо скорочений номер
+        short_t3_num = t3_called.ticket_number.split('-')[-1]
+        self.assertIn(short_t3_num, called_tickets)
+
+        # Перевіряємо, що очікуючі талони є у списку waiting
+        waiting_tickets = [t['ticket'] for t in data['waiting']]
+        short_t1_num = t1_wait.ticket_number.split('-')[-1]
+        short_t2_num = t2_wait.ticket_number.split('-')[-1]
+        self.assertIn(short_t1_num, waiting_tickets)
+        self.assertIn(short_t2_num, waiting_tickets)
+
+
+# --- Запуск тестів ---
+# bench --site [your-site] run-tests --app qms_cherga --module qms_cherga.tests.test_api
