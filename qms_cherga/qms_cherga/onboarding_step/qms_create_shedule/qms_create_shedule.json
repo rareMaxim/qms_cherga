@@ -1,0 +1,19 @@
+{
+ "action": "Create Entry",
+ "creation": "2025-05-01 23:16:56.929601",
+ "docstatus": 0,
+ "doctype": "Onboarding Step",
+ "idx": 0,
+ "is_complete": 0,
+ "is_single": 0,
+ "is_skipped": 0,
+ "modified": "2025-05-01 23:17:24.470636",
+ "modified_by": "Administrator",
+ "name": "qms_create_shedule",
+ "owner": "Administrator",
+ "reference_document": "QMS Schedule",
+ "show_form_tour": 0,
+ "show_full_form": 0,
+ "title": "\u0421\u0442\u0432\u043e\u0440\u0438\u0442\u0438 \u0413\u0440\u0430\u0444\u0456\u043a \u0420\u043e\u0431\u043e\u0442\u0438",
+ "validate_action": 1
+}

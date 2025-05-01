@@ -1,0 +1,41 @@
+{
+ "allow_roles": [
+  {
+   "role": "All"
+  }
+ ],
+ "creation": "2025-05-01 22:05:26.013351",
+ "docstatus": 0,
+ "doctype": "Module Onboarding",
+ "documentation_url": "https://dev.itmlt.win/",
+ "idx": 0,
+ "is_complete": 0,
+ "modified": "2025-05-01 23:41:49.890294",
+ "modified_by": "Administrator",
+ "module": "Qms Cherga",
+ "name": "QMS Cherga Onboarding",
+ "owner": "Administrator",
+ "steps": [
+  {
+   "step": "qms_create_enterprice"
+  },
+  {
+   "step": "qms_create_shedule"
+  },
+  {
+   "step": "qms-create-service-category"
+  },
+  {
+   "step": "qms-create-service"
+  },
+  {
+   "step": "qms-create-office"
+  },
+  {
+   "step": "qms-create-service-point"
+  }
+ ],
+ "subtitle": "\u0414\u0430\u0432\u0430\u0439\u0442\u0435 \u043d\u0430\u043b\u0430\u0448\u0442\u0443\u0454\u043c\u043e \u0427\u0435\u0440\u0490\u0443",
+ "success_message": "\u0423\u0441\u043f\u0456\u0445",
+ "title": "\u041d\u0430\u043b\u0430\u0448\u0442\u0443\u0432\u0430\u043d\u043d\u044f \u0435\u043b\u0435\u043a\u0442\u0440\u043e\u043d\u043d\u043e\u0457 \u0447\u0435\u0440\u0433\u0438"
+}

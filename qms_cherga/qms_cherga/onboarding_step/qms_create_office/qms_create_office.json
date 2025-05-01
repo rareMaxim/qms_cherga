@@ -1,0 +1,20 @@
+{
+ "action": "Create Entry",
+ "creation": "2025-05-01 23:35:39.737457",
+ "description": "\u041f\u0440\u0438\u0432'\u044f\u0437\u0430\u0442\u0438 \u043e\u0440\u0433\u0430\u043d\u0456\u0437\u0430\u0446\u0456\u044e, \u0433\u0440\u0430\u0444\u0456\u043a, \u043f\u043e\u0441\u043b\u0443\u0433\u0438",
+ "docstatus": 0,
+ "doctype": "Onboarding Step",
+ "idx": 0,
+ "is_complete": 0,
+ "is_single": 0,
+ "is_skipped": 0,
+ "modified": "2025-05-01 23:36:54.132380",
+ "modified_by": "Administrator",
+ "name": "qms-create-office",
+ "owner": "Administrator",
+ "reference_document": "QMS Office",
+ "show_form_tour": 0,
+ "show_full_form": 1,
+ "title": "\u0421\u0442\u0432\u043e\u0440\u0438\u0442\u0438 \u041e\u0444\u0456\u0441",
+ "validate_action": 1
+}
