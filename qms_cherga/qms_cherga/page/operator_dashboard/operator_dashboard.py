@@ -164,7 +164,8 @@ def start_serving_ticket(ticket_name: str):
         # Оновлення документа
         ticket_doc.status = "Serving"
         ticket_doc.start_service_time = now_datetime()
-        ticket_doc.save()  # Може викликати 'validate' та 'before_save' хуки, якщо вони є
+        # Може викликати 'validate' та 'before_save' хуки, якщо вони є
+        ticket_doc.save(ignore_permissions=True)
         frappe.db.commit()
 
         # Отримуємо назви для повноти відповіді (опціонально, але корисно для UI)
@@ -176,13 +177,6 @@ def start_serving_ticket(ticket_name: str):
         ticket_info = ticket_doc.as_dict()
         ticket_info["service_name"] = service_name
         ticket_info["service_point_name"] = service_point_name
-
-        # Сповіщення через real-time
-        frappe.publish_realtime(
-            event="qms_ticket_updated",
-            message=ticket_info,  # Надсилаємо оновлені дані
-            room=f"qms_office_{ticket_doc.office}"
-        )
 
         # Успішна відповідь
         return {
@@ -234,22 +228,8 @@ def finish_service_ticket(ticket_name: str):
             # Якщо час початку не було зафіксовано
             ticket_doc.actual_service_time_mins = 0
 
-        ticket_doc.save()
+        ticket_doc.save(ignore_permissions=True)
         frappe.db.commit()
-
-        # Сповіщення (можна надсилати менше даних, лише статус)
-        frappe.publish_realtime(
-            event="qms_ticket_updated",
-            message={'name': ticket_doc.name, 'status': ticket_doc.status,
-                     'office': ticket_doc.office, 'ticket_number': ticket_doc.ticket_number},
-            room=f"qms_office_{ticket_doc.office}"
-        )
-        # Сповіщення про оновлення статистики
-        frappe.publish_realtime(
-            event="qms_stats_updated",
-            message={'office': ticket_doc.office},
-            room=f"qms_office_{ticket_doc.office}"
-        )
 
         return {"status": "success", "message": f"Обслуговування талону {ticket_doc.ticket_number} завершено."}
     except Exception as e:
@@ -283,22 +263,8 @@ def mark_no_show(ticket_name: str):
         # ticket_doc.start_service_time = None
         # ticket_doc.completion_time = None
         # ticket_doc.actual_service_time_mins = None
-        ticket_doc.save()
+        ticket_doc.save(ignore_permissions=True)
         frappe.db.commit()
-
-        # Сповіщення
-        frappe.publish_realtime(
-            event="qms_ticket_updated",
-            message={'name': ticket_doc.name, 'status': ticket_doc.status,
-                     'office': ticket_doc.office, 'ticket_number': ticket_doc.ticket_number},
-            room=f"qms_office_{ticket_doc.office}"
-        )
-        # Оновлення статистики
-        frappe.publish_realtime(
-            event="qms_stats_updated",
-            message={'office': ticket_doc.office},
-            room=f"qms_office_{ticket_doc.office}"
-        )
 
         return {"status": "success", "message": f"Талон {ticket_doc.ticket_number} відмічено як 'Не з\\'явився'."}
     except Exception as e:
@@ -328,23 +294,8 @@ def hold_ticket(ticket_name: str):
         # Оновлення
         ticket_doc.status = "Postponed"
         # Можна зберігати час відкладення або додаткову інформацію, якщо потрібно
-        ticket_doc.save()
+        ticket_doc.save(ignore_permissions=True)
         frappe.db.commit()
-
-        # Сповіщення
-        frappe.publish_realtime(
-            event="qms_ticket_updated",
-            message={'name': ticket_doc.name, 'status': ticket_doc.status,
-                     'office': ticket_doc.office, 'ticket_number': ticket_doc.ticket_number},
-            room=f"qms_office_{ticket_doc.office}"
-        )
-        # Оновлення статистики (кількість Serving зменшилась)
-        frappe.publish_realtime(
-            event="qms_stats_updated",
-            message={'office': ticket_doc.office},
-            room=f"qms_office_{ticket_doc.office}"
-        )
-
         return {"status": "success", "message": f"Талон {ticket_doc.ticket_number} відкладено."}
     except Exception as e:
         frappe.log_error(frappe.get_traceback(), "Hold Ticket API Error")
@@ -439,7 +390,7 @@ def recall_ticket(ticket_name: str):
         ticket_doc.actual_service_time_mins = None
 
         # --- Збереження та Commit ---
-        ticket_doc.save()
+        ticket_doc.save(ignore_permissions=True)
         frappe.db.commit()
 
         # --- Формуємо відповідь з назвами ---
@@ -447,20 +398,6 @@ def recall_ticket(ticket_name: str):
         ticket_info["service_name"] = service_name
         # Навіть якщо "Не призначено"
         ticket_info["service_point_name"] = service_point_name
-
-        # --- Публікація Realtime Подій ---
-        # Оновлення статусу талону
-        frappe.publish_realtime(
-            event="qms_ticket_updated",
-            message=ticket_info,  # Надсилаємо повну інформацію
-            room=f"qms_office_{ticket_doc.office}"
-        )
-        # Оновлення статистики (кількість Called збільшилась)
-        frappe.publish_realtime(
-            event="qms_stats_updated",
-            message={'office': ticket_doc.office},
-            room=f"qms_office_{ticket_doc.office}"
-        )
 
         # --- Успішна відповідь API ---
         return {

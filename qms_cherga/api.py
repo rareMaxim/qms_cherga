@@ -375,7 +375,7 @@ def call_next_visitor(service_point_name: str):
         # Записуємо ID точки, з якої викликали
         ticket_doc.service_point = service_point_name
 
-        ticket_doc.save()  # Зберігаємо зміни
+        ticket_doc.save(ignore_permissions=True)  # Зберігаємо зміни
         ticket_doc.reload()
         frappe.db.commit()  # Застосовуємо транзакцію
         # --- Успішна відповідь API ---
