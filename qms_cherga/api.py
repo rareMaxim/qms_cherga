@@ -590,14 +590,14 @@ def get_display_data(office: str, limit_called: int = 3, limit_waiting: int = 20
                 s.name: s.service_name for s in services}  # [cite: 138]
 
         # Форматуємо дані для waiting
-        for row in waiting_raw:  # [cite: 138]
+        for row in waiting_raw:
             # Скорочений номер талону
-            short_ticket_number = row.ticket_number.split(  # [cite: 138]
-                '-')[-1] if row.ticket_number and '-' in row.ticket_number else row.ticket_number  # [cite: 138]
-            waiting_tickets.append({  # [cite: 138]
-                "ticket": short_ticket_number or row.name,  # [cite: 138]
-                # [cite: 138]
-                "service": service_names_map_waiting.get(row.service, "Послуга не вказана")
+            short_ticket_number = row.ticket_number.split(
+                '-')[-1] if row.ticket_number and '-' in row.ticket_number else row.ticket_number
+            waiting_tickets.append({
+                "ticket": short_ticket_number or row.name,
+                "service": service_names_map_waiting.get(row.service, "Послуга не вказана"),
+                "service_id": row.service
             })
     except Exception as e:
         frappe.log_error(  # [cite: 138]
@@ -607,12 +607,26 @@ def get_display_data(office: str, limit_called: int = 3, limit_waiting: int = 20
 
     # Логування перед поверненням (можна закоментувати після відладки)
     # frappe.log_error(f"Formatted last_called data for display: {last_called}", "Display API Debug")
+    # --- Отримуємо/Формуємо інформаційне повідомлення ---
+    info_message_text = None
+    # Приклад: отримати повідомлення з умовного DocType налаштувань
+    try:
+        # Потрібно створити такий Single DocType
+        info_message_text = office_doc.display_message_text
+    except Exception:
+        frappe.log_error(
+            message="Error fetching display message text from QMS Office settings.",
+            title="Display API ORM")
 
-    return {  # [cite: 138]
-        "office_status": "open",  # Додаємо статус
-        "last_called": last_called,  # [cite: 138]
-        "waiting": waiting_tickets  # [cite: 138]
+    # Або просто статичний текст для прикладу:
+    # info_message_text = "Увага! 5 травня відділення працює до 16:00."
+    response_data = {
+        "office_status": "open",
+        "last_called": last_called,
+        "waiting": waiting_tickets,
+        "info_message": info_message_text  # <-- ДОДАНО: Передаємо повідомлення
     }
+    return response_data
 
 
 # ... (існуючий код в api.py) ...

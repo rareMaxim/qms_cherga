@@ -7,13 +7,18 @@
  "engine": "InnoDB",
  "field_order": [
   "organization",
+  "column_break_rtgk",
   "office_name",
+  "column_break_dgjm",
   "abbreviation",
+  "section_break_lsak",
+  "display_message_text",
   "address_contact_section",
   "contact_phone",
   "address",
   "schedule_section_section",
   "schedule",
+  "column_break_jarv",
   "timezone",
   "services_section_section",
   "add_service_button",
@@ -93,6 +98,27 @@
    "fieldtype": "Data",
    "label": "Abbreviation",
    "unique": 1
+  },
+  {
+   "fieldname": "column_break_rtgk",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "column_break_dgjm",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "section_break_lsak",
+   "fieldtype": "Section Break"
+  },
+  {
+   "fieldname": "display_message_text",
+   "fieldtype": "Text Editor",
+   "label": "Display Message Text"
+  },
+  {
+   "fieldname": "column_break_jarv",
+   "fieldtype": "Column Break"
   }
  ],
  "grid_page_length": 50,
@@ -111,7 +137,7 @@
    "link_fieldname": "office"
   }
  ],
- "modified": "2025-04-27 14:47:10.497573",
+ "modified": "2025-05-03 18:20:12.365517",
  "modified_by": "Administrator",
  "module": "Qms Cherga",
  "name": "QMS Office",

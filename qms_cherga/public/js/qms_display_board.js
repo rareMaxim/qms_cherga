@@ -1,12 +1,12 @@
 document.addEventListener('DOMContentLoaded', () => {
     // --- Configuration ---
-    const API_ENDPOINT = "/api/method/qms_cherga.api.get_display_data"; // Шлях до API
-    const POLLING_INTERVAL = 7000; // Інтервал опитування в мілісекундах (7 секунд)
-    const CALLED_LIMIT = 3; // Скільки останніх викликаних показувати
-    const WAITING_LIMIT = 20; // Скільки очікуючих показувати
+    const API_ENDPOINT = "/api/method/qms_cherga.api.get_display_data";
+    const POLLING_INTERVAL = 7000;
+    const CALLED_LIMIT = 3; // Або більше, якщо потрібно
+    const WAITING_LIMIT = 30; // Можна збільшити
+    const HIGHLIGHT_DURATION = 8000; // Тривалість підсвічування нового виклику (мс)
     // ---------------------
 
-    // --- Отримуємо ID офісу з URL ---
     let officeId = null;
 
     function getUrlParameter(name) {
@@ -17,17 +17,15 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function initializeDisplayBoard() {
-        officeId = getUrlParameter('office'); // Отримуємо ID з URL
-
+        officeId = getUrlParameter('office');
         if (!officeId) {
             document.body.innerHTML = '<div class="container"><div class="error-message" style="color: red; text-align: center; padding: 50px; font-size: 1.2em;">Помилка: Не вказано параметр "office" в URL адресі табло.<br>Приклад: /qms_display_board.html?office=YOUR_OFFICE_ID</div></div>';
             console.error("Office ID not found in URL parameters for display board.");
-            return false; // Зупиняємо ініціалізацію
+            return false;
         }
         console.log(`Display board initialized for Office ID: ${officeId}`);
-        return true; // ID знайдено
+        return true;
     }
-    // --- КІНЕЦЬ ОТРИМАННЯ ID ---
 
     // DOM References
     const currentDateEl = document.getElementById('current-date');
@@ -35,14 +33,18 @@ document.addEventListener('DOMContentLoaded', () => {
     const lastCallsListEl = document.getElementById('last-calls-list');
     const kioskNextListEl = document.getElementById('kiosk-next-list');
     const lastCalledBarEl = document.getElementById('last-called-bar');
-    const callSound = document.getElementById('call-sound'); // NEW: Отримуємо посилання на аудіо елемент тут
+    const callSound = document.getElementById('call-sound');
+    const officeClosedOverlayEl = document.getElementById('office-closed-overlay');
+    const mainContentEl = document.getElementById('main-content');
+    const timeBarEl = document.getElementById('time-bar'); // Додано для приховування
+    const infoMessageBarEl = document.getElementById('info-message-bar');
 
-    let lastCalledDataSignature = ''; // Зберігає "підпис" попереднього стану викликаних
-    let previousCallItemsSet = new Set(); // NEW: Зберігає унікальні ідентифікатори попередніх викликів для легкого порівняння
+    let lastCalledDataSignature = '';
+    let previousCallItemsMap = new Map(); // Використовуємо Map для зберігання часу останньої появи
 
     // Date/Time Formatting
     function formatDate(date) {
-        const options = { year: 'numeric', month: '2-digit', day: '2-digit' };
+        const options = { year: 'numeric', month: 'long', day: 'numeric' }; // Повний місяць
         return date.toLocaleDateString('uk-UA', options);
     }
     function formatTime(date) {
@@ -50,7 +52,6 @@ document.addEventListener('DOMContentLoaded', () => {
         return date.toLocaleTimeString('uk-UA', options);
     }
 
-    // Update Date/Time Display
     function updateTime() {
         const now = new Date();
         if (currentDateEl) currentDateEl.textContent = formatDate(now);
@@ -65,77 +66,103 @@ document.addEventListener('DOMContentLoaded', () => {
         if (placeholder) placeholder.remove();
 
         const fragment = document.createDocumentFragment();
-        const currentDataSignature = JSON.stringify(calls); // Поточний стан для загального порівняння
+        const currentDataSignature = JSON.stringify(calls);
+        let newCallDetected = false;
+        const currentCallIdentifiers = new Set(); // Зберігає унікальні ID поточних викликів
+        const nowTimestamp = Date.now(); // Поточний час для порівняння
 
         if (!calls || calls.length === 0) {
             if (!lastCallsListEl.querySelector('.placeholder')) {
                 lastCallsListEl.innerHTML = '<span class="placeholder" style="color: #ccc;">Немає активних викликів</span>';
             }
             lastCalledDataSignature = currentDataSignature;
-            previousCallItemsSet = new Set(); // Очистити, якщо немає викликів
+            previousCallItemsMap.clear(); // Очистити Map
             return;
         }
 
-        // --- Логіка для відтворення звуку при виявленні НОВОГО виклику ---
-        let newCallDetected = false;
-        const currentCallItemsSet = new Set(); // Зберігає унікальні ідентифікатори поточних викликів
-
         calls.forEach(call => {
-            // Створюємо унікальний ідентифікатор для кожного виклику (квиток+вікно+час може бути не надійним, якщо час оновлюється)
-            // Краще використовувати квиток+вікно, якщо це унікально, або додати ID виклику з бекенду, якщо є.
-            // Припустимо, квиток+вікно достатньо унікальні для одного моменту часу.
+            // Унікальний ідентифікатор (квиток + вікно, якщо немає кращого ID з бекенду)
             const callIdentifier = `${call.ticket}-${call.window}`;
-            currentCallItemsSet.add(callIdentifier);
+            currentCallIdentifiers.add(callIdentifier);
 
-            // Перевіряємо, чи цей виклик був у попередньому оновленні
-            if (!previousCallItemsSet.has(callIdentifier)) {
+            const previousTimestamp = previousCallItemsMap.get(callIdentifier);
+
+            // Перевірка на новий виклик:
+            // 1. Не було раніше (previousTimestamp === undefined)
+            // 2. АБО був, але час змінився (хоча це менш надійно, якщо час постійно оновлюється)
+            // 3. І це не перше завантаження даних (lastCalledDataSignature !== '')
+            if (lastCalledDataSignature !== '' && previousTimestamp === undefined) {
                 newCallDetected = true;
                 console.log(`New call detected: ${call.ticket} to ${call.window}`);
-                // Анімація/виділення для нового квитка (якщо потрібно виділяти конкретний новий)
-                // highlightCalledTicket(call.ticket, call.window); // Ваш існуючий виклик анімації
+                // Оновлюємо/додаємо в Map з поточним часом для відстеження
+                previousCallItemsMap.set(callIdentifier, nowTimestamp);
+                // Додаємо клас для підсвічування (буде додано до елемента нижче)
+                call.isNew = true; // Додаємо тимчасовий прапорець
+            } else if (previousTimestamp !== undefined) {
+                // Якщо елемент вже був, просто оновлюємо час останньої появи
+                previousCallItemsMap.set(callIdentifier, nowTimestamp);
+            } else {
+                // Якщо це перший запуск, просто додаємо в Map
+                previousCallItemsMap.set(callIdentifier, nowTimestamp);
             }
-        });
 
-        // Відтворюємо звук, якщо:
-        // 1. Був виявлений хоча б один новий виклик (newCallDetected = true)
-        // 2. Це не перше завантаження даних (lastCalledDataSignature !== '')
-        // 3. Є елемент <audio> (callSound існує)
-        if (newCallDetected && lastCalledDataSignature !== '' && callSound) {
-            // MODIFIED: Спроба відтворення звуку
-            callSound.play().catch(error => {
-                // Важливо: Браузери блокують авто-відтворення звуку до першої взаємодії користувача зі сторінкою (клік).
-                // Це стандартна політика безпеки.
-                // Якщо звук не грає автоматично, користувач має клікнути десь на сторінці один раз після завантаження.
-                console.warn("Sound playback failed. Reason:", error, "- This might be due to browser autoplay restrictions. User interaction might be required first.");
-            });
-            // Якщо потрібно візуальне виділення всього блоку при новому виклику:
-            highlightCalledTicket(null, null); // Викликаємо загальну анімацію
-        }
-        // --- Кінець логіки звуку ---
-
-        // Оновлення списку на екрані (ваш існуючий код)
-        calls.forEach(call => {
+            // Створення DOM-елемента
             const item = document.createElement('div');
             item.classList.add('call-item');
+            item.dataset.callId = callIdentifier; // Додаємо ID для легшого пошуку
             item.innerHTML = `
                 ${call.ticket || 'N/A'}
-                <span class="window-info">→ ${call.window || 'N/A'}</span>
+                <span class="window-info">${call.window ? 'Вікно ' + call.window : 'N/A'}</span>
                 <span class="time-info">(${call.time || '--:--'})</span>
             `;
+            // Якщо це новий виклик, додаємо клас і ставимо таймер на видалення класу
+            if (call.isNew) {
+                item.classList.add('new-call-highlight');
+                setTimeout(() => {
+                    // Шукаємо елемент знову (він міг бути перемальований)
+                    const elementToClear = lastCallsListEl.querySelector(`[data-call-id="${callIdentifier}"]`);
+                    if (elementToClear) {
+                        elementToClear.classList.remove('new-call-highlight');
+                        // Прибираємо анімацію
+                        elementToClear.style.animation = 'none';
+                    }
+                }, HIGHLIGHT_DURATION);
+            }
             fragment.appendChild(item);
         });
 
+        // Очищаємо старі елементи з Map, яких вже немає у поточних даних
+        const currentKeys = Array.from(previousCallItemsMap.keys());
+        currentKeys.forEach(key => {
+            if (!currentCallIdentifiers.has(key)) {
+                previousCallItemsMap.delete(key);
+            }
+        });
+
+
+        // Відтворення звуку, якщо виявлено НОВИЙ виклик (і не перше завантаження)
+        if (newCallDetected && callSound) {
+            callSound.play().catch(error => {
+                console.warn("Sound playback failed. Reason:", error);
+            });
+            // Можна також застосувати загальну анімацію до #last-called-bar, якщо потрібно
+            if (lastCalledBarEl) {
+                lastCalledBarEl.classList.remove('updated');
+                void lastCalledBarEl.offsetWidth; // Trigger reflow
+                lastCalledBarEl.classList.add('updated');
+            }
+        }
+
+        // Оновлення списку на екрані
         lastCallsListEl.innerHTML = '';
         lastCallsListEl.appendChild(fragment);
 
-        // Зберігаємо поточний стан для наступного порівняння
+        // Зберігаємо поточний стан
         lastCalledDataSignature = currentDataSignature;
-        previousCallItemsSet = currentCallItemsSet; // Оновлюємо набір попередніх викликів
     }
 
     // Update "Next Up" Tile
     function updateKioskNext(tickets) {
-        // ... (ваш код без змін) ...
         if (!kioskNextListEl) return;
 
         const placeholder = kioskNextListEl.querySelector('.placeholder');
@@ -153,6 +180,16 @@ document.addEventListener('DOMContentLoaded', () => {
         tickets.forEach(ticketData => {
             const li = document.createElement('li');
             li.dataset.ticket = ticketData.ticket;
+            // Додаємо data-service-id (або інший атрибут, якщо бекенд повертає ID)
+            // Припускаємо, що ticketData.service містить назву або ID послуги
+            if (ticketData.service_id) { // Якщо бекенд повертає ID
+                li.dataset.serviceId = ticketData.service_id;
+            } else if (ticketData.service) {
+                // Якщо ID немає, генеруємо атрибут з назви (менш надійно для стилізації)
+                const safeServiceId = ticketData.service.replace(/\s+/g, '-').toLowerCase();
+                li.dataset.serviceName = safeServiceId;
+            }
+
             li.innerHTML = `
                 <span class="ticket-number">${ticketData.ticket || 'N/A'}</span>
                 <span class="service-name">${ticketData.service || 'N/A'}</span>
@@ -160,24 +197,19 @@ document.addEventListener('DOMContentLoaded', () => {
             fragment.appendChild(li);
         });
 
+        // --- Логіка Плавного Оновлення (Базова) ---
+        // Простий варіант: просто замінюємо весь вміст
         kioskNextListEl.innerHTML = '';
         kioskNextListEl.appendChild(fragment);
+        // Складніший варіант (порівняння і додавання/видалення) потребує більше коду
+
+        // --- Кінець Логіки Плавного Оновлення ---
 
         if (kioskNextListEl.children.length === 0 && !kioskNextListEl.querySelector('.placeholder')) {
             kioskNextListEl.innerHTML = '<li class="placeholder">Черга порожня</li>';
         }
     }
 
-    // Функція для візуального виділення (MODIFIED: тепер викликається тільки при новому виклику, якщо потрібно)
-    function highlightCalledTicket(ticketNumber, windowName) {
-        if (lastCalledBarEl) {
-            lastCalledBarEl.classList.remove('updated');
-            void lastCalledBarEl.offsetWidth; // Trigger reflow
-            lastCalledBarEl.classList.add('updated');
-        }
-        // Якщо ви хотіли виділяти конкретний рядок:
-        // Знайдіть елемент за ticketNumber/windowName і додайте йому клас
-    }
 
     // --- Fetch Data via API Polling ---
     async function fetchData() {
@@ -185,9 +217,6 @@ document.addEventListener('DOMContentLoaded', () => {
             console.warn("fetchData called but officeId is not set. Skipping.");
             return;
         }
-        const overlayElement = document.getElementById('office-closed-overlay');
-        const mainContentElement = document.getElementById('main-content'); // Можливо, сховати і його
-        const lastCalledBarElement = document.getElementById('last-called-bar'); // І його теж
 
         try {
             const url = new URL(API_ENDPOINT, window.location.origin);
@@ -198,14 +227,7 @@ document.addEventListener('DOMContentLoaded', () => {
             const response = await fetch(url);
             if (!response.ok) {
                 console.error(`API Error: ${response.status} ${response.statusText}`);
-                // Показуємо оверлей з помилкою
-                if (overlayElement) {
-                    overlayElement.querySelector('span').textContent = `Помилка ${response.status}: Не вдалося завантажити дані.`;
-                    overlayElement.style.display = 'flex'; // Показати оверлей
-                }
-                // Ховаємо основний контент
-                if (mainContentElement) mainContentElement.style.visibility = 'hidden';
-                if (lastCalledBarElement) lastCalledBarElement.style.visibility = 'hidden';
+                showOverlay(`Помилка ${response.status}: Не вдалося завантажити дані.`);
                 return;
             }
 
@@ -215,77 +237,79 @@ document.addEventListener('DOMContentLoaded', () => {
                 const displayData = data.message;
                 console.log("Data received:", displayData);
 
-                // Перевіряємо статус офісу
-                if (displayData.office_status === "closed") {
-                    console.log("Office is closed:", displayData.message);
-                    if (overlayElement) {
-                        overlayElement.querySelector('span').textContent = displayData.message || "Електронна черга наразі не працює.";
-                        overlayElement.style.display = 'flex'; // Показати оверлей
-                    }
-                    // Ховаємо основний контент
-                    if (mainContentElement) mainContentElement.style.visibility = 'hidden';
-                    if (lastCalledBarElement) lastCalledBarElement.style.visibility = 'hidden';
-                    // Очистити списки не обов'язково, бо вони приховані
-                    updateLastCalled([]); // Очистка для консистентності
-                    updateKioskNext([]); // Очистка для консистентності
+                // --- Обробка інформаційного повідомлення ---
+                if (infoMessageBarEl) {
+                    if (displayData.info_message) {
+                        infoMessageBarEl.innerHTML = displayData.info_message;
+                        infoMessageBarEl.style.display = 'block'; // Показати блок
+                        if (infoMessageBarEl.textContent.trim() === '') {
 
-                } else if (displayData.office_status === "open") {
-                    console.log("Office is open.");
-                    if (overlayElement) {
-                        overlayElement.style.display = 'none'; // Сховати оверлей
+                            infoMessageBarEl.style.display = 'none'; // Сховати блок
+                        }
+                    } else {
+                        infoMessageBarEl.textContent = ''; // Очистити
+                        infoMessageBarEl.style.display = 'none'; // Сховати блок
+                        infoMessageBarEl.setAttribute('aria-hidden', 'true'); // Додано для доступності
                     }
-                    // Показуємо основний контент
-                    if (mainContentElement) mainContentElement.style.visibility = 'visible';
-                    if (lastCalledBarElement) lastCalledBarElement.style.visibility = 'visible';
-                    // Оновлюємо дані як зазвичай
+                }
+
+                if (displayData.office_status === "closed") {
+                    showOverlay(displayData.message || "Електронна черга наразі не працює.");
+                    // Очищаємо дані, коли офіс закритий
+                    updateLastCalled([]);
+                    updateKioskNext([]);
+                } else if (displayData.office_status === "open") {
+                    hideOverlay();
                     updateLastCalled(displayData.last_called || []);
                     updateKioskNext(displayData.waiting || []);
                 } else {
-                    // Невідомий статус або помилка з бекенду
-                    console.error("Unknown office_status or error from API:", displayData);
-                    if (overlayElement) {
-                        overlayElement.querySelector('span').textContent = displayData.message || "Помилка: Не вдалося визначити статус черги.";
-                        overlayElement.style.display = 'flex';
-                    }
-                    if (mainContentElement) mainContentElement.style.visibility = 'hidden';
-                    if (lastCalledBarElement) lastCalledBarElement.style.visibility = 'hidden';
+                    showOverlay(displayData.message || "Помилка: Не вдалося визначити статус черги.");
                 }
             } else {
-                // Неочікуваний формат відповіді (немає message)
-                console.error("Unexpected API response format:", data);
-                if (overlayElement) {
-                    overlayElement.querySelector('span').textContent = "Помилка: Неочікувана відповідь сервера.";
-                    overlayElement.style.display = 'flex';
-                }
-                if (mainContentElement) mainContentElement.style.visibility = 'hidden';
-                if (lastCalledBarElement) lastCalledBarElement.style.visibility = 'hidden';
+                if (infoMessageBarEl) infoMessageBarEl.style.display = 'none';
+                showOverlay("Помилка: Неочікувана відповідь сервера.");
             }
 
         } catch (error) {
             console.error("Error fetching display data:", error);
-            // Показуємо оверлей з помилкою зв'язку
-            if (overlayElement) {
-                overlayElement.querySelector('span').textContent = "Помилка зв'язку з сервером.";
-                overlayElement.style.display = 'flex'; // Показати оверлей
-            }
-            // Ховаємо основний контент
-            if (mainContentElement) mainContentElement.style.visibility = 'hidden';
-            if (lastCalledBarElement) lastCalledBarElement.style.visibility = 'hidden';
-            // Очищення даних тут не обов'язкове, але можна зробити
+            showOverlay("Помилка зв'язку з сервером.");
+            // Очищаємо дані при помилці зв'язку
             updateLastCalled([]);
             updateKioskNext([]);
+            if (infoMessageBarEl) infoMessageBarEl.style.display = 'none';
         }
-
     }
-    // ------------------------------------
+
+    // --- Функції для керування оверлеєм ---
+    function showOverlay(message) {
+        if (officeClosedOverlayEl) {
+            const messageSpan = officeClosedOverlayEl.querySelector('span');
+            if (messageSpan) messageSpan.innerHTML = message.replace('\n', '<br>'); // Дозволяємо переноси рядків
+            officeClosedOverlayEl.style.display = 'flex';
+        }
+        // Ховаємо основний контент
+        if (mainContentEl) mainContentEl.style.display = 'none'; // Використовуємо display none
+        if (lastCalledBarEl) lastCalledBarEl.style.display = 'none';
+        if (timeBarEl) timeBarEl.style.display = 'none';
+    }
+
+    function hideOverlay() {
+        if (officeClosedOverlayEl) {
+            officeClosedOverlayEl.style.display = 'none';
+        }
+        // Показуємо основний контент
+        if (mainContentEl) mainContentEl.style.display = 'flex'; // Повертаємо display flex
+        if (lastCalledBarEl) lastCalledBarEl.style.display = 'block'; // Або 'flex', залежно від початкового стану
+        if (timeBarEl) timeBarEl.style.display = 'flex';
+    }
 
     // --- INITIALIZATION & INTERVALS ---
     if (initializeDisplayBoard()) {
-        updateTime(); // Initial time update
-        setInterval(updateTime, 1000); // Update time every second
+        updateTime();
+        setInterval(updateTime, 1000);
 
-        fetchData(); // Initial data load from API
-        setInterval(fetchData, POLLING_INTERVAL); // Start polling the API
+        fetchData(); // Initial data load
+        setInterval(fetchData, POLLING_INTERVAL); // Start polling
     }
-    // --- КІНЕЦЬ INITIALIZATION & INTERVALS ---
+    // --- END INITIALIZATION & INTERVALS ---
 });
