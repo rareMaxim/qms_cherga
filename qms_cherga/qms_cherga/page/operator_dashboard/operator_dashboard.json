@@ -4,13 +4,17 @@
  "docstatus": 0,
  "doctype": "Page",
  "idx": 0,
- "modified": "2025-04-26 19:06:20.452510",
+ "modified": "2025-05-02 10:50:33.750405",
  "modified_by": "Administrator",
  "module": "Qms Cherga",
  "name": "operator-dashboard",
  "owner": "Administrator",
  "page_name": "operator-dashboard",
- "roles": [],
+ "roles": [
+  {
+   "role": "QMS Operator"
+  }
+ ],
  "script": null,
  "standard": "Yes",
  "style": null,
