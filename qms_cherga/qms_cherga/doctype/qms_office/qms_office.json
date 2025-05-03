@@ -1,191 +1,187 @@
 {
- "actions": [],
- "allow_rename": 1,
- "autoname": "field:abbreviation",
- "creation": "2025-04-26 13:50:13.262872",
- "doctype": "DocType",
- "engine": "InnoDB",
- "field_order": [
-  "organization",
-  "column_break_rtgk",
-  "office_name",
-  "column_break_dgjm",
-  "abbreviation",
-  "section_break_lsak",
-  "display_message_text",
-  "address_contact_section",
-  "contact_phone",
-  "address",
-  "schedule_section_section",
-  "schedule",
-  "column_break_jarv",
-  "timezone",
-  "services_section_section",
-  "add_service_button",
-  "available_services"
- ],
- "fields": [
-  {
-   "fieldname": "office_name",
-   "fieldtype": "Data",
-   "in_list_view": 1,
-   "label": "Office Name",
-   "reqd": 1
-  },
-  {
-   "description": "\u0414\u043e \u044f\u043a\u043e\u0457 \u043e\u0440\u0433\u0430\u043d\u0456\u0437\u0430\u0446\u0456\u0457 \u043d\u0430\u043b\u0435\u0436\u0438\u0442\u044c \u043e\u0444\u0456\u0441.",
-   "fieldname": "organization",
-   "fieldtype": "Link",
-   "label": "Organization",
-   "options": "QMS Organization",
-   "reqd": 1
-  },
-  {
-   "fieldname": "address_contact_section",
-   "fieldtype": "Section Break",
-   "label": "Address & Contact Section"
-  },
-  {
-   "fieldname": "address",
-   "fieldtype": "Text",
-   "label": "Address"
-  },
-  {
-   "default": "+380",
-   "fieldname": "contact_phone",
-   "fieldtype": "Data",
-   "label": "Contact Phone",
-   "options": "Phone"
-  },
-  {
-   "fieldname": "schedule_section_section",
-   "fieldtype": "Section Break",
-   "label": "Schedule Section"
-  },
-  {
-   "description": "\u0413\u0440\u0430\u0444\u0456\u043a \u0440\u043e\u0431\u043e\u0442\u0438 \u043e\u0444\u0456\u0441\u0443. \u042f\u043a\u0449\u043e \u043d\u0435 \u0432\u043a\u0430\u0437\u0430\u043d\u043e, \u043c\u043e\u0436\u043d\u0430 \u0432\u0438\u043a\u043e\u0440\u0438\u0441\u0442\u043e\u0432\u0443\u0432\u0430\u0442\u0438 \u0433\u0440\u0430\u0444\u0456\u043a \u043e\u0440\u0433\u0430\u043d\u0456\u0437\u0430\u0446\u0456\u0457.",
-   "fieldname": "schedule",
-   "fieldtype": "Link",
-   "label": "Schedule",
-   "options": "QMS Schedule"
-  },
-  {
-   "default": "Europe/Kyiv",
-   "description": "Enter IANA timezone name (e.g., Europe/Kyiv)",
-   "fieldname": "timezone",
-   "fieldtype": "Data",
-   "label": "Timezone",
-   "reqd": 1
-  },
-  {
-   "fieldname": "services_section_section",
-   "fieldtype": "Section Break",
-   "label": "Services Section"
-  },
-  {
-   "fieldname": "add_service_button",
-   "fieldtype": "Button",
-   "label": "Add Service Button"
-  },
-  {
-   "fieldname": "available_services",
-   "fieldtype": "Table",
-   "label": "Available Services",
-   "options": "QMS Office Service Assignment"
-  },
-  {
-   "fieldname": "abbreviation",
-   "fieldtype": "Data",
-   "label": "Abbreviation",
-   "unique": 1
-  },
-  {
-   "fieldname": "column_break_rtgk",
-   "fieldtype": "Column Break"
-  },
-  {
-   "fieldname": "column_break_dgjm",
-   "fieldtype": "Column Break"
-  },
-  {
-   "fieldname": "section_break_lsak",
-   "fieldtype": "Section Break"
-  },
-  {
-   "fieldname": "display_message_text",
-   "fieldtype": "Text Editor",
-   "label": "Display Message Text"
-  },
-  {
-   "fieldname": "column_break_jarv",
-   "fieldtype": "Column Break"
-  }
- ],
- "grid_page_length": 50,
- "index_web_pages_for_search": 1,
- "links": [
-  {
-   "link_doctype": "QMS Service Point",
-   "link_fieldname": "office"
-  },
-  {
-   "link_doctype": "QMS Operator",
-   "link_fieldname": "default_office"
-  },
-  {
-   "link_doctype": "QMS Ticket",
-   "link_fieldname": "office"
-  }
- ],
-<<<<<<< HEAD
- "modified": "2025-05-03 18:20:12.365517",
-=======
- "modified": "2025-05-02 10:46:44.427339",
->>>>>>> 3a21a44cedee97e2dabaab239be3764c52f444f5
- "modified_by": "Administrator",
- "module": "Qms Cherga",
- "name": "QMS Office",
- "naming_rule": "By fieldname",
- "owner": "Administrator",
- "permissions": [
-  {
-   "create": 1,
-   "delete": 1,
-   "email": 1,
-   "export": 1,
-   "print": 1,
-   "read": 1,
-   "report": 1,
-   "role": "System Manager",
-   "share": 1,
-   "write": 1
-  },
-  {
-   "create": 1,
-   "delete": 1,
-   "email": 1,
-   "export": 1,
-   "print": 1,
-   "read": 1,
-   "report": 1,
-   "role": "QMS Manager",
-   "share": 1,
-   "write": 1
-  },
-  {
-   "email": 1,
-   "export": 1,
-   "print": 1,
-   "read": 1,
-   "report": 1,
-   "role": "QMS Operator",
-   "share": 1
-  }
- ],
- "row_format": "Dynamic",
- "show_title_field_in_link": 1,
- "sort_field": "creation",
- "sort_order": "DESC",
- "states": [],
- "title_field": "office_name"
+    "actions": [],
+    "allow_rename": 1,
+    "autoname": "field:abbreviation",
+    "creation": "2025-04-26 13:50:13.262872",
+    "doctype": "DocType",
+    "engine": "InnoDB",
+    "field_order": [
+        "organization",
+        "column_break_rtgk",
+        "office_name",
+        "column_break_dgjm",
+        "abbreviation",
+        "section_break_lsak",
+        "display_message_text",
+        "address_contact_section",
+        "contact_phone",
+        "address",
+        "schedule_section_section",
+        "schedule",
+        "column_break_jarv",
+        "timezone",
+        "services_section_section",
+        "add_service_button",
+        "available_services"
+    ],
+    "fields": [
+        {
+            "fieldname": "office_name",
+            "fieldtype": "Data",
+            "in_list_view": 1,
+            "label": "Office Name",
+            "reqd": 1
+        },
+        {
+            "description": "\u0414\u043e \u044f\u043a\u043e\u0457 \u043e\u0440\u0433\u0430\u043d\u0456\u0437\u0430\u0446\u0456\u0457 \u043d\u0430\u043b\u0435\u0436\u0438\u0442\u044c \u043e\u0444\u0456\u0441.",
+            "fieldname": "organization",
+            "fieldtype": "Link",
+            "label": "Organization",
+            "options": "QMS Organization",
+            "reqd": 1
+        },
+        {
+            "fieldname": "address_contact_section",
+            "fieldtype": "Section Break",
+            "label": "Address & Contact Section"
+        },
+        {
+            "fieldname": "address",
+            "fieldtype": "Text",
+            "label": "Address"
+        },
+        {
+            "default": "+380",
+            "fieldname": "contact_phone",
+            "fieldtype": "Data",
+            "label": "Contact Phone",
+            "options": "Phone"
+        },
+        {
+            "fieldname": "schedule_section_section",
+            "fieldtype": "Section Break",
+            "label": "Schedule Section"
+        },
+        {
+            "description": "\u0413\u0440\u0430\u0444\u0456\u043a \u0440\u043e\u0431\u043e\u0442\u0438 \u043e\u0444\u0456\u0441\u0443. \u042f\u043a\u0449\u043e \u043d\u0435 \u0432\u043a\u0430\u0437\u0430\u043d\u043e, \u043c\u043e\u0436\u043d\u0430 \u0432\u0438\u043a\u043e\u0440\u0438\u0441\u0442\u043e\u0432\u0443\u0432\u0430\u0442\u0438 \u0433\u0440\u0430\u0444\u0456\u043a \u043e\u0440\u0433\u0430\u043d\u0456\u0437\u0430\u0446\u0456\u0457.",
+            "fieldname": "schedule",
+            "fieldtype": "Link",
+            "label": "Schedule",
+            "options": "QMS Schedule"
+        },
+        {
+            "default": "Europe/Kyiv",
+            "description": "Enter IANA timezone name (e.g., Europe/Kyiv)",
+            "fieldname": "timezone",
+            "fieldtype": "Data",
+            "label": "Timezone",
+            "reqd": 1
+        },
+        {
+            "fieldname": "services_section_section",
+            "fieldtype": "Section Break",
+            "label": "Services Section"
+        },
+        {
+            "fieldname": "add_service_button",
+            "fieldtype": "Button",
+            "label": "Add Service Button"
+        },
+        {
+            "fieldname": "available_services",
+            "fieldtype": "Table",
+            "label": "Available Services",
+            "options": "QMS Office Service Assignment"
+        },
+        {
+            "fieldname": "abbreviation",
+            "fieldtype": "Data",
+            "label": "Abbreviation",
+            "unique": 1
+        },
+        {
+            "fieldname": "column_break_rtgk",
+            "fieldtype": "Column Break"
+        },
+        {
+            "fieldname": "column_break_dgjm",
+            "fieldtype": "Column Break"
+        },
+        {
+            "fieldname": "section_break_lsak",
+            "fieldtype": "Section Break"
+        },
+        {
+            "fieldname": "display_message_text",
+            "fieldtype": "Text Editor",
+            "label": "Display Message Text"
+        },
+        {
+            "fieldname": "column_break_jarv",
+            "fieldtype": "Column Break"
+        }
+    ],
+    "grid_page_length": 50,
+    "index_web_pages_for_search": 1,
+    "links": [
+        {
+            "link_doctype": "QMS Service Point",
+            "link_fieldname": "office"
+        },
+        {
+            "link_doctype": "QMS Operator",
+            "link_fieldname": "default_office"
+        },
+        {
+            "link_doctype": "QMS Ticket",
+            "link_fieldname": "office"
+        }
+    ],
+    "modified": "2025-05-02 10:46:44.427339",
+    "modified_by": "Administrator",
+    "module": "Qms Cherga",
+    "name": "QMS Office",
+    "naming_rule": "By fieldname",
+    "owner": "Administrator",
+    "permissions": [
+        {
+            "create": 1,
+            "delete": 1,
+            "email": 1,
+            "export": 1,
+            "print": 1,
+            "read": 1,
+            "report": 1,
+            "role": "System Manager",
+            "share": 1,
+            "write": 1
+        },
+        {
+            "create": 1,
+            "delete": 1,
+            "email": 1,
+            "export": 1,
+            "print": 1,
+            "read": 1,
+            "report": 1,
+            "role": "QMS Manager",
+            "share": 1,
+            "write": 1
+        },
+        {
+            "email": 1,
+            "export": 1,
+            "print": 1,
+            "read": 1,
+            "report": 1,
+            "role": "QMS Operator",
+            "share": 1
+        }
+    ],
+    "row_format": "Dynamic",
+    "show_title_field_in_link": 1,
+    "sort_field": "creation",
+    "sort_order": "DESC",
+    "states": [],
+    "title_field": "office_name"
 }
