@@ -1,174 +1,204 @@
 # qms_cherga/qms_cherga/page/operator_dashboard/operator_dashboard.py
 import frappe
-from frappe.utils import get_fullname, today, now_datetime, time_diff_in_seconds, flt
+from frappe import _
+from frappe.utils import get_fullname, today, now_datetime, time_diff_in_seconds, flt, get_datetime
+
+# Імпортуємо допоміжні функції (припускаємо, що вони в api.py)
+# Якщо ви створили qms_cherga/utils/response.py, змініть шлях імпорту
+from qms_cherga.utils.response import success_response, error_response, info_response
 
 
 @frappe.whitelist()
 def get_initial_data():
     """
-    Отримує початкові дані для Дашбоарду Оператора при його завантаженні.
-    Включає інформацію про оператора (вкл. назву офісу),
-    поточний активний талон (вкл. назву послуги та точки),
-    та список доступних точок (вкл. назви).
+    Отримує початкові дані для Дашбоарду Оператора (Оновлена версія).
+    Повертає стандартизовану відповідь.
     """
-    current_user = frappe.session.user
-    if current_user == "Guest":
-        # Повертаємо помилку або структуру з позначкою помилки
-        return {"error": "User not logged in", "operator_info": None, "current_ticket": None, "available_service_points": []}
+    try:
+        current_user = frappe.session.user
+        if current_user == "Guest":
+            # 401 Unauthorized
+            return error_response("Authentication required.", http_status_code=401)
 
-    operator_info = {}
-    current_ticket_details = None
-    available_service_points_list = []  # Змінено назву для ясності
+        operator_info = {}
+        current_ticket_details = None
+        available_service_points_list = []
 
-    # Знаходимо запис Оператора
-    operator_data = frappe.db.get_value(
-        "QMS Operator",
-        {"user": current_user, "is_active": 1},
-        ["name", "full_name", "default_office"],  # Отримуємо ID офісу
-        as_dict=True
-    )
+        # Знаходимо запис Оператора (використовуємо get_doc для перевірки існування)
+        try:
+            operator_doc = frappe.get_doc(
+                "QMS Operator", {"user": current_user})
+            if not operator_doc.is_active:
+                # 403 Forbidden - оператор існує, але не активний
+                return error_response(
+                    message=f"Operator record for user {current_user} is not active.",
+                    error_code="OPERATOR_INACTIVE",
+                    http_status_code=403)
+        except frappe.DoesNotExistError:
+            # 404 Not Found
+            return error_response(message=f"QMS Operator record not found for user {current_user}.",
+                                  http_status_code=404)
 
-    # Якщо Оператор знайдений та активний
-    if operator_data:
-        office_id = operator_data.default_office
-        office_name_full = "Не вказано"
-        # Якщо у оператора вказано офіс за замовчуванням
+        office_id = operator_doc.default_office
+        office_name_full = "Not Specified"
         if office_id:
-            # Отримуємо назву офісу
-            office_name_full = frappe.db.get_value(
-                "QMS Office", office_id, "office_name"
-            ) or office_id  # Fallback на ID, якщо назва порожня
+            try:
+                office_doc_data = frappe.db.get_value(
+                    "QMS Office", office_id, ["office_name", "name"], as_dict=True)
+                if office_doc_data:
+                    office_name_full = office_doc_data.office_name or office_doc_data.name  # Fallback на ID
+                    # Отримуємо точки обслуговування
+                    available_service_points = frappe.get_all(
+                        "QMS Service Point",
+                        filters={"office": office_id, "is_active": 1},
+                        fields=["name", "point_name"],
+                        order_by="point_name asc"
+                    )
+                    available_service_points_list = [
+                        {"value": p.name, "label": p.point_name} for p in available_service_points]
+                else:
+                    # Офіс, вказаний у оператора, не знайдено - помилка конфігурації
+                    frappe.log_warning(
+                        f"Office '{office_id}' linked to operator '{operator_doc.name}' not found.", "Operator Config Warning")
+                    office_name_full = f"Error: Office '{office_id}' not found"
 
-            # Отримуємо точки обслуговування для цього офісу
-            available_service_points = frappe.get_all(
-                "QMS Service Point",
-                filters={"office": office_id, "is_active": 1},
-                fields=["name", "point_name"],  # name - ID, point_name - назва
-                order_by="point_name asc"
-            )
-            # Перетворюємо у формат { value: 'ID', label: 'Назва' } для селектора JS
-            available_service_points_list = [
-                {"value": p.name, "label": p.point_name} for p in available_service_points]
-        else:
-            # Якщо офіс не вказано у оператора, список точок буде порожнім
-            available_service_points_list = []
+            except Exception as e:
+                # Логуємо помилку отримання даних офісу/точок
+                frappe.log_error(
+                    f"Error fetching office/service point details for office {office_id}: {e}", "Initial Data Error")
+                office_name_full = "Error loading office data"
 
-        # Формуємо інформацію про оператора
         operator_info = {
-            "qms_operator_name": operator_data.name,
-            "full_name": operator_data.full_name or get_fullname(current_user),
-            "default_office_id": office_id,  # ID офісу
-            "default_office_name": office_name_full,  # Назва офісу
-            "current_status": "Available"  # TODO: Покращити логіку статусу оператора
+            "qms_operator_name": operator_doc.name,
+            "full_name": operator_doc.full_name or get_fullname(current_user),
+            "default_office_id": office_id,
+            "default_office_name": office_name_full,
+            "current_status": "Available"  # Потребує кращої логіки
         }
 
-        # Шукаємо поточний активний талон цього оператора
+        # Шукаємо поточний активний талон
         active_ticket = frappe.get_all(
             "QMS Ticket",
             filters={"operator": current_user,
                      "status": ["in", ["Serving", "Called"]]},
-            # Додаємо service та service_point для отримання їхніх назв
-            fields=["name", "ticket_number", "service", "service_point", "status", "visitor_phone",
-                    "call_time", "start_service_time", "office"],
+            fields=["name", "ticket_number", "service", "service_point", "status",
+                    "visitor_phone", "call_time", "start_service_time", "office"],
             order_by="modified desc",
             limit=1
         )
 
-        # Якщо активний талон знайдено, доповнюємо його назвами
         if active_ticket:
             ticket_data = active_ticket[0]
-            service_name = "N/A"
-            if ticket_data.service:
-                service_name = frappe.db.get_value(
-                    "QMS Service", ticket_data.service, "service_name") or service_name
+            service_name = frappe.db.get_value(
+                "QMS Service", ticket_data.service, "service_name") if ticket_data.service else "N/A"
+            service_point_name = frappe.db.get_value(
+                "QMS Service Point", ticket_data.service_point, "point_name") if ticket_data.service_point else "N/A"
 
-            service_point_name = "N/A"
-            if ticket_data.service_point:
-                service_point_name = frappe.db.get_value(
-                    "QMS Service Point", ticket_data.service_point, "point_name") or service_point_name
-
-            current_ticket_details = ticket_data.copy()  # Копіюємо дані
+            current_ticket_details = ticket_data.copy()
             current_ticket_details["service_name"] = service_name
             current_ticket_details["service_point_name"] = service_point_name
 
-    else:
-        # Якщо запис оператора не знайдено або він неактивний
-        # Повертаємо помилку (або порожні дані, залежно від бажаної поведінки)
-        # Важливо, щоб JS обробляв цей випадок
-        return {
-            "error": "Active QMS Operator record not found for the current user.",
-            "operator_info": None,  # Явно вказуємо, що даних немає
-            "current_ticket": None,
-            "available_service_points": []
-        }
-        # Або можна генерувати Frappe Exception:
-        # frappe.throw("Не знайдено активний запис Оператора для вашого користувача.", title="Помилка Налаштувань")
+        # Успішна відповідь
+        return success_response(data={
+            "operator_info": operator_info,
+            "current_ticket": current_ticket_details,  # Може бути None
+            "available_service_points": available_service_points_list
+        })
 
-    # Повертаємо зібрані дані
-    return {
-        "operator_info": operator_info,
-        "current_ticket": current_ticket_details,
-        "available_service_points": available_service_points_list  # Список для селектора JS
-    }
+    except Exception as e:
+        # Обробка неочікуваних помилок
+        frappe.log_error(frappe.get_traceback(), "Get Initial Data API Error")
+        return error_response(
+            message="An unexpected error occurred while fetching initial data.",
+            details=str(e),
+            http_status_code=500
+        )
 
 
 @frappe.whitelist()
 def get_queue_stats(office: str):
     """
-    Отримує базову статистику черги для вказаного ID офісу.
+    Отримує базову статистику черги (Оновлена версія).
+    Повертає стандартизовану відповідь.
     """
-    # Перевірка, чи передано ID офісу
     if not office:
-        return {"waiting": "?", "served_today": "?"}
+        # 400 Bad Request
+        return error_response("Office ID is required.", http_status_code=400)
 
     try:
-        # Рахуємо талони зі статусом 'Waiting' для цього офісу
+        if not frappe.db.exists("QMS Office", office):
+            # 404 Not Found
+            return error_response(f"Office '{office}' not found.", http_status_code=404)
+
         waiting_count = frappe.db.count(
             "QMS Ticket", {"status": "Waiting", "office": office})
-
-        # Рахуємо талони, завершені сьогодні для цього офісу
         served_count = frappe.db.count("QMS Ticket", {
-                                       "status": "Completed",
-                                       "office": office,
-                                       # Порівнюємо дату модифікації з початком сьогоднішнього дня
-                                       "modified": [">=", today() + " 00:00:00"]
-                                       })
-        return {"waiting": waiting_count, "served_today": served_count}
+            "status": "Completed",
+            "office": office,
+            "modified": [">=", today() + " 00:00:00"]
+        })
+
+        return success_response(data={
+            "waiting": waiting_count,
+            "served_today": served_count
+        })
     except Exception as e:
-        # Логуємо помилку та повертаємо індикатори помилки
         frappe.log_error(frappe.get_traceback(),
                          f"Get Queue Stats Error for Office {office}")
-        return {"waiting": "Err", "served_today": "Err"}
+        # 500 Internal Server Error
+        return error_response(
+            message="An unexpected error occurred while fetching queue statistics.",
+            details=str(e),
+            http_status_code=500
+        )
+
+# Допоміжна функція для отримання та валідації талону
+
+
+def _get_validated_ticket(ticket_name: str, expected_statuses: list = None):
+    """Gets ticket doc, checks existence and operator match."""
+    current_user = frappe.session.user
+    if current_user == "Guest":
+        # Викидаємо виняток, який буде зловлено зовнішньою функцією
+        raise frappe.AuthenticationError("Authentication required.")
+
+    try:
+        ticket_doc = frappe.get_doc("QMS Ticket", ticket_name)
+    except frappe.DoesNotExistError:
+        # Викидаємо виняток
+        raise frappe.DoesNotExistError(f"Ticket {ticket_name} not found.")
+
+    if ticket_doc.operator != current_user:
+        # Викидаємо виняток
+        raise frappe.PermissionError(
+            "Cannot modify a ticket assigned to another operator.")
+
+    if expected_statuses and ticket_doc.status not in expected_statuses:
+        # Викидаємо виняток
+        raise frappe.ValidationError(
+            f"Invalid ticket status '{ticket_doc.status}'. Expected one of: {expected_statuses}.")
+
+    return ticket_doc
 
 
 @frappe.whitelist()
 def start_serving_ticket(ticket_name: str):
     """
-    Змінює статус талону на 'Serving', фіксує час початку.
-    Повертає оновлену інформацію про талон.
+    Розпочинає обслуговування талону (Оновлена версія).
+    Повертає стандартизовану відповідь.
     """
     try:
-        current_user = frappe.session.user
-        if current_user == "Guest":
-            frappe.throw("Потрібна авторизація.")
-
-        ticket_doc = frappe.get_doc("QMS Ticket", ticket_name)
-
-        # Валідація
-        if ticket_doc.operator != current_user:
-            frappe.throw("Це не ваш талон.")
-        if ticket_doc.status != "Called":
-            frappe.throw(
-                f"Невірний статус талону '{ticket_doc.status}'. Очікується 'Called'.")
+        # Отримуємо та валідуємо талон
+        ticket_doc = _get_validated_ticket(
+            ticket_name, expected_statuses=["Called"])
 
         # Оновлення документа
         ticket_doc.status = "Serving"
         ticket_doc.start_service_time = now_datetime()
-        # Може викликати 'validate' та 'before_save' хуки, якщо вони є
         ticket_doc.save(ignore_permissions=True)
         frappe.db.commit()
 
-        # Отримуємо назви для повноти відповіді (опціонально, але корисно для UI)
+        # Отримуємо додаткові дані для відповіді
         service_name = frappe.db.get_value(
             "QMS Service", ticket_doc.service, "service_name") if ticket_doc.service else "N/A"
         service_point_name = frappe.db.get_value(
@@ -178,239 +208,236 @@ def start_serving_ticket(ticket_name: str):
         ticket_info["service_name"] = service_name
         ticket_info["service_point_name"] = service_point_name
 
-        # Успішна відповідь
-        return {
-            "status": "success",
-            "message": f"Розпочато обслуговування талону {ticket_doc.ticket_number}.",
-            "ticket_info": ticket_info  # Повертаємо оновлені дані
-        }
+        return success_response(
+            message=f"Started serving ticket {ticket_doc.ticket_number}.",
+            data={"ticket_info": ticket_info}
+        )
+
+    # Обробляємо специфічні помилки валідації
+    except frappe.AuthenticationError as e:
+        return error_response(str(e), http_status_code=401)
+    except frappe.DoesNotExistError as e:
+        return error_response(str(e), http_status_code=404)
+    except frappe.PermissionError as e:
+        return error_response(str(e), http_status_code=403)
+    except frappe.ValidationError as e:
+        # 409 Conflict або 400 Bad Request
+        return error_response(str(e), error_code="INVALID_STATUS", http_status_code=409)
     except Exception as e:
+        # Загальні помилки
+        frappe.db.rollback()
         frappe.log_error(frappe.get_traceback(),
                          "Start Serving Ticket API Error")
-        frappe.db.rollback()
-        # Повертаємо помилку у зрозумілому форматі
-        return {"status": "error", "message": f"Помилка при старті обслуговування: {e}"}
+        return error_response(
+            message="An unexpected error occurred while starting service.",
+            details=str(e),
+            http_status_code=500
+        )
 
 
 @frappe.whitelist()
 def finish_service_ticket(ticket_name: str):
     """
-    Змінює статус талону на 'Completed', фіксує час завершення та тривалість.
+    Завершує обслуговування талону (Оновлена версія).
+    Повертає стандартизовану відповідь.
     """
     try:
-        current_user = frappe.session.user
-        if current_user == "Guest":
-            frappe.throw("Потрібна авторизація.")
+        ticket_doc = _get_validated_ticket(
+            ticket_name, expected_statuses=["Serving"])
 
-        ticket_doc = frappe.get_doc("QMS Ticket", ticket_name)
-
-        # Валідація
-        if ticket_doc.operator != current_user:
-            frappe.throw("Це не ваш талон.")
-        if ticket_doc.status != "Serving":
-            frappe.throw(
-                f"Невірний статус талону '{ticket_doc.status}'. Очікується 'Serving'.")
-
-        # Оновлення документа
         completion_time = now_datetime()
         ticket_doc.status = "Completed"
         ticket_doc.completion_time = completion_time
 
-        # Розрахунок тривалості обслуговування
         if ticket_doc.start_service_time:
             service_duration_seconds = time_diff_in_seconds(
-                completion_time, ticket_doc.start_service_time
-            )
-            # Зберігаємо в хвилинах з двома знаками після коми
+                completion_time, ticket_doc.start_service_time)
             ticket_doc.actual_service_time_mins = round(
                 flt(service_duration_seconds) / 60.0, 2)
         else:
-            # Якщо час початку не було зафіксовано
             ticket_doc.actual_service_time_mins = 0
 
         ticket_doc.save(ignore_permissions=True)
         frappe.db.commit()
 
-        return {"status": "success", "message": f"Обслуговування талону {ticket_doc.ticket_number} завершено."}
+        return success_response(message=f"Service for ticket {ticket_doc.ticket_number} completed.")
+
+    except frappe.AuthenticationError as e:
+        return error_response(str(e), http_status_code=401)
+    except frappe.DoesNotExistError as e:
+        return error_response(str(e), http_status_code=404)
+    except frappe.PermissionError as e:
+        return error_response(str(e), http_status_code=403)
+    except frappe.ValidationError as e:
+        return error_response(str(e), error_code="INVALID_STATUS", http_status_code=409)
     except Exception as e:
+        frappe.db.rollback()
         frappe.log_error(frappe.get_traceback(),
                          "Finish Service Ticket API Error")
-        frappe.db.rollback()
-        return {"status": "error", "message": f"Помилка при завершенні обслуговування: {e}"}
+        return error_response("An unexpected error occurred while finishing service.", details=str(e), http_status_code=500)
 
 
 @frappe.whitelist()
 def mark_no_show(ticket_name: str):
-    """ Змінює статус талону на 'NoShow'. """
+    """
+    Відмічає талон як "Не з'явився" (Оновлена версія).
+    Повертає стандартизовану відповідь.
+    """
     try:
-        current_user = frappe.session.user
-        if current_user == "Guest":
-            frappe.throw("Потрібна авторизація.")
+        # Дозволяємо відмітку якщо статус Called або Serving
+        ticket_doc = _get_validated_ticket(
+            ticket_name, expected_statuses=["Called", "Serving"])
 
-        ticket_doc = frappe.get_doc("QMS Ticket", ticket_name)
-
-        # Валідація
-        if ticket_doc.operator != current_user:
-            frappe.throw("Це не ваш талон.")
-        # Дозволяємо відмітити як NoShow якщо статус Called або Serving
-        if ticket_doc.status not in ["Called", "Serving"]:
-            frappe.throw(
-                f"Невірний Статус '{ticket_doc.status}' (очікується 'Called' або 'Serving')")
-
-        # Оновлення
         ticket_doc.status = "NoShow"
-        # Можна додати логіку для очищення часу обслуговування, якщо потрібно
+        # Можна очистити інші поля за потреби
         # ticket_doc.start_service_time = None
         # ticket_doc.completion_time = None
         # ticket_doc.actual_service_time_mins = None
         ticket_doc.save(ignore_permissions=True)
         frappe.db.commit()
 
-        return {"status": "success", "message": f"Талон {ticket_doc.ticket_number} відмічено як 'Не з\\'явився'."}
+        return success_response(message=f"Ticket {ticket_doc.ticket_number} marked as 'No Show'.")
+
+    except frappe.AuthenticationError as e:
+        return error_response(str(e), http_status_code=401)
+    except frappe.DoesNotExistError as e:
+        return error_response(str(e), http_status_code=404)
+    except frappe.PermissionError as e:
+        return error_response(str(e), http_status_code=403)
+    except frappe.ValidationError as e:
+        return error_response(str(e), error_code="INVALID_STATUS", http_status_code=409)
     except Exception as e:
-        frappe.log_error(frappe.get_traceback(), "Mark No Show API Error")
         frappe.db.rollback()
-        return {"status": "error", "message": f"Помилка при відмітці 'Не з\\'явився': {e}"}
+        frappe.log_error(frappe.get_traceback(), "Mark No Show API Error")
+        return error_response("An unexpected error occurred while marking as 'No Show'.", details=str(e), http_status_code=500)
 
 
 @frappe.whitelist()
 def hold_ticket(ticket_name: str):
-    """ Змінює статус талону на 'Postponed' (Відкладено). """
+    """
+    Відкладає талон (Оновлена версія).
+    Повертає стандартизовану відповідь.
+    """
     try:
-        current_user = frappe.session.user
-        if current_user == "Guest":
-            frappe.throw("Потрібна авторизація.")
-
-        ticket_doc = frappe.get_doc("QMS Ticket", ticket_name)
-
-        # Валідація
-        if ticket_doc.operator != current_user:
-            frappe.throw("Це не ваш талон.")
         # Відкласти можна лише талон, що обслуговується
-        if ticket_doc.status != "Serving":
-            frappe.throw(
-                f"Невірний Статус '{ticket_doc.status}' (очікується 'Serving').")
+        ticket_doc = _get_validated_ticket(
+            ticket_name, expected_statuses=["Serving"])
 
-        # Оновлення
         ticket_doc.status = "Postponed"
-        # Можна зберігати час відкладення або додаткову інформацію, якщо потрібно
+        # Можна додати логіку збереження часу відкладення
         ticket_doc.save(ignore_permissions=True)
         frappe.db.commit()
-        return {"status": "success", "message": f"Талон {ticket_doc.ticket_number} відкладено."}
+
+        return success_response(message=f"Ticket {ticket_doc.ticket_number} postponed.")
+
+    except frappe.AuthenticationError as e:
+        return error_response(str(e), http_status_code=401)
+    except frappe.DoesNotExistError as e:
+        return error_response(str(e), http_status_code=404)
+    except frappe.PermissionError as e:
+        return error_response(str(e), http_status_code=403)
+    except frappe.ValidationError as e:
+        return error_response(str(e), error_code="INVALID_STATUS", http_status_code=409)
     except Exception as e:
-        frappe.log_error(frappe.get_traceback(), "Hold Ticket API Error")
         frappe.db.rollback()
-        return {"status": "error", "message": f"Помилка при відкладанні талону: {e}"}
+        frappe.log_error(frappe.get_traceback(), "Hold Ticket API Error")
+        return error_response("An unexpected error occurred while postponing the ticket.", details=str(e), http_status_code=500)
 
 
 @frappe.whitelist()
 def get_my_held_tickets():
     """
-    Отримує список талонів, відкладених поточним оператором ('Postponed').
-    Включає назву послуги.
+    Отримує список відкладених талонів поточного оператора (Оновлена версія).
+    Повертає стандартизовану відповідь.
     """
-    current_user = frappe.session.user
-    if current_user == "Guest":
-        return []  # Гості не мають відкладених талонів
+    try:
+        current_user = frappe.session.user
+        if current_user == "Guest":
+            # Гості не мають відкладених талонів, повертаємо успіх з порожніми даними
+            return success_response(data={"held_tickets": []})
 
-    # Отримуємо ID талонів та ID послуг
-    held_tickets_data = frappe.get_all(
-        "QMS Ticket",
-        filters={
-            "operator": current_user,
-            "status": "Postponed"
-        },
-        fields=["name", "ticket_number", "service"],  # Отримуємо ID послуги
-        order_by="modified desc"  # Показуємо останні відкладені зверху
-    )
+        held_tickets_data = frappe.get_all(
+            "QMS Ticket",
+            filters={"operator": current_user, "status": "Postponed"},
+            fields=["name", "ticket_number", "service"],
+            order_by="modified desc"
+        )
 
-    if not held_tickets_data:
-        return []  # Повертаємо порожній список, якщо немає відкладених
+        result_list = []
+        if held_tickets_data:
+            service_ids = list(
+                set(t.service for t in held_tickets_data if t.service))
+            service_names_map = {}
+            if service_ids:
+                services = frappe.get_all("QMS Service", filters={
+                                          "name": ["in", service_ids]}, fields=["name", "service_name"])
+                service_names_map = {s.name: s.service_name for s in services}
 
-    # Отримуємо назви послуг для знайдених талонів
-    service_ids = [t.service for t in held_tickets_data if t.service]
-    service_names_map = {}
-    if service_ids:
-        # Використовуємо set для унікальних ID
-        services = frappe.get_all("QMS Service", filters={
-                                  "name": ["in", list(set(service_ids))]}, fields=["name", "service_name"])
-        service_names_map = {s.name: s.service_name for s in services}
+            for ticket in held_tickets_data:
+                ticket_dict = ticket.copy()
+                ticket_dict["service_name"] = service_names_map.get(
+                    ticket.service, ticket.service or "N/A")
+                result_list.append(ticket_dict)
 
-    # Формуємо результат, додаючи назву послуги до кожного талону
-    result_list = []
-    for ticket in held_tickets_data:
-        ticket_dict = ticket.copy()
-        # Додаємо service_name, використовуючи map. Якщо назви немає, використовуємо ID або "N/A"
-        ticket_dict["service_name"] = service_names_map.get(
-            ticket.service, ticket.service or "N/A")
-        result_list.append(ticket_dict)
+        return success_response(data={"held_tickets": result_list})
 
-    return result_list
+    except Exception as e:
+        frappe.log_error(frappe.get_traceback(),
+                         "Get My Held Tickets API Error")
+        return error_response("An unexpected error occurred while fetching held tickets.", details=str(e), http_status_code=500)
 
 
 @frappe.whitelist()
 def recall_ticket(ticket_name: str):
     """
-    Повертає відкладений талон ('Postponed') в роботу, встановлюючи статус 'Called'.
-    Повертає оновлену інформацію про талон з назвами.
+    Повертає відкладений талон до роботи (Оновлена версія).
+    Повертає стандартизовану відповідь.
     """
     try:
-        current_user = frappe.session.user
-        if current_user == "Guest":
-            frappe.throw("Потрібна авторизація.")
-
-        ticket_doc = frappe.get_doc("QMS Ticket", ticket_name)
-
-        # --- Валідація ---
-        if not ticket_doc:
-            frappe.throw(f"Талон {ticket_name} не знайдено.")
-        # Перевіряємо, чи цей оператор відклав талон
-        if ticket_doc.operator != current_user:
-            frappe.throw(
-                "Ви не можете повернути талон, відкладений іншим оператором.")
-        if ticket_doc.status != "Postponed":
-            frappe.throw(
-                f"Статус талону '{ticket_doc.status}'. Очікується 'Postponed'.")
+        # Використовуємо _get_validated_ticket для перевірок
+        ticket_doc = _get_validated_ticket(
+            ticket_name, expected_statuses=["Postponed"])
 
         # --- Отримуємо назви для відповіді ---
         service_name = frappe.db.get_value(
             "QMS Service", ticket_doc.service, "service_name") if ticket_doc.service else "N/A"
-        # Точка обслуговування може бути вже неактуальною або не призначеною при поверненні
         service_point_name = frappe.db.get_value(
-            "QMS Service Point", ticket_doc.service_point, "point_name") if ticket_doc.service_point else "Не призначено"
+            "QMS Service Point", ticket_doc.service_point, "point_name") if ticket_doc.service_point else "Not Assigned"
 
         # --- Оновлення Полів Документа ---
-        ticket_doc.status = "Called"  # Повертаємо в стан "Викликано"
-        # Фіксуємо новий час "виклику" (повернення)
-        ticket_doc.call_time = now_datetime()
-        # Очищаємо попередні часи обслуговування та, можливо, точку
-        # ticket_doc.service_point = None # Залежить від бізнес-логіки, чи скидати точку
+        ticket_doc.status = "Called"  # Ставимо статус "Викликано"
+        ticket_doc.call_time = now_datetime()  # Новий час "виклику"
+        # Очищаємо попередні дані обслуговування
         ticket_doc.start_service_time = None
         ticket_doc.completion_time = None
         ticket_doc.actual_service_time_mins = None
+        # Можливо, скинути service_point, якщо логіка вимагає перепризначення точки
+        # ticket_doc.service_point = None
 
-        # --- Збереження та Commit ---
         ticket_doc.save(ignore_permissions=True)
+        ticket_doc.reload()  # Оновити дані після збереження
         frappe.db.commit()
 
         # --- Формуємо відповідь з назвами ---
-        ticket_info = ticket_doc.as_dict()  # Отримуємо всі поля документа
+        ticket_info = ticket_doc.as_dict()
         ticket_info["service_name"] = service_name
-        # Навіть якщо "Не призначено"
         ticket_info["service_point_name"] = service_point_name
 
         # --- Успішна відповідь API ---
-        return {
-            "status": "success",
-            "message": f"Талон {ticket_doc.ticket_number} повернуто до роботи.",
-            "ticket_info": ticket_info  # Повертаємо оновлені дані з назвами
-        }
+        return success_response(
+            message=f"Ticket {ticket_doc.ticket_number} recalled successfully.",
+            data={"ticket_info": ticket_info}
+        )
 
+    except frappe.AuthenticationError as e:
+        return error_response(str(e), http_status_code=401)
+    except frappe.DoesNotExistError as e:
+        return error_response(str(e), http_status_code=404)
+    except frappe.PermissionError as e:
+        return error_response(str(e), http_status_code=403)
+    except frappe.ValidationError as e:
+        return error_response(str(e), error_code="INVALID_STATUS", http_status_code=409)
     except Exception as e:
-        # Обробка помилок
-        frappe.log_error(frappe.get_traceback(), "Recall Ticket API Error")
         frappe.db.rollback()
-        return {"status": "error", "message": f"Помилка під час повернення талону: {e}"}
-
-# !!! ВАЖЛИВО: Функція call_next_visitor() була перенесена до api.py !!!
-# Якщо вона все ще є у вашому файлі operator_dashboard.py, її потрібно видалити звідси.
+        frappe.log_error(frappe.get_traceback(), "Recall Ticket API Error")
+        return error_response("An unexpected error occurred while recalling the ticket.", details=str(e), http_status_code=500)

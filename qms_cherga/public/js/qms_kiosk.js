@@ -1,20 +1,18 @@
-// qms_cherga/public/js/kiosk.js
+// qms_cherga/public/js/qms_kiosk.js
 
 document.addEventListener('DOMContentLoaded', () => {
 
     // --- КОНФІГУРАЦІЯ ---
-    // Видаляємо жорстко закодований OFFICE_ID
-    // const OFFICE_ID = "ZP-RACS-OLXNDR";
-    const TICKET_TIMEOUT_SECONDS = 15; // Час показу екрану талону
+    const TICKET_TIMEOUT_SECONDS = 50; // Таймаут для квитка (в секундах)
     // ---------------------
 
-    let officeId = null; // Змінна для зберігання ID офісу з URL
+    let officeId = null;
 
-    // Get DOM elements
+    // DOM elements
     const screens = document.querySelectorAll('.screen');
     const mainServiceContainer = document.getElementById('service-container');
     const serviceListContainer = document.getElementById('service-list');
-    const serviceCategoryTitle = document.getElementById('service-category-title');
+    // const serviceCategoryTitle = document.getElementById('service-category-title'); // Не використовується, можна видалити?
     const backButton = document.getElementById('back-button');
     const ticketNumberDisplay = document.getElementById('ticket-number');
     const ticketServiceNameDisplay = document.getElementById('ticket-service-name');
@@ -22,10 +20,11 @@ document.addEventListener('DOMContentLoaded', () => {
     const searchInput = document.getElementById('service-search-input');
 
     let ticketTimeoutId = null;
-    let allServicesData = {}; // Зберігаємо завантажені дані
+    let allServicesData = {};
 
     // --- Функція для отримання параметра з URL ---
     function getUrlParameter(name) {
+        // ... (код без змін) ...
         name = name.replace(/[\[]/, '\\[').replace(/[\]]/, '\\]');
         const regex = new RegExp('[\\?&]' + name + '=([^&#]*)');
         const results = regex.exec(location.search);
@@ -34,28 +33,23 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // --- Ініціалізація та отримання ID офісу ---
     function initializeKiosk() {
-        officeId = getUrlParameter('office'); // Отримуємо ID з URL
-
+        officeId = getUrlParameter('office');
         if (!officeId) {
-            // Якщо параметр 'office' відсутній в URL, показуємо помилку
             mainServiceContainer.innerHTML = '<div class="error-message">Помилка: Не вказано параметр "office" в URL адресі кіоску.<br>Приклад: /qms_kiosk.html?office=YOUR_OFFICE_ID</div>';
-            // Ховаємо всі екрани або показуємо спеціальний екран помилки, якщо він є
             screens.forEach(screen => screen.classList.remove('active'));
             const mainScreen = document.getElementById('main-screen');
-            if (mainScreen) mainScreen.classList.add('active'); // Показуємо головний, де буде помилка
+            if (mainScreen) mainScreen.classList.add('active');
             console.error("Office ID not found in URL parameters.");
-            return; // Зупиняємо подальшу ініціалізацію
+            return;
         }
-
         console.log(`Kiosk initialized for Office ID: ${officeId}`);
-        loadKioskServices(); // Завантажуємо послуги для отриманого ID
-        showScreen('main-screen'); // Показуємо головний екран
+        loadKioskServices();
+        showScreen('main-screen');
     }
-    // ------------------------------------------
 
-
-    // Function to show a specific screen (без змін)
+    // --- Відображення екранів та таймаут (без змін) ---
     function showScreen(screenId) {
+        // ... (код без змін) ...
         screens.forEach(screen => screen.classList.remove('active'));
         const screenToShow = document.getElementById(screenId);
         if (screenToShow) {
@@ -76,9 +70,8 @@ document.addEventListener('DOMContentLoaded', () => {
             ticketTimeoutId = null;
         }
     }
-
-    // Function to start the return timer from the ticket screen (без змін)
     function startTicketTimeout() {
+        // ... (код без змін) ...
         clearTimeout(ticketTimeoutId);
         let counter = TICKET_TIMEOUT_SECONDS;
         if (timeoutCounterDisplay) timeoutCounterDisplay.textContent = counter;
@@ -95,166 +88,160 @@ document.addEventListener('DOMContentLoaded', () => {
         }, 1000);
     }
 
-    // Function to handle service button click (API call)
+    // --- Обробка кліку на послугу (ОНОВЛЕНО) ---
     function handleServiceClick(serviceId, serviceName) {
         console.log(`Service selected: ID=${serviceId}, Name=${serviceName}`);
-
-        // Перевірка, чи отримали ми officeId
         if (!officeId) {
-            alert("Помилка: Не вдалося визначити ID офісу. Перевірте URL.");
+            // Використовуємо alert або кращий механізм сповіщень
+            alert(__("Error: Could not determine Office ID. Check the URL."));
             return;
         }
+        // Можна показати індикатор завантаження
+        // showLoadingIndicator(); // Потрібно реалізувати
 
         if (typeof frappe !== 'undefined' && frappe.call) {
             frappe.call({
                 method: "qms_cherga.api.create_live_queue_ticket",
                 args: {
                     service: serviceId,
-                    office: officeId // Використовуємо змінну officeId
+                    office: officeId
+                    // Тут можна додати visitor_phone, якщо збираєте
                 },
-                callback: function (response) {
-                    if (response.message && response.message.status === "success") {
-                        ticketNumberDisplay.textContent = response.message.ticket_number;
-                        ticketServiceNameDisplay.textContent = serviceName;
-                        showScreen('ticket-screen');
-                        startTicketTimeout();
-                        // --- НОВИЙ КОД: Логіка друку ---
-                        const ticketName = response.message.ticket_name; // Отримуємо унікальне ім'я документу талону
-                        if (ticketName) {
-                            const printFormat = "QMS Ticket Thermal"; // Назва вашого формату друку [cite: 13]
-                            // Формуємо URL для друку, вказуючи doctype, ім'я талону, формат і вимикаємо стандартний хедер/футер
-                            const printUrl = `/printview?doctype=QMS%20Ticket&name=${encodeURIComponent(ticketName)}&format=${encodeURIComponent(printFormat)}&no_letterhead=1`;
+                callback: function (r) { // 'r' - це повна відповідь Frappe
+                    // hideLoadingIndicator(); // Сховати індикатор
 
-                            // Створюємо прихований iframe для завантаження сторінки друку
+                    // Перевіряємо новий стандартизований формат відповіді
+                    if (r.message && r.message.status === "success") {
+                        const ticketData = r.message.data; // Дані тепер у r.message.data
+                        if (ticketData && ticketData.ticket_number && ticketData.ticket_name) {
+                            ticketNumberDisplay.textContent = ticketData.ticket_number; // Номер для показу
+                            ticketServiceNameDisplay.textContent = serviceName;
+                            showScreen('ticket-screen');
+                            startTicketTimeout();
+
+                            // --- Логіка друку (залишається без змін, але залежить від ticketData.ticket_name) ---
+                            const ticketName = ticketData.ticket_name;
+                            const printFormat = "QMS Ticket Thermal";
+                            const printUrl = `/printview?doctype=QMS%20Ticket&name=${encodeURIComponent(ticketName)}&format=${encodeURIComponent(printFormat)}&no_letterhead=1`;
+                            // ... (решта логіки iframe для друку без змін) ...
                             const printFrame = document.createElement('iframe');
+                            // ... (налаштування стилів iframe) ...
                             printFrame.style.position = 'absolute';
                             printFrame.style.width = '0';
                             printFrame.style.height = '0';
                             printFrame.style.border = '0';
-                            printFrame.src = printUrl; // Встановлюємо URL
+                            printFrame.src = printUrl;
 
-                            // Функція, яка виконається після завантаження iframe
                             printFrame.onload = function () {
                                 try {
-                                    // Намагаємося викликати друк для вмісту iframe
-                                    printFrame.contentWindow.focus(); // Фокус потрібен для деяких браузерів
+                                    printFrame.contentWindow.focus();
                                     printFrame.contentWindow.print();
-                                    // Необов'язково: видаляємо iframe через деякий час
-                                    setTimeout(() => {
-                                        if (document.body.contains(printFrame)) {
-                                            document.body.removeChild(printFrame);
-                                        }
-                                    }, 3000); // Затримка для завершення друку
+                                    setTimeout(() => { if (document.body.contains(printFrame)) document.body.removeChild(printFrame); }, 3000);
                                 } catch (e) {
-                                    console.error("Помилка виклику друку:", e);
-                                    alert("Не вдалося автоматично ініціювати друк. Перевірте налаштування принтера та блокування спливаючих вікон браузера.");
-                                    // Як варіант, можна спробувати відкрити у новому вікні (може бути заблоковано)
-                                    // window.open(printUrl, '_blank');
+                                    console.error(__("Print call failed:"), e);
+                                    alert(__("Could not initiate automatic printing. Please check printer settings and browser pop-up blockers."));
+                                    // window.open(printUrl, '_blank'); // Fallback
                                 }
                             };
-
-                            // Обробка помилки завантаження iframe
                             printFrame.onerror = function () {
-                                console.error("Помилка завантаження iframe для друку URL: " + printUrl);
-                                alert("Помилка завантаження сторінки для друку.");
-                                if (document.body.contains(printFrame)) {
-                                    document.body.removeChild(printFrame);
-                                }
+                                console.error(__("Error loading iframe for printing URL: ") + printUrl);
+                                alert(__("Error loading page for printing."));
+                                if (document.body.contains(printFrame)) document.body.removeChild(printFrame);
                             }
-
-                            // Додаємо iframe до сторінки
                             document.body.appendChild(printFrame);
-
+                            // --- Кінець логіки друку ---
                         } else {
-                            console.error("Ім'я талону (ticket_name) не знайдено у відповіді API, друк неможливий.");
+                            console.error("Ticket number or name missing in success response data:", ticketData);
+                            alert(__("Ticket created, but failed to get ticket details for display/printing."));
+                            showScreen('main-screen');
                         }
-                        // --- Кінець нового коду друку ---
-                    } else {
-                        console.error("Error creating ticket:", response.message);
-                        alert("Помилка створення талону: " + (response.message ? response.message.message : "Невідома помилка"));
+                    } else if (r.message && r.message.status === "info") {
+                        // Обробка інформаційних повідомлень (наприклад, "Офіс зачинено")
+                        console.info("Info from create_live_queue_ticket:", r.message.message);
+                        alert(r.message.message); // Показати повідомлення користувачу
+                        showScreen('main-screen'); // Повернути на головний екран
+                    }
+                    else {
+                        // Обробка помилок з бекенду (status === 'error' або інша структура)
+                        const errorMessage = r.message?.message || __("Unknown error creating ticket.");
+                        console.error("Error creating ticket:", errorMessage, r.message?.details);
+                        alert(__("Error creating ticket: ") + errorMessage);
                         showScreen('main-screen');
                     }
                 },
-                error: function (err) {
-                    console.error("API call failed:", err);
-                    alert("Помилка зв'язку з сервером при створенні талону.");
+                error: function (err) { // Помилка зв'язку або системна помилка Frappe
+                    // hideLoadingIndicator();
+                    console.error("API call failed (create_live_queue_ticket):", err);
+                    alert(__("Error communicating with the server when creating the ticket."));
                     showScreen('main-screen');
                 }
             });
         } else {
-            console.warn("frappe.call not available. Using fetch.");
+            console.error("frappe.call is not available.");
+            alert(__("System error: cannot connect to server."));
+            // hideLoadingIndicator();
         }
     }
 
-    // --- Функції для відображення послуг ---
+    // --- Функції для відображення послуг (без змін) ---
     function renderServices(container, services) {
-        container.innerHTML = ''; // Очищуємо контейнер
+        // ... (код без змін) ...
+        container.innerHTML = '';
         if (!services || services.length === 0) {
-            container.innerHTML = '<p class="text-muted">Немає доступних послуг у цій категорії.</p>';
+            container.innerHTML = `<p class="text-muted">${__("No available services in this category.")}</p>`;
             return;
         }
         services.forEach(service => {
             const serviceButton = document.createElement('button');
             serviceButton.classList.add('service-button');
-            serviceButton.dataset.serviceId = service.id; // Зберігаємо ID
+            serviceButton.dataset.serviceId = service.id;
 
             const buttonContent = document.createElement('span');
             buttonContent.classList.add('service-button-content');
 
-            // Додаємо іконку/emoji, якщо icon_text не порожній
             if (service.icon) {
                 const iconSpan = document.createElement('span');
                 const iconText = service.icon.trim();
-
-                // Перевіряємо, чи це клас Font Awesome (починається з 'fa ' або 'fa-')
                 if (iconText.startsWith('fa ') || iconText.startsWith('fa-')) {
                     iconSpan.classList.add('service-icon');
-                    // Створюємо тег <i> для Font Awesome
                     const iTag = document.createElement('i');
-                    // Додаємо всі класи з iconText до тегу <i>
-                    iconText.split(' ').forEach(cls => {
-                        if (cls) iTag.classList.add(cls);
-                    });
-                    // Можна додати 'fa-fw' для фіксованої ширини, якщо потрібно
-                    // iTag.classList.add('fa-fw');
+                    iconText.split(' ').forEach(cls => { if (cls) iTag.classList.add(cls); });
                     iconSpan.appendChild(iTag);
                 } else {
-                    // Якщо це не клас Font Awesome, вважаємо, що це Emoji або символ
-                    iconSpan.classList.add('service-icon', 'emoji-icon'); // Додаємо клас для можливої стилізації Emoji
-                    iconSpan.textContent = iconText; // Просто вставляємо текст (Emoji)
+                    iconSpan.classList.add('service-icon', 'emoji-icon');
+                    iconSpan.textContent = iconText;
                 }
                 buttonContent.appendChild(iconSpan);
             } else {
-                // Можна додати плейсхолдер, якщо іконки немає
                 const placeholderSpan = document.createElement('span');
                 placeholderSpan.classList.add('service-icon', 'icon-placeholder');
-                // placeholderSpan.innerHTML = '&nbsp;'; // Невидимий пробіл для збереження розміру
                 buttonContent.appendChild(placeholderSpan);
             }
 
-            // Додаємо текст послуги
             const textSpan = document.createElement('span');
             textSpan.classList.add('service-label');
-            textSpan.textContent = service.label;
+            textSpan.textContent = service.label; // Використовуємо label
             buttonContent.appendChild(textSpan);
 
-            // Додаємо контент до кнопки
             serviceButton.appendChild(buttonContent);
-
-            serviceButton.addEventListener('click', () => handleServiceClick(service.id, service.label));
+            serviceButton.addEventListener('click', () => handleServiceClick(service.id, service.label)); // Передаємо id та label
             container.appendChild(serviceButton);
         });
     }
-
-    function renderMainScreen(data) {
+    function renderMainScreen(data) { // data тепер з r.message.data
         mainServiceContainer.innerHTML = '';
         if (!data || (!data.categories?.length && !data.services_no_category?.length)) {
-            mainServiceContainer.innerHTML = '<div class="error-message">Не знайдено доступних послуг для цього кіоску.</div>';
+            mainServiceContainer.innerHTML = `<div class="error-message">${__("No available services found for this kiosk.")}</div>`;
             return;
         }
+        // Послуги без категорії
         if (data.services_no_category && data.services_no_category.length > 0) {
-            renderServices(mainServiceContainer, data.services_no_category);
+            const servicesGroup = document.createElement('div'); // Обгортаємо в групу для сітки
+            servicesGroup.classList.add('category-group'); // Можна використовувати той же клас або новий
+            renderServices(servicesGroup, data.services_no_category);
+            mainServiceContainer.appendChild(servicesGroup);
         }
+        // Категорії
         if (data.categories && data.categories.length > 0) {
             data.categories.forEach(category => {
                 const categoryGroup = document.createElement('div');
@@ -262,14 +249,20 @@ document.addEventListener('DOMContentLoaded', () => {
                 const categoryHeader = document.createElement('h3');
                 categoryHeader.textContent = category.label;
                 categoryGroup.appendChild(categoryHeader);
-                renderServices(categoryGroup, category.services);
+                // Створюємо контейнер для кнопок всередині категорії
+                const categoryButtonContainer = document.createElement('div');
+                // Додаємо клас сітки до контейнера кнопок категорії (необов'язково, залежить від дизайну)
+                // categoryButtonContainer.classList.add('button-grid');
+                renderServices(categoryButtonContainer, category.services);
+                categoryGroup.appendChild(categoryButtonContainer);
                 mainServiceContainer.appendChild(categoryGroup);
             });
         }
     }
 
-    // Function to filter services on service-screen (без змін)
+    // --- Фільтрація послуг (без змін) ---
     function filterServices(searchTerm) {
+        // ... (код без змін) ...
         if (!serviceListContainer) return;
         const lowerCaseSearchTerm = searchTerm.toLowerCase().trim();
         const serviceButtons = serviceListContainer.querySelectorAll('.service-button');
@@ -283,40 +276,50 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-
-    // --- Завантаження Послуг ---
+    // --- Завантаження Послуг (ОНОВЛЕНО) ---
     function loadKioskServices() {
-        // Перевірка, чи отримали ми officeId
         if (!officeId) {
             console.error("Cannot load services: Office ID is missing.");
-            mainServiceContainer.innerHTML = '<div class="error-message">Помилка: Не вдалося визначити ID офісу з URL.</div>';
+            mainServiceContainer.innerHTML = `<div class="error-message">${__("Error: Could not determine Office ID from URL.")}</div>`;
             return;
         }
-
-        mainServiceContainer.innerHTML = '<div class="loading-indicator">Завантаження послуг...</div>';
+        mainServiceContainer.innerHTML = `<div class="loading-indicator">${__("Loading services...")}</div>`;
 
         if (typeof frappe !== 'undefined' && frappe.call) {
             console.info("Using frappe.call to load services.");
             frappe.call({
                 method: "qms_cherga.api.get_kiosk_services",
-                args: { office: officeId }, // Використовуємо змінну officeId
+                args: { office: officeId },
                 callback: function (r) {
-                    if (r.message && !r.message.error) {
-                        console.log("Services loaded:", r.message);
-                        allServicesData = r.message;
+                    // Перевіряємо новий стандартизований формат
+                    if (r.message && r.message.status === 'success') {
+                        console.log("Services loaded:", r.message.data);
+                        allServicesData = r.message.data; // Дані тепер у r.message.data
                         renderMainScreen(allServicesData);
-                    } else {
-                        console.error("Error loading services:", r.message);
-                        mainServiceContainer.innerHTML = `<div class="error-message">Помилка завантаження послуг: ${r.message ? r.message.error : 'Невідома помилка'}</div>`;
+                    } else if (r.message && r.message.status === 'info') {
+                        // Обробка інформаційних повідомлень (наприклад, "Офіс зачинено")
+                        console.info("Info from get_kiosk_services:", r.message.message);
+                        // Відображаємо повідомлення замість списку послуг
+                        mainServiceContainer.innerHTML = `<div class="info-message">${r.message.message}</div>`;
+                        // Можна також сховати заголовок, якщо потрібно
+                        const header = document.querySelector('#main-screen .screen-header h2');
+                        if (header) header.style.display = 'none';
+                    }
+                    else {
+                        // Обробка помилок з бекенду
+                        const errorMessage = r.message?.message || __("Unknown error loading services.");
+                        console.error("Error loading services:", errorMessage, r.message?.details);
+                        mainServiceContainer.innerHTML = `<div class="error-message">${__("Error loading services:")} ${errorMessage}</div>`;
                     }
                 },
-                error: function (err) {
-                    console.error("API call failed to load services:", err);
-                    mainServiceContainer.innerHTML = `<div class="error-message">Помилка зв'язку з сервером при завантаженні послуг.</div>`;
+                error: function (err) { // Помилка зв'язку
+                    console.error("API call failed (get_kiosk_services):", err);
+                    mainServiceContainer.innerHTML = `<div class="error-message">${__("Error communicating with the server when loading services.")}</div>`;
                 }
             });
         } else {
             console.warn("frappe.call not available. Using fetch to load services.");
+            mainServiceContainer.innerHTML = `<div class="error-message">${__("System error: cannot connect to server.")}</div>`;
         }
     }
 
@@ -333,8 +336,7 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-
-    // Запускаємо ініціалізацію при завантаженні сторінки
+    // Запускаємо ініціалізацію
     initializeKiosk();
 
 });

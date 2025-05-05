@@ -4,7 +4,7 @@
  "docstatus": 0,
  "doctype": "Page",
  "idx": 0,
- "modified": "2025-05-02 10:50:33.750405",
+ "modified": "2025-05-05 11:32:20.071352",
  "modified_by": "Administrator",
  "module": "Qms Cherga",
  "name": "operator-dashboard",
@@ -13,6 +13,9 @@
  "roles": [
   {
    "role": "QMS Operator"
+  },
+  {
+   "role": "System Manager"
   }
  ],
  "script": null,

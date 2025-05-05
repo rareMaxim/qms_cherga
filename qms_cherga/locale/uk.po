@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Qms Cherga VERSION\n"
 "Report-Msgid-Bugs-To: maks4a@gmail.com\n"
-"POT-Creation-Date: 2025-04-27 13:37+0202\n"
+"POT-Creation-Date: 2025-05-05 13:34+0202\n"
 "PO-Revision-Date: 2025-04-26 12:49+0202\n"
 "Last-Translator: maks4a@gmail.com\n"
 "Language: uk\n"
@@ -64,6 +64,10 @@ msgstr "Дата і час запису"
 msgid "Assigned Operator"
 msgstr "Закріплений оператор"
 
+#: qms_cherga/qms_cherga/page/operator_dashboard/operator_dashboard.js:444
+msgid "Available"
+msgstr "Доступно"
+
 #. Label of the available_services (Table) field in DocType 'QMS Office'
 #: qms_cherga/qms_cherga/doctype/qms_office/qms_office.json
 msgid "Available Services"
@@ -81,8 +85,14 @@ msgstr "Час виклику"
 
 #. Option for the 'Status' (Select) field in DocType 'QMS Ticket'
 #: qms_cherga/qms_cherga/doctype/qms_ticket/qms_ticket.json
+#: qms_cherga/qms_cherga/page/operator_dashboard/operator_dashboard.js:417
+#: qms_cherga/qms_cherga/page/operator_dashboard/operator_dashboard.js:451
 msgid "Called"
 msgstr "Викликано"
+
+#: qms_cherga/qms_cherga/page/operator_dashboard/operator_dashboard.js:212
+msgid "Calling next visitor to point {0}..."
+msgstr "Виклик наступного відвідувача до точки {0}..."
 
 #. Option for the 'Status' (Select) field in DocType 'QMS Ticket'
 #: qms_cherga/qms_cherga/doctype/qms_ticket/qms_ticket.json
@@ -103,6 +113,13 @@ msgstr "Назва категорії"
 #: qms_cherga/qms_cherga/doctype/qms_operator_skill/qms_operator_skill.json
 msgid "Certification Date"
 msgstr "Дата сертифікації"
+
+#: qms_cherga/qms_cherga/page/operator_dashboard/operator_dashboard.js:245
+#: qms_cherga/qms_cherga/page/operator_dashboard/operator_dashboard.js:332
+#: qms_cherga/qms_cherga/page/operator_dashboard/operator_dashboard.js:380
+#: qms_cherga/qms_cherga/page/operator_dashboard/operator_dashboard.js:538
+msgid "Communication Error"
+msgstr "Помилка зв'язку"
 
 #. Option for the 'Status' (Select) field in DocType 'QMS Ticket'
 #: qms_cherga/qms_cherga/doctype/qms_ticket/qms_ticket.json
@@ -130,12 +147,33 @@ msgstr "Контактний Email"
 msgid "Contact Person"
 msgstr "Контактна особа"
 
-#. Label of the contact_phone (Phone) field in DocType 'QMS Office'
-#. Label of the contact_phone (Phone) field in DocType 'QMS Organization'
+#. Label of the contact_phone (Data) field in DocType 'QMS Office'
+#. Label of the contact_phone (Data) field in DocType 'QMS Organization'
 #: qms_cherga/qms_cherga/doctype/qms_office/qms_office.json
 #: qms_cherga/qms_cherga/doctype/qms_organization/qms_organization.json
 msgid "Contact Phone"
 msgstr "Контактний телефон"
+
+#: qms_cherga/qms_cherga/page/operator_dashboard/operator_dashboard.js:380
+msgid "Could not execute the recall request."
+msgstr "Не вдалося виконати запит на відкликання."
+
+#: qms_cherga/qms_cherga/page/operator_dashboard/operator_dashboard.js:247
+msgid "Could not execute the request."
+msgstr "Не вдалося виконати запит."
+
+#: qms_cherga/public/js/qms_kiosk.js:142
+msgid "Could not initiate automatic printing. Please check printer settings and browser pop-up blockers."
+msgstr "Не вдалося розпочати автоматичний друк. Перевірте налаштування принтера та блокувальники спливаючих вікон браузера."
+
+#: qms_cherga/qms_cherga/page/operator_dashboard/operator_dashboard.js:539
+msgid "Could not load initial dashboard data."
+msgstr "Не вдалося завантажити початкові дані інформаційної панелі."
+
+#. Label of the date (Date) field in DocType 'QMS Daily Counter'
+#: qms_cherga/qms_cherga/doctype/qms_daily_counter/qms_daily_counter.json
+msgid "Date"
+msgstr "Дата"
 
 #. Label of the day_of_week (Select) field in DocType 'QMS Schedule Rule Child'
 #: qms_cherga/qms_cherga/doctype/qms_schedule_rule_child/qms_schedule_rule_child.json
@@ -164,6 +202,12 @@ msgstr "Стандартний графік"
 msgid "Description"
 msgstr "Опис"
 
+#. Label of the display_message_text (Text Editor) field in DocType 'QMS
+#. Office'
+#: qms_cherga/qms_cherga/doctype/qms_office/qms_office.json
+msgid "Display Message Text"
+msgstr "Повідомлення на дисплеї"
+
 #. Label of the display_order (Int) field in DocType 'QMS Service Category'
 #: qms_cherga/qms_cherga/doctype/qms_service_category/qms_service_category.json
 msgid "Display Order"
@@ -186,10 +230,89 @@ msgstr "Час кінця"
 msgid "Enter IANA timezone name (e.g., Europe/Kyiv)"
 msgstr "Enter IANA timezone name (e.g., Europe/Kyiv)"
 
+#: qms_cherga/public/js/qms_display_board.js:239
+#: qms_cherga/qms_cherga/page/operator_dashboard/operator_dashboard.js:236
+#: qms_cherga/qms_cherga/page/operator_dashboard/operator_dashboard.js:324
+#: qms_cherga/qms_cherga/page/operator_dashboard/operator_dashboard.js:373
+#: qms_cherga/qms_cherga/page/operator_dashboard/operator_dashboard.js:518
+#: qms_cherga/qms_cherga/page/operator_dashboard/operator_dashboard.js:523
+#: qms_cherga/qms_cherga/page/operator_dashboard/operator_dashboard.js:524
+msgid "Error"
+msgstr "Помилка"
+
+#: qms_cherga/qms_cherga/page/operator_dashboard/operator_dashboard.js:522
+msgid "Error Loading Data"
+msgstr "Помилка завантаження даних"
+
+#. Label of a shortcut in the QMS CherGa Workspace
+#: qms_cherga/qms_cherga/workspace/qms_cherga/qms_cherga.json
+msgid "Error Log"
+msgstr "Журнал помилок"
+
+#: qms_cherga/public/js/qms_kiosk.js:175
+msgid "Error communicating with the server when creating the ticket."
+msgstr "Помилка зв'язку із сервером під час створення талону."
+
+#: qms_cherga/public/js/qms_kiosk.js:317
+msgid "Error communicating with the server when loading services."
+msgstr "Помилка зв'язку із сервером під час завантаження служб."
+
+#: qms_cherga/public/js/qms_display_board.js:251
+msgid "Error connecting to the server."
+msgstr "Помилка підключення до сервера."
+
+#: qms_cherga/public/js/qms_kiosk.js:168
+msgid "Error creating ticket: "
+msgstr "Помилка при створенні талону"
+
+#: qms_cherga/qms_cherga/page/operator_dashboard/operator_dashboard.js:587
+msgid "Error loading data."
+msgstr "Помилка завантаження даних."
+
+#: qms_cherga/public/js/qms_kiosk.js:147
+msgid "Error loading iframe for printing URL: "
+msgstr "Помилка завантаження iframe для друку URL-адреси:"
+
+#: qms_cherga/public/js/qms_kiosk.js:148
+msgid "Error loading page for printing."
+msgstr "Помилка завантаження сторінки для друку."
+
+#: qms_cherga/qms_cherga/page/operator_dashboard/operator_dashboard.js:624
+msgid "Error loading queue statistics."
+msgstr "Помилка завантаження статистики черги."
+
+#: qms_cherga/public/js/qms_kiosk.js:312
+msgid "Error loading services:"
+msgstr "Помилка при завантаженні послуг:"
+
+#: qms_cherga/qms_cherga/page/operator_dashboard/operator_dashboard.js:334
+msgid "Error performing action {0}."
+msgstr "Помилка виконання дії {0}."
+
+#: qms_cherga/qms_cherga/page/operator_dashboard/operator_dashboard.js:273
+msgid "Error: Cannot identify active ticket name."
+msgstr "Помилка: Не вдається визначити назву активного квитка."
+
+#: qms_cherga/public/js/qms_kiosk.js:283
+msgid "Error: Could not determine Office ID from URL."
+msgstr "Помилка: Не вдалося визначити ідентифікатор Office з URL-адреси."
+
+#: qms_cherga/public/js/qms_kiosk.js:96
+msgid "Error: Could not determine Office ID. Check the URL."
+msgstr "Помилка: Не вдалося визначити ідентифікатор Office. Перевірте URL-адресу."
+
+#: qms_cherga/public/js/qms_display_board.js:22
+msgid "Error: Parameter 'office' not specified in the display board URL."
+msgstr "Помилка: Параметр «office» не вказано в URL-адресі дошки відображення."
+
 #. Label of the estimated_wait_time_mins (Int) field in DocType 'QMS Ticket'
 #: qms_cherga/qms_cherga/doctype/qms_ticket/qms_ticket.json
 msgid "Estimated Wait Time (mins)"
 msgstr "Очікуваний час очікування (хв)"
+
+#: qms_cherga/public/js/qms_display_board.js:22
+msgid "Example:"
+msgstr "Приклад:"
 
 #. Label of the exception_date (Date) field in DocType 'QMS Schedule Exception
 #. Child'
@@ -213,6 +336,38 @@ msgstr "Експерт"
 msgid "Expiry Date"
 msgstr "Дата закінчення"
 
+#: qms_cherga/qms_cherga/page/operator_dashboard/operator_dashboard.js:238
+msgid "Failed to call next visitor."
+msgstr "Не вдалося викликати наступного відвідувача."
+
+#: qms_cherga/qms_cherga/page/operator_dashboard/operator_dashboard.js:518
+msgid "Failed to load initial data."
+msgstr "Не вдалося завантажити початкові дані."
+
+#: qms_cherga/qms_cherga/page/operator_dashboard/operator_dashboard.js:581
+msgid "Failed to load postponed tickets."
+msgstr "Не вдалося завантажити відкладені талони."
+
+#: qms_cherga/qms_cherga/page/operator_dashboard/operator_dashboard.js:614
+msgid "Failed to load statistics."
+msgstr "Не вдалося завантажити статистику."
+
+#: qms_cherga/qms_cherga/page/operator_dashboard/operator_dashboard.js:326
+msgid "Failed to perform action {0}."
+msgstr "Не вдалося виконати дію {0}."
+
+#: qms_cherga/qms_cherga/page/operator_dashboard/operator_dashboard.js:375
+msgid "Failed to recall ticket."
+msgstr "Не вдалося відкликати талон."
+
+#: qms_cherga/qms_cherga/page/operator_dashboard/operator_dashboard.js:103
+msgid "Finish Service"
+msgstr "Завершити обслуговування"
+
+#: qms_cherga/qms_cherga/page/operator_dashboard/operator_dashboard.js:103
+msgid "Finishing service..."
+msgstr "Завершуємо обслуговування..."
+
 #. Option for the 'Day of Week' (Select) field in DocType 'QMS Schedule Rule
 #. Child'
 #: qms_cherga/qms_cherga/doctype/qms_schedule_rule_child/qms_schedule_rule_child.json
@@ -224,15 +379,30 @@ msgstr "П'ятниця"
 msgid "Full Name"
 msgstr "Повне Ім'я"
 
+#. Name of a role
+#: qms_cherga/qms_cherga/doctype/qms_ticket/qms_ticket.json
+msgid "Guest"
+msgstr "Гість"
+
+#: qms_cherga/qms_cherga/page/operator_dashboard/operator_dashboard.js:107
+msgid "Hold"
+msgstr "Утримувати"
+
 #. Label of the ip_address (Data) field in DocType 'QMS Service Point'
 #: qms_cherga/qms_cherga/doctype/qms_service_point/qms_service_point.json
 msgid "IP Address"
 msgstr "IP Адреса"
 
+#. Label of the icon (Data) field in DocType 'QMS Service'
 #. Label of the icon (Icon) field in DocType 'QMS Service Category'
+#: qms_cherga/qms_cherga/doctype/qms_service/qms_service.json
 #: qms_cherga/qms_cherga/doctype/qms_service_category/qms_service_category.json
 msgid "Icon"
 msgstr "Іконка"
+
+#: qms_cherga/qms_cherga/page/operator_dashboard/operator_dashboard.js:228
+msgid "Info"
+msgstr "Інформація"
 
 #. Label of the is_active (Check) field in DocType 'QMS Operator'
 #. Label of the is_active (Check) field in DocType 'QMS Service Point'
@@ -263,15 +433,32 @@ msgstr "Робочий день?"
 msgid "Issue Time"
 msgstr "Час видачі"
 
+#. Label of the last_number (Int) field in DocType 'QMS Daily Counter'
+#: qms_cherga/qms_cherga/doctype/qms_daily_counter/qms_daily_counter.json
+msgid "Last Number"
+msgstr "Останній номер"
+
 #. Label of the live_queue_enabled (Check) field in DocType 'QMS Service'
 #: qms_cherga/qms_cherga/doctype/qms_service/qms_service.json
 msgid "Live Queue Enabled"
 msgstr "Доступно для живої черги"
 
+#: qms_cherga/qms_cherga/page/operator_dashboard/operator_dashboard.js:464
+msgid "Loading initial data..."
+msgstr "Завантаження початкових даних..."
+
+#: qms_cherga/public/js/qms_kiosk.js:286
+msgid "Loading services..."
+msgstr "Завантаження послуг"
+
 #. Label of the main_tab (Tab Break) field in DocType 'QMS Ticket'
 #: qms_cherga/qms_cherga/doctype/qms_ticket/qms_ticket.json
 msgid "Main Info"
 msgstr "Основне"
+
+#: qms_cherga/qms_cherga/page/operator_dashboard/operator_dashboard.js:105
+msgid "Marking as 'No Show'..."
+msgstr "Позначення як «Не з’явився»..."
 
 #. Option for the 'Day of Week' (Select) field in DocType 'QMS Schedule Rule
 #. Child'
@@ -279,14 +466,64 @@ msgstr "Основне"
 msgid "Monday"
 msgstr "Понеділок"
 
+#: qms_cherga/qms_cherga/page/operator_dashboard/operator_dashboard.js:105
+msgid "No Show"
+msgstr "Не з'явився"
+
+#: qms_cherga/public/js/qms_display_board.js:83
+msgid "No active calls"
+msgstr "Відсутні останні викликані"
+
+#: qms_cherga/qms_cherga/page/operator_dashboard/operator_dashboard.js:265
+msgid "No active ticket for this action."
+msgstr "Немає активного квитка для цієї дії."
+
+#: qms_cherga/qms_cherga/page/operator_dashboard/operator_dashboard.js:396
+msgid "No active ticket to transfer."
+msgstr "Немає активного квитка для пересадки."
+
+#: qms_cherga/qms_cherga/page/operator_dashboard/operator_dashboard.js:426
+msgid "No active ticket."
+msgstr "Немає активного талону."
+
+#: qms_cherga/public/js/qms_kiosk.js:234
+msgid "No available services found for this kiosk."
+msgstr "Не знайдено доступні послуги для цього кіоску."
+
+#: qms_cherga/public/js/qms_kiosk.js:191
+msgid "No available services in this category."
+msgstr "Відсутні послуги для цієї категорії."
+
+#: qms_cherga/qms_cherga/page/operator_dashboard/operator_dashboard.js:507
+msgid "No points loaded"
+msgstr "Відсутні робочі місця"
+
+#: qms_cherga/qms_cherga/page/operator_dashboard/operator_dashboard.js:577
+msgid "No postponed tickets."
+msgstr "Відкладених квитків немає."
+
 #. Option for the 'Status' (Select) field in DocType 'QMS Ticket'
 #: qms_cherga/qms_cherga/doctype/qms_ticket/qms_ticket.json
 msgid "NoShow"
 msgstr "Не з'явився"
 
+#: qms_cherga/qms_cherga/page/operator_dashboard/operator_dashboard.js:118
+#: qms_cherga/qms_cherga/page/operator_dashboard/operator_dashboard.js:484
+#: qms_cherga/qms_cherga/page/operator_dashboard/operator_dashboard.js:503
+msgid "Not selected"
+msgstr "Не вибрано"
+
+#: qms_cherga/qms_cherga/page/operator_dashboard/operator_dashboard.js:417
+msgid "Number"
+msgstr "Номер"
+
+#. Label of the office (Link) field in DocType 'QMS Daily Counter'
+#. Label of the office (Link) field in DocType 'QMS Kiosk Settings'
 #. Label of the office (Link) field in DocType 'QMS Service Point'
 #. Label of the office (Link) field in DocType 'QMS Ticket'
 #. Label of a shortcut in the QMS CherGa Workspace
+#: qms_cherga/qms_cherga/doctype/qms_daily_counter/qms_daily_counter.json
+#: qms_cherga/qms_cherga/doctype/qms_kiosk_settings/qms_kiosk_settings.json
 #: qms_cherga/qms_cherga/doctype/qms_service_point/qms_service_point.json
 #: qms_cherga/qms_cherga/doctype/qms_ticket/qms_ticket.json
 #: qms_cherga/qms_cherga/workspace/qms_cherga/qms_cherga.json
@@ -298,12 +535,22 @@ msgstr "Офіс"
 msgid "Office Name"
 msgstr "Назва офісу"
 
+#: qms_cherga/qms_cherga/page/operator_dashboard/operator_dashboard.js:476
+msgid "Office not defined"
+msgstr "Офіс не визначено"
+
 #. Label of the operator (Link) field in DocType 'QMS Ticket'
 #. Label of a shortcut in the QMS CherGa Workspace
 #: qms_cherga/qms_cherga/doctype/qms_ticket/qms_ticket.json
 #: qms_cherga/qms_cherga/workspace/qms_cherga/qms_cherga.json
 msgid "Operator"
 msgstr "Оператор"
+
+#. Label of a shortcut in the QMS CherGa Workspace
+#: qms_cherga/qms_cherga/page/operator_dashboard/operator_dashboard.js:32
+#: qms_cherga/qms_cherga/workspace/qms_cherga/qms_cherga.json
+msgid "Operator Dashboard"
+msgstr "Панель керування оператора"
 
 #. Label of the operator_skills (Table) field in DocType 'QMS Operator'
 #: qms_cherga/qms_cherga/doctype/qms_operator/qms_operator.json
@@ -329,6 +576,22 @@ msgstr "Назва організації"
 msgid "Parent Category"
 msgstr "Батьківська категорія"
 
+#: qms_cherga/qms_cherga/page/operator_dashboard/operator_dashboard.js:417
+msgid "Phone"
+msgstr "Телефон"
+
+#: qms_cherga/qms_cherga/page/operator_dashboard/operator_dashboard.js:351
+msgid "Please finish or postpone the current ticket before recalling another."
+msgstr "Будь ласка, завершіть або відкладіть поточний талон, перш ніж відкликати інший."
+
+#: qms_cherga/qms_cherga/page/operator_dashboard/operator_dashboard.js:203
+msgid "Please select a service point."
+msgstr "Будь ласка, виберіть пункт обслуговування."
+
+#: qms_cherga/qms_cherga/page/operator_dashboard/operator_dashboard.js:417
+msgid "Point"
+msgstr "Точка"
+
 #. Label of the point_name (Data) field in DocType 'QMS Service Point'
 #: qms_cherga/qms_cherga/doctype/qms_service_point/qms_service_point.json
 msgid "Point Name/Number"
@@ -339,10 +602,22 @@ msgstr "Назва/Номер Точки"
 msgid "Postponed"
 msgstr "Відкладено"
 
+#: qms_cherga/qms_cherga/page/operator_dashboard/operator_dashboard.js:107
+msgid "Postponing ticket..."
+msgstr "Відкладення квитка..."
+
+#: qms_cherga/public/js/qms_kiosk.js:141
+msgid "Print call failed:"
+msgstr "Не вдалося виконати друк:"
+
 #. Label of the priority (Int) field in DocType 'QMS Ticket'
 #: qms_cherga/qms_cherga/doctype/qms_ticket/qms_ticket.json
 msgid "Priority"
 msgstr "Приорітет"
+
+#: qms_cherga/qms_cherga/page/operator_dashboard/operator_dashboard.js:292
+msgid "Processing action for {0}..."
+msgstr "Обробка дії для {0}..."
 
 #. Option for the 'Skill Level' (Select) field in DocType 'QMS Operator Skill'
 #: qms_cherga/qms_cherga/doctype/qms_operator_skill/qms_operator_skill.json
@@ -355,6 +630,35 @@ msgid "QMS CherGa"
 msgstr ""
 
 #. Name of a DocType
+#: qms_cherga/qms_cherga/doctype/qms_daily_counter/qms_daily_counter.json
+msgid "QMS Daily Counter"
+msgstr ""
+
+#. Name of a DocType
+#: qms_cherga/qms_cherga/doctype/qms_integration_data/qms_integration_data.json
+msgid "QMS Integration Data"
+msgstr ""
+
+#. Name of a DocType
+#: qms_cherga/qms_cherga/doctype/qms_integration_data_offices/qms_integration_data_offices.json
+msgid "QMS Integration Data Offices"
+msgstr ""
+
+#. Name of a DocType
+#: qms_cherga/qms_cherga/doctype/qms_kiosk_settings/qms_kiosk_settings.json
+msgid "QMS Kiosk Settings"
+msgstr ""
+
+#. Name of a role
+#: qms_cherga/qms_cherga/doctype/qms_office/qms_office.json
+#: qms_cherga/qms_cherga/doctype/qms_schedule/qms_schedule.json
+#: qms_cherga/qms_cherga/doctype/qms_service/qms_service.json
+#: qms_cherga/qms_cherga/doctype/qms_service_point/qms_service_point.json
+#: qms_cherga/qms_cherga/doctype/qms_ticket/qms_ticket.json
+msgid "QMS Manager"
+msgstr ""
+
+#. Name of a DocType
 #: qms_cherga/qms_cherga/doctype/qms_office/qms_office.json
 msgid "QMS Office"
 msgstr ""
@@ -364,8 +668,13 @@ msgstr ""
 msgid "QMS Office Service Assignment"
 msgstr ""
 
+#. Name of a role
 #. Name of a DocType
+#: qms_cherga/qms_cherga/doctype/qms_office/qms_office.json
 #: qms_cherga/qms_cherga/doctype/qms_operator/qms_operator.json
+#: qms_cherga/qms_cherga/doctype/qms_service/qms_service.json
+#: qms_cherga/qms_cherga/doctype/qms_service_point/qms_service_point.json
+#: qms_cherga/qms_cherga/doctype/qms_ticket/qms_ticket.json
 msgid "QMS Operator"
 msgstr ""
 
@@ -414,6 +723,30 @@ msgstr ""
 msgid "QMS Ticket"
 msgstr ""
 
+#. Name of a DocType
+#: qms_cherga/qms_cherga/doctype/qms_websocket_test/qms_websocket_test.json
+msgid "QMS Websocket Test"
+msgstr ""
+
+#: qms_cherga/public/js/qms_display_board.js:147
+#: qms_cherga/public/js/qms_display_board.js:165
+msgid "Queue is empty"
+msgstr "Черга порожня"
+
+#: qms_cherga/public/js/qms_display_board.js:214
+#: qms_cherga/public/js/qms_display_board.js:222
+msgid "Queue management system is currently inactive."
+msgstr "Система керування чергою наразі неактивна"
+
+#: qms_cherga/qms_cherga/page/operator_dashboard/operator_dashboard.js:384
+#: qms_cherga/qms_cherga/page/operator_dashboard/operator_dashboard.js:565
+msgid "Recall"
+msgstr "Відкликання"
+
+#: qms_cherga/qms_cherga/page/operator_dashboard/operator_dashboard.js:358
+msgid "Recalling..."
+msgstr "Згадуючи..."
+
 #. Label of the requires_appointment (Check) field in DocType 'QMS Service'
 #: qms_cherga/qms_cherga/doctype/qms_service/qms_service.json
 msgid "Requires Appointment"
@@ -457,6 +790,11 @@ msgstr "Правила графіку"
 msgid "Schedule Section"
 msgstr "Секція Графіку"
 
+#: qms_cherga/qms_cherga/page/operator_dashboard/operator_dashboard.js:455
+#: qms_cherga/qms_cherga/page/operator_dashboard/operator_dashboard.js:482
+msgid "Select Point"
+msgstr "Виберіть точку"
+
 #. Label of the service (Link) field in DocType 'QMS Office Service Assignment'
 #. Label of the service (Link) field in DocType 'QMS Operator Skill'
 #. Label of the service (Link) field in DocType 'QMS Ticket'
@@ -464,6 +802,7 @@ msgstr "Секція Графіку"
 #: qms_cherga/qms_cherga/doctype/qms_office_service_assignment/qms_office_service_assignment.json
 #: qms_cherga/qms_cherga/doctype/qms_operator_skill/qms_operator_skill.json
 #: qms_cherga/qms_cherga/doctype/qms_ticket/qms_ticket.json
+#: qms_cherga/qms_cherga/page/operator_dashboard/operator_dashboard.js:417
 #: qms_cherga/qms_cherga/workspace/qms_cherga/qms_cherga.json
 msgid "Service"
 msgstr "Послуга"
@@ -471,7 +810,7 @@ msgstr "Послуга"
 #. Label of a shortcut in the QMS CherGa Workspace
 #: qms_cherga/qms_cherga/workspace/qms_cherga/qms_cherga.json
 msgid "Service Category"
-msgstr ""
+msgstr "Категорія послуги"
 
 #. Label of the service_name (Data) field in DocType 'QMS Service'
 #: qms_cherga/qms_cherga/doctype/qms_service/qms_service.json
@@ -493,6 +832,7 @@ msgstr "Секція Послуг"
 
 #. Option for the 'Status' (Select) field in DocType 'QMS Ticket'
 #: qms_cherga/qms_cherga/doctype/qms_ticket/qms_ticket.json
+#: qms_cherga/qms_cherga/page/operator_dashboard/operator_dashboard.js:447
 msgid "Serving"
 msgstr "Обслуговується"
 
@@ -513,6 +853,10 @@ msgstr "Рівень володіння"
 msgid "Skills Section"
 msgstr "Секція Навичок"
 
+#: qms_cherga/qms_cherga/page/operator_dashboard/operator_dashboard.js:101
+msgid "Start Service"
+msgstr "Розпочати обслуговування"
+
 #. Label of the start_service_time (Datetime) field in DocType 'QMS Ticket'
 #: qms_cherga/qms_cherga/doctype/qms_ticket/qms_ticket.json
 msgid "Start Service Time"
@@ -526,6 +870,14 @@ msgstr "Час початку обслуговування"
 msgid "Start Time"
 msgstr "Час початку"
 
+#: qms_cherga/qms_cherga/page/operator_dashboard/operator_dashboard.js:417
+msgid "Started"
+msgstr "Розпочато"
+
+#: qms_cherga/qms_cherga/page/operator_dashboard/operator_dashboard.js:101
+msgid "Starting service..."
+msgstr "Розпочато обслуговування..."
+
 #. Label of the tab_statistics (Tab Break) field in DocType 'QMS Ticket'
 #: qms_cherga/qms_cherga/doctype/qms_ticket/qms_ticket.json
 msgid "Statistics"
@@ -533,8 +885,15 @@ msgstr "Статистика"
 
 #. Label of the status (Select) field in DocType 'QMS Ticket'
 #: qms_cherga/qms_cherga/doctype/qms_ticket/qms_ticket.json
+#: qms_cherga/qms_cherga/page/operator_dashboard/operator_dashboard.js:417
 msgid "Status"
 msgstr "Статус"
+
+#. Label of the status_message (Small Text) field in DocType 'QMS Websocket
+#. Test'
+#: qms_cherga/qms_cherga/doctype/qms_websocket_test/qms_websocket_test.json
+msgid "Status Message"
+msgstr "Статус повідомлення"
 
 #. Option for the 'Day of Week' (Select) field in DocType 'QMS Schedule Rule
 #. Child'
@@ -543,6 +902,9 @@ msgid "Sunday"
 msgstr "Неділя"
 
 #. Name of a role
+#: qms_cherga/qms_cherga/doctype/qms_daily_counter/qms_daily_counter.json
+#: qms_cherga/qms_cherga/doctype/qms_integration_data/qms_integration_data.json
+#: qms_cherga/qms_cherga/doctype/qms_kiosk_settings/qms_kiosk_settings.json
 #: qms_cherga/qms_cherga/doctype/qms_office/qms_office.json
 #: qms_cherga/qms_cherga/doctype/qms_operator/qms_operator.json
 #: qms_cherga/qms_cherga/doctype/qms_organization/qms_organization.json
@@ -551,12 +913,22 @@ msgstr "Неділя"
 #: qms_cherga/qms_cherga/doctype/qms_service_category/qms_service_category.json
 #: qms_cherga/qms_cherga/doctype/qms_service_point/qms_service_point.json
 #: qms_cherga/qms_cherga/doctype/qms_ticket/qms_ticket.json
+#: qms_cherga/qms_cherga/doctype/qms_websocket_test/qms_websocket_test.json
 msgid "System Manager"
 msgstr ""
+
+#: qms_cherga/public/js/qms_kiosk.js:181 qms_cherga/public/js/qms_kiosk.js:322
+msgid "System error: cannot connect to server."
+msgstr "Системна помилка: не можливо встановити з'єднання з сервером."
 
 #. Label of the target_operator (Link) field in DocType 'QMS Ticket'
 #: qms_cherga/qms_cherga/doctype/qms_ticket/qms_ticket.json
 msgid "Target Operator"
+msgstr "Призначенний оператор"
+
+#. Label of the test_name (Data) field in DocType 'QMS Websocket Test'
+#: qms_cherga/qms_cherga/doctype/qms_websocket_test/qms_websocket_test.json
+msgid "Test Name"
 msgstr ""
 
 #. Option for the 'Day of Week' (Select) field in DocType 'QMS Schedule Rule
@@ -575,6 +947,14 @@ msgstr "Талон"
 msgid "Ticket Number"
 msgstr "Номер талону"
 
+#: qms_cherga/public/js/qms_kiosk.js:155
+msgid "Ticket created, but failed to get ticket details for display/printing."
+msgstr "Талон створено, але не вдалося отримати його дані для відображення/друку."
+
+#: qms_cherga/qms_cherga/page/operator_dashboard/operator_dashboard.js:366
+msgid "Ticket recalled successfully."
+msgstr "Квиток успішно відкликано."
+
 #. Label of the timezone (Data) field in DocType 'QMS Office'
 #: qms_cherga/qms_cherga/doctype/qms_office/qms_office.json
 msgid "Timezone"
@@ -590,11 +970,31 @@ msgstr "Час"
 msgid "Trainee"
 msgstr "Стажер"
 
+#: qms_cherga/qms_cherga/page/operator_dashboard/operator_dashboard.js:402
+msgid "Transfer functionality is not yet implemented."
+msgstr "Функція переадресації ще не реалізована."
+
 #. Option for the 'Day of Week' (Select) field in DocType 'QMS Schedule Rule
 #. Child'
 #: qms_cherga/qms_cherga/doctype/qms_schedule_rule_child/qms_schedule_rule_child.json
 msgid "Tuesday"
 msgstr "Вівторок"
+
+#: qms_cherga/public/js/qms_display_board.js:237
+msgid "Unexpected response structure from server."
+msgstr "Неочікувана структура відповіді від сервера."
+
+#: qms_cherga/public/js/qms_kiosk.js:166
+msgid "Unknown error creating ticket."
+msgstr "Невідома помилка при створені талону."
+
+#: qms_cherga/public/js/qms_kiosk.js:310
+msgid "Unknown error loading services."
+msgstr "Невідома помилка при завантаженні послуг."
+
+#: qms_cherga/qms_cherga/page/operator_dashboard/operator_dashboard.js:550
+msgid "Updating..."
+msgstr "Оновлення..."
 
 #. Label of the user (Link) field in DocType 'QMS Operator'
 #: qms_cherga/qms_cherga/doctype/qms_operator/qms_operator.json
@@ -607,10 +1007,14 @@ msgstr "Користувач"
 msgid "Visitor & Appointment"
 msgstr "Відвідувачі та запис"
 
-#. Label of the visitor_phone (Phone) field in DocType 'QMS Ticket'
+#. Label of the visitor_phone (Data) field in DocType 'QMS Ticket'
 #: qms_cherga/qms_cherga/doctype/qms_ticket/qms_ticket.json
 msgid "Visitor Phone"
 msgstr "Телефон відвідувача"
+
+#: qms_cherga/qms_cherga/page/operator_dashboard/operator_dashboard.js:222
+msgid "Visitor called successfully."
+msgstr "Відвідувача успішно викликано."
 
 #. Option for the 'Status' (Select) field in DocType 'QMS Ticket'
 #: qms_cherga/qms_cherga/doctype/qms_ticket/qms_ticket.json
@@ -623,6 +1027,37 @@ msgstr "Очікування"
 msgid "Wednesday"
 msgstr "Середа"
 
+#: qms_cherga/public/js/qms_display_board.js:107
+msgid "Window "
+msgstr "Вікно"
+
+#: qms_cherga/qms_cherga/page/operator_dashboard/operator_dashboard.js:303
+msgid "{0} successful."
+msgstr "{0} успішно."
+
+#. Description of the Onboarding Step 'Створити Послуги'
+#: qms_cherga/qms_cherga/onboarding_step/qms_create_service/qms_create_service.json
+msgid "Визначити послуги, що надаються"
+msgstr ""
+
+#. Description of the Onboarding Step 'Створити Точки Обслуговування'
+#: qms_cherga/qms_cherga/onboarding_step/qms_create_service_point/qms_create_service_point.json
+msgid "Вказати \"вікна\" або кабінети в офісі."
+msgstr ""
+
+#: qms_cherga/qms_cherga/doctype/qms_office/qms_office.js:13
+msgid "Відкрити Кіоск"
+msgstr ""
+
+#: qms_cherga/qms_cherga/doctype/qms_office/qms_office.js:21
+msgid "Відкрити Табло"
+msgstr ""
+
+#. Label of the industry (Data) field in DocType 'QMS Integration Data'
+#: qms_cherga/qms_cherga/doctype/qms_integration_data/qms_integration_data.json
+msgid "Галузь"
+msgstr ""
+
 #. Label of a Link in the QMS CherGa Workspace
 #: qms_cherga/qms_cherga/workspace/qms_cherga/qms_cherga.json
 msgid "Графік роботи"
@@ -633,9 +1068,19 @@ msgstr ""
 msgid "Графік роботи офісу. Якщо не вказано, можна використовувати графік організації."
 msgstr ""
 
+#. Subtitle of the Module Onboarding 'QMS Cherga Onboarding'
+#: qms_cherga/qms_cherga/module_onboarding/qms_cherga_onboarding/qms_cherga_onboarding.json
+msgid "Давайте налаштуємо ЧерҐу"
+msgstr ""
+
 #. Description of the 'Organization' (Link) field in DocType 'QMS Office'
 #: qms_cherga/qms_cherga/doctype/qms_office/qms_office.json
 msgid "До якої організації належить офіс."
+msgstr ""
+
+#. Title of an Onboarding Step
+#: qms_cherga/qms_cherga/onboarding_step/qms_create_service_category/qms_create_service_category.json
+msgid "Додати категорії послуг"
 msgstr ""
 
 #. Description of a DocType
@@ -648,9 +1093,99 @@ msgstr ""
 msgid "Доктайп для представлення співробітника, що виконує роль оператора в системі керування чергою."
 msgstr ""
 
+#. Description of the Onboarding Step 'Додати категорії послуг'
+#: qms_cherga/qms_cherga/onboarding_step/qms_create_service_category/qms_create_service_category.json
+msgid "За необхідністтю, можете сгрупувати послуги за категоріями"
+msgstr ""
+
+#. Label of the section_general_info (Section Break) field in DocType 'QMS
+#. Integration Data'
+#: qms_cherga/qms_cherga/doctype/qms_integration_data/qms_integration_data.json
+msgid "Загальна інформація"
+msgstr ""
+
+#. Label of the contact_person (Data) field in DocType 'QMS Integration Data'
+#: qms_cherga/qms_cherga/doctype/qms_integration_data/qms_integration_data.json
+msgid "Контактна особа"
+msgstr ""
+
+#. Label of the section_contact_info (Section Break) field in DocType 'QMS
+#. Integration Data'
+#: qms_cherga/qms_cherga/doctype/qms_integration_data/qms_integration_data.json
+msgid "Контактна інформація"
+msgstr ""
+
+#. Label of the contact_email (Data) field in DocType 'QMS Integration Data'
+#: qms_cherga/qms_cherga/doctype/qms_integration_data/qms_integration_data.json
+msgid "Контактний Email"
+msgstr ""
+
+#. Label of the contact_phone (Data) field in DocType 'QMS Integration Data'
+#: qms_cherga/qms_cherga/doctype/qms_integration_data/qms_integration_data.json
+msgid "Контактний телефон"
+msgstr ""
+
+#. Label of the enterprise_name (Data) field in DocType 'QMS Integration Data'
+#: qms_cherga/qms_cherga/doctype/qms_integration_data/qms_integration_data.json
+msgid "Назва підприємства"
+msgstr ""
+
+#. Title of the Module Onboarding 'QMS Cherga Onboarding'
+#: qms_cherga/qms_cherga/module_onboarding/qms_cherga_onboarding/qms_cherga_onboarding.json
+msgid "Налаштування електронної черги"
+msgstr ""
+
+#: qms_cherga/qms_cherga/doctype/qms_ticket/qms_ticket.py:137
+msgid "Не вдалося оновити лічильник талонів: {0}"
+msgstr ""
+
 #. Description of a DocType
 #: qms_cherga/qms_cherga/doctype/qms_organization/qms_organization.json
 msgid "Основний доктайп для представлення організації, що використовує систему"
+msgstr ""
+
+#: qms_cherga/qms_cherga/doctype/qms_websocket_test/qms_websocket_test.js:21
+msgid "Отримано оновлення через WebSocket: {0}"
+msgstr ""
+
+#. Description of the Onboarding Step 'Створити Офіс'
+#: qms_cherga/qms_cherga/onboarding_step/qms_create_office/qms_create_office.json
+msgid "Прив'язати організацію, графік, послуги"
+msgstr ""
+
+#. Title of an Onboarding Step
+#: qms_cherga/qms_cherga/onboarding_step/qms_create_shedule/qms_create_shedule.json
+msgid "Створити Графік Роботи"
+msgstr ""
+
+#. Title of an Onboarding Step
+#: qms_cherga/qms_cherga/onboarding_step/qms_create_enterprice/qms_create_enterprice.json
+msgid "Створити Організацію Черги"
+msgstr ""
+
+#. Title of an Onboarding Step
+#: qms_cherga/qms_cherga/onboarding_step/qms_create_office/qms_create_office.json
+msgid "Створити Офіс"
+msgstr ""
+
+#. Title of an Onboarding Step
+#: qms_cherga/qms_cherga/onboarding_step/qms_create_service/qms_create_service.json
+msgid "Створити Послуги"
+msgstr ""
+
+#. Title of an Onboarding Step
+#: qms_cherga/qms_cherga/onboarding_step/qms_create_service_point/qms_create_service_point.json
+msgid "Створити Точки Обслуговування"
+msgstr ""
+
+#. Description of the Onboarding Step 'Створити Організацію Черги'
+#: qms_cherga/qms_cherga/onboarding_step/qms_create_enterprice/qms_create_enterprice.json
+msgid "Створіть запис для вашої основної організації, яка буде використовувати систему керування чергою."
+msgstr ""
+
+#. Success message of the Module Onboarding 'QMS Cherga Onboarding'
+#: qms_cherga/qms_cherga/module_onboarding/qms_cherga_onboarding/qms_cherga_onboarding.json
+msgid "Успіх"
 msgstr ""
 
 #. Description of a DocType

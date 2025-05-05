@@ -1,35 +1,38 @@
-<!DOCTYPE html>
-<html lang="uk">
+{% extends "templates/web.html" %}
 
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Електронна Черга</title>
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link
-        href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;700&family=Roboto:wght@400;500;700&display=swap"
-        rel="stylesheet">
-    <link rel="stylesheet" href="/assets/qms_cherga/css/qms_display_board.css?v={{ build_version }}">
-</head>
+{% block title %}Електронна Черга{% endblock %}
 
-<body>
-    <div class="container">
-        <header id="time-bar">
-            <span id="current-date">--.--.----</span>
-            <span id="current-time">--:--:--</span>
-        </header>
-        <div id="info-message-bar" class="info-message-bar" style="display: none;">
+{% block style %}
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link
+    href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;700&family=Roboto:wght@400;500;700&display=swap"
+    rel="stylesheet">
+<link rel="stylesheet" href="/assets/qms_cherga/css/qms_display_board.css?v={{ build_version }}">
+{% endblock %}
+
+{% block script %}
+<audio id="call-sound" src="/assets/qms_cherga/sounds/notification-alert-4-331722.mp3" preload="auto"></audio>
+<script src="/assets/qms_cherga/js/qms_display_board.js?v={{ build_version }}"></script>
+{% endblock %}
+
+{% block page_content %}
+<div class="container">
+    <header id="time-bar">
+        <span id="current-date">--.--.----</span>
+        <span id="current-time">--:--:--</span>
+    </header>
+    <div id="info-message-bar" class="info-message-bar" style="display: none;">
+    </div>
+    <section id="last-called-bar" class="card highlight-bar">
+        <h2>ОСТАННІ ВИКЛИКАНІ</h2>
+        <div id="last-calls-list">
+            <span class="placeholder" style="color: #ccc;">Очікування даних...</span>
         </div>
-        <section id="last-called-bar" class="card highlight-bar">
-            <h2>ОСТАННІ ВИКЛИКАНІ</h2>
-            <div id="last-calls-list">
-                <span class="placeholder" style="color: #ccc;">Очікування даних...</span>
-            </div>
-        </section>
+    </section>
 
-        <hr class="separator">
-        <div id="office-closed-overlay" style="display: none; /* Початково приховано */
+    <hr class="separator">
+    <div id="office-closed-overlay" style="display: none; /* Початково приховано */
                                                 position: absolute; /* Або fixed, якщо треба покрити весь екран */
                                                 top: 0; left: 0; right: 0; bottom: 0; /* Покрити весь контейнер */
                                                 background-color: rgba(50, 50, 50, 0.85); /* Напівпрозорий темний фон */
@@ -43,23 +46,17 @@
                                                 z-index: 10; /* Щоб був поверх іншого контенту */
                                                 border-radius: 8px; /* Якщо контейнер має радіус */
                                                 ">
-            <span>Електронна черга наразі не працює.<br> Будь ласка, перевірте графік роботи.</span>
-        </div>
-        <main id="main-content">
-            <section id="kiosk-next" class="queue-tile">
-                <h2>НАСТУПНІ ОЧІКУЮТЬСЯ (Жива черга)</h2>
-                <div class="tile-content">
-                    <ul id="kiosk-next-list">
-                        <li class="placeholder">Очікування даних...</li>
-                    </ul>
-                </div>
-            </section>
-        </main>
+        <span>Електронна черга наразі не працює.<br> Будь ласка, перевірте графік роботи.</span>
     </div>
-
-    <audio id="call-sound" src="/assets/qms_cherga/sounds/notification-alert-4-331722.mp3" preload="auto"></audio>
-    <script src="/assets/qms_cherga/js/qms_display_board.js?v={{ build_version }}"></script>
-
-</body>
-
-</html>
+    <main id="main-content">
+        <section id="kiosk-next" class="queue-tile">
+            <h2>НАСТУПНІ ОЧІКУЮТЬСЯ (Жива черга)</h2>
+            <div class="tile-content">
+                <ul id="kiosk-next-list">
+                    <li class="placeholder">Очікування даних...</li>
+                </ul>
+            </div>
+        </section>
+    </main>
+</div>
+{% endblock %}

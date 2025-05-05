@@ -1,3 +1,13 @@
+/* Hide Frappe header, footer, navbar */
+.navbar,
+.web-footer,
+.page-head,
+.main-section .container,
+.header,
+.footer {
+    display: none !important;
+}
+
 /* Базові стилі та шрифти */
 html,
 body {
