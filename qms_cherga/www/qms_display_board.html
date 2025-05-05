@@ -1,6 +1,6 @@
 {% extends "templates/web.html" %}
 
-{% block title %}Електронна Черга{% endblock %}
+{% block title %}{{ _("Електронна Черга") }}{% endblock %}
 
 {% block style %}
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -24,14 +24,15 @@
     </header>
     <div id="info-message-bar" class="info-message-bar" style="display: none;">
     </div>
-    <section id="last-called-bar" class="card highlight-bar">
-        <h2>ОСТАННІ ВИКЛИКАНІ</h2>
+    {# Додано style="display: none;" #}
+    <section id="last-called-bar" class="card highlight-bar" style="display: none;">
+        <h2>{{ _("ОСТАННІ ВИКЛИКАНІ") }}</h2>
         <div id="last-calls-list">
-            <span class="placeholder" style="color: #ccc;">Очікування даних...</span>
         </div>
     </section>
 
-    <hr class="separator">
+    <hr id="last-called-separator" class="separator" style="display: none;">
+
     <div id="office-closed-overlay" style="display: none; /* Початково приховано */
                                                 position: absolute; /* Або fixed, якщо треба покрити весь екран */
                                                 top: 0; left: 0; right: 0; bottom: 0; /* Покрити весь контейнер */
@@ -46,14 +47,14 @@
                                                 z-index: 10; /* Щоб був поверх іншого контенту */
                                                 border-radius: 8px; /* Якщо контейнер має радіус */
                                                 ">
-        <span>Електронна черга наразі не працює.<br> Будь ласка, перевірте графік роботи.</span>
+        <span>{{ _("Електронна черга наразі не працює.") }}<br>{{ _("Будь ласка, перевірте графік роботи.") }}</span>
     </div>
     <main id="main-content">
         <section id="kiosk-next" class="queue-tile">
-            <h2>НАСТУПНІ ОЧІКУЮТЬСЯ (Жива черга)</h2>
+            <h2>{{ _("НАСТУПНІ ОЧІКУЮТЬСЯ (Жива черга)") }}</h2>
             <div class="tile-content">
                 <ul id="kiosk-next-list">
-                    <li class="placeholder">Очікування даних...</li>
+                    <li class="placeholder">{{ _("Очікування даних...") }}</li>
                 </ul>
             </div>
         </section>

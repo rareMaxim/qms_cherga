@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Qms Cherga VERSION\n"
 "Report-Msgid-Bugs-To: maks4a@gmail.com\n"
-"POT-Creation-Date: 2025-05-05 13:34+0202\n"
+"POT-Creation-Date: 2025-05-05 15:21+0202\n"
 "PO-Revision-Date: 2025-04-26 12:49+0202\n"
 "Last-Translator: maks4a@gmail.com\n"
 "Language: uk\n"
@@ -27,6 +27,10 @@ msgstr ""
 #: qms_cherga/qms_cherga/doctype/qms_office/qms_office.json
 msgid "Abbreviation"
 msgstr "Абревіатура"
+
+#: qms_cherga/api.py:229
+msgid "Active QMS Operator record not found for user {0}."
+msgstr "Запис активного оператора QMS для користувача {0} не знайдено."
 
 #. Label of the actual_service_time_mins (Int) field in DocType 'QMS Ticket'
 #: qms_cherga/qms_cherga/doctype/qms_ticket/qms_ticket.json
@@ -54,6 +58,50 @@ msgstr "Адреса"
 msgid "Address & Contact Section"
 msgstr "Секція Адреси та Контактів"
 
+#: qms_cherga/api.py:330
+msgid "An unexpected error occurred while calling the next visitor."
+msgstr "Під час виклику наступного відвідувача сталася неочікувана помилка."
+
+#: qms_cherga/api.py:469
+msgid "An unexpected error occurred while fetching display data."
+msgstr "Під час отримання даних відображення сталася неочікувана помилка."
+
+#: qms_cherga/qms_cherga/page/operator_dashboard/operator_dashboard.py:408
+msgid "An unexpected error occurred while fetching held tickets."
+msgstr "Під час отримання зарезервованих квитків сталася неочікувана помилка."
+
+#: qms_cherga/qms_cherga/page/operator_dashboard/operator_dashboard.py:115
+msgid "An unexpected error occurred while fetching initial data."
+msgstr "Під час отримання початкових даних сталася неочікувана помилка."
+
+#: qms_cherga/api.py:600
+msgid "An unexpected error occurred while fetching kiosk services."
+msgstr "Під час отримання служб кіоску сталася неочікувана помилка."
+
+#: qms_cherga/qms_cherga/page/operator_dashboard/operator_dashboard.py:157
+msgid "An unexpected error occurred while fetching queue statistics."
+msgstr "Під час отримання статистики черги сталася неочікувана помилка."
+
+#: qms_cherga/qms_cherga/page/operator_dashboard/operator_dashboard.py:292
+msgid "An unexpected error occurred while finishing service."
+msgstr "Під час завершення обслуговування сталася неочікувана помилка."
+
+#: qms_cherga/qms_cherga/page/operator_dashboard/operator_dashboard.py:329
+msgid "An unexpected error occurred while marking as 'No Show'."
+msgstr "Під час позначення як «Не з’явився» сталася неочікувана помилка."
+
+#: qms_cherga/qms_cherga/page/operator_dashboard/operator_dashboard.py:363
+msgid "An unexpected error occurred while postponing the ticket."
+msgstr "Під час відкладення квитка сталася неочікувана помилка."
+
+#: qms_cherga/qms_cherga/page/operator_dashboard/operator_dashboard.py:466
+msgid "An unexpected error occurred while recalling the ticket."
+msgstr "Під час відкликання квитка сталася неочікувана помилка."
+
+#: qms_cherga/qms_cherga/page/operator_dashboard/operator_dashboard.py:245
+msgid "An unexpected error occurred while starting service."
+msgstr "Під час запуску служби сталася неочікувана помилка."
+
 #. Label of the appointment_datetime (Datetime) field in DocType 'QMS Ticket'
 #: qms_cherga/qms_cherga/doctype/qms_ticket/qms_ticket.json
 msgid "Appointment Datetime"
@@ -64,7 +112,14 @@ msgstr "Дата і час запису"
 msgid "Assigned Operator"
 msgstr "Закріплений оператор"
 
+#: qms_cherga/api.py:221
+#: qms_cherga/qms_cherga/page/operator_dashboard/operator_dashboard.py:19
+#: qms_cherga/qms_cherga/page/operator_dashboard/operator_dashboard.py:172
+msgid "Authentication required."
+msgstr "Потрібна автентифікація."
+
 #: qms_cherga/qms_cherga/page/operator_dashboard/operator_dashboard.js:444
+#: qms_cherga/qms_cherga/page/operator_dashboard/operator_dashboard.py:78
 msgid "Available"
 msgstr "Доступно"
 
@@ -98,6 +153,10 @@ msgstr "Виклик наступного відвідувача до точки
 #: qms_cherga/qms_cherga/doctype/qms_ticket/qms_ticket.json
 msgid "Cancelled"
 msgstr "Скасовано"
+
+#: qms_cherga/qms_cherga/page/operator_dashboard/operator_dashboard.py:185
+msgid "Cannot modify a ticket assigned to another operator."
+msgstr "Неможливо змінити квиток, призначений іншому оператору."
 
 #. Label of the category (Link) field in DocType 'QMS Service'
 #: qms_cherga/qms_cherga/doctype/qms_service/qms_service.json
@@ -154,6 +213,10 @@ msgstr "Контактна особа"
 msgid "Contact Phone"
 msgstr "Контактний телефон"
 
+#: qms_cherga/api.py:249
+msgid "Could not determine Office for service point '{0}'."
+msgstr "Не вдалося визначити Office для точки обслуговування '{0}'."
+
 #: qms_cherga/qms_cherga/page/operator_dashboard/operator_dashboard.js:380
 msgid "Could not execute the recall request."
 msgstr "Не вдалося виконати запит на відкликання."
@@ -162,7 +225,7 @@ msgstr "Не вдалося виконати запит на відкликан�
 msgid "Could not execute the request."
 msgstr "Не вдалося виконати запит."
 
-#: qms_cherga/public/js/qms_kiosk.js:142
+#: qms_cherga/public/js/qms_kiosk.js:143
 msgid "Could not initiate automatic printing. Please check printer settings and browser pop-up blockers."
 msgstr "Не вдалося розпочати автоматичний друк. Перевірте налаштування принтера та блокувальники спливаючих вікон браузера."
 
@@ -213,6 +276,10 @@ msgstr "Повідомлення на дисплеї"
 msgid "Display Order"
 msgstr "Порядок відображення"
 
+#: qms_cherga/api.py:319
+msgid "Document"
+msgstr "Документ"
+
 #. Label of the enabled (Check) field in DocType 'QMS Service'
 #: qms_cherga/qms_cherga/doctype/qms_service/qms_service.json
 msgid "Enabled"
@@ -249,11 +316,11 @@ msgstr "Помилка завантаження даних"
 msgid "Error Log"
 msgstr "Журнал помилок"
 
-#: qms_cherga/public/js/qms_kiosk.js:175
+#: qms_cherga/public/js/qms_kiosk.js:176
 msgid "Error communicating with the server when creating the ticket."
 msgstr "Помилка зв'язку із сервером під час створення талону."
 
-#: qms_cherga/public/js/qms_kiosk.js:317
+#: qms_cherga/public/js/qms_kiosk.js:318
 msgid "Error communicating with the server when loading services."
 msgstr "Помилка зв'язку із сервером під час завантаження служб."
 
@@ -261,7 +328,7 @@ msgstr "Помилка зв'язку із сервером під час зав�
 msgid "Error connecting to the server."
 msgstr "Помилка підключення до сервера."
 
-#: qms_cherga/public/js/qms_kiosk.js:168
+#: qms_cherga/public/js/qms_kiosk.js:169
 msgid "Error creating ticket: "
 msgstr "Помилка при створенні талону"
 
@@ -269,11 +336,15 @@ msgstr "Помилка при створенні талону"
 msgid "Error loading data."
 msgstr "Помилка завантаження даних."
 
-#: qms_cherga/public/js/qms_kiosk.js:147
+#: qms_cherga/public/js/qms_kiosk.js:148
 msgid "Error loading iframe for printing URL: "
 msgstr "Помилка завантаження iframe для друку URL-адреси:"
 
-#: qms_cherga/public/js/qms_kiosk.js:148
+#: qms_cherga/qms_cherga/page/operator_dashboard/operator_dashboard.py:69
+msgid "Error loading office data"
+msgstr "Помилка завантаження даних офісу"
+
+#: qms_cherga/public/js/qms_kiosk.js:149
 msgid "Error loading page for printing."
 msgstr "Помилка завантаження сторінки для друку."
 
@@ -281,7 +352,7 @@ msgstr "Помилка завантаження сторінки для друк
 msgid "Error loading queue statistics."
 msgstr "Помилка завантаження статистики черги."
 
-#: qms_cherga/public/js/qms_kiosk.js:312
+#: qms_cherga/public/js/qms_kiosk.js:313
 msgid "Error loading services:"
 msgstr "Помилка при завантаженні послуг:"
 
@@ -293,13 +364,21 @@ msgstr "Помилка виконання дії {0}."
 msgid "Error: Cannot identify active ticket name."
 msgstr "Помилка: Не вдається визначити назву активного квитка."
 
-#: qms_cherga/public/js/qms_kiosk.js:283
+#: qms_cherga/public/js/qms_kiosk.js:284
 msgid "Error: Could not determine Office ID from URL."
 msgstr "Помилка: Не вдалося визначити ідентифікатор Office з URL-адреси."
 
-#: qms_cherga/public/js/qms_kiosk.js:96
+#: qms_cherga/public/js/qms_kiosk.js:97
 msgid "Error: Could not determine Office ID. Check the URL."
 msgstr "Помилка: Не вдалося визначити ідентифікатор Office. Перевірте URL-адресу."
+
+#: qms_cherga/qms_cherga/page/operator_dashboard/operator_dashboard.py:62
+msgid "Error: Office '{0}' not found"
+msgstr "Помилка: Офіс '{0}' не знайдено"
+
+#: qms_cherga/public/js/qms_kiosk.js:39
+msgid "Error: Parameter \"office\" not specified in the kiosk URL address."
+msgstr "Error: Parameter \"office\" not specified in the kiosk URL address."
 
 #: qms_cherga/public/js/qms_display_board.js:22
 msgid "Error: Parameter 'office' not specified in the display board URL."
@@ -311,6 +390,7 @@ msgid "Estimated Wait Time (mins)"
 msgstr "Очікуваний час очікування (хв)"
 
 #: qms_cherga/public/js/qms_display_board.js:22
+#: qms_cherga/public/js/qms_kiosk.js:39
 msgid "Example:"
 msgstr "Приклад:"
 
@@ -339,6 +419,10 @@ msgstr "Дата закінчення"
 #: qms_cherga/qms_cherga/page/operator_dashboard/operator_dashboard.js:238
 msgid "Failed to call next visitor."
 msgstr "Не вдалося викликати наступного відвідувача."
+
+#: qms_cherga/api.py:205
+msgid "Failed to create ticket due to an internal error."
+msgstr "Не вдалося створити заявку через внутрішню помилку."
 
 #: qms_cherga/qms_cherga/page/operator_dashboard/operator_dashboard.js:518
 msgid "Failed to load initial data."
@@ -404,6 +488,10 @@ msgstr "Іконка"
 msgid "Info"
 msgstr "Інформація"
 
+#: qms_cherga/qms_cherga/page/operator_dashboard/operator_dashboard.py:190
+msgid "Invalid ticket status '{0}'. Expected one of: {1}."
+msgstr "Недійсний статус квитка '{0}'. Очікується один із: {1}."
+
 #. Label of the is_active (Check) field in DocType 'QMS Operator'
 #. Label of the is_active (Check) field in DocType 'QMS Service Point'
 #: qms_cherga/qms_cherga/doctype/qms_operator/qms_operator.json
@@ -438,16 +526,24 @@ msgstr "Час видачі"
 msgid "Last Number"
 msgstr "Останній номер"
 
+#: qms_cherga/www/qms_display_board.html:28
+msgid "Last called"
+msgstr "Останні викликані"
+
 #. Label of the live_queue_enabled (Check) field in DocType 'QMS Service'
 #: qms_cherga/qms_cherga/doctype/qms_service/qms_service.json
 msgid "Live Queue Enabled"
 msgstr "Доступно для живої черги"
 
+#: qms_cherga/www/qms_display_board.html:54
+msgid "Live queue"
+msgstr "Жива черга"
+
 #: qms_cherga/qms_cherga/page/operator_dashboard/operator_dashboard.js:464
 msgid "Loading initial data..."
 msgstr "Завантаження початкових даних..."
 
-#: qms_cherga/public/js/qms_kiosk.js:286
+#: qms_cherga/public/js/qms_kiosk.js:287
 msgid "Loading services..."
 msgstr "Завантаження послуг"
 
@@ -465,6 +561,15 @@ msgstr "Позначення як «Не з’явився»..."
 #: qms_cherga/qms_cherga/doctype/qms_schedule_rule_child/qms_schedule_rule_child.json
 msgid "Monday"
 msgstr "Понеділок"
+
+#: qms_cherga/qms_cherga/page/operator_dashboard/operator_dashboard.py:95
+#: qms_cherga/qms_cherga/page/operator_dashboard/operator_dashboard.py:97
+#: qms_cherga/qms_cherga/page/operator_dashboard/operator_dashboard.py:214
+#: qms_cherga/qms_cherga/page/operator_dashboard/operator_dashboard.py:216
+#: qms_cherga/qms_cherga/page/operator_dashboard/operator_dashboard.py:399
+#: qms_cherga/qms_cherga/page/operator_dashboard/operator_dashboard.py:424
+msgid "N/A"
+msgstr "Немає даних"
 
 #: qms_cherga/qms_cherga/page/operator_dashboard/operator_dashboard.js:105
 msgid "No Show"
@@ -486,11 +591,11 @@ msgstr "Немає активного квитка для пересадки."
 msgid "No active ticket."
 msgstr "Немає активного талону."
 
-#: qms_cherga/public/js/qms_kiosk.js:234
+#: qms_cherga/public/js/qms_kiosk.js:235
 msgid "No available services found for this kiosk."
 msgstr "Не знайдено доступні послуги для цього кіоску."
 
-#: qms_cherga/public/js/qms_kiosk.js:191
+#: qms_cherga/public/js/qms_kiosk.js:192
 msgid "No available services in this category."
 msgstr "Відсутні послуги для цієї категорії."
 
@@ -502,10 +607,22 @@ msgstr "Відсутні робочі місця"
 msgid "No postponed tickets."
 msgstr "Відкладених квитків немає."
 
+#: qms_cherga/api.py:269
+msgid "No tickets found in queue for calling."
+msgstr "У черзі на виклик талонів не знайдено."
+
 #. Option for the 'Status' (Select) field in DocType 'QMS Ticket'
 #: qms_cherga/qms_cherga/doctype/qms_ticket/qms_ticket.json
 msgid "NoShow"
 msgstr "Не з'явився"
+
+#: qms_cherga/qms_cherga/page/operator_dashboard/operator_dashboard.py:426
+msgid "Not Assigned"
+msgstr "Не призначено"
+
+#: qms_cherga/qms_cherga/page/operator_dashboard/operator_dashboard.py:42
+msgid "Not Specified"
+msgstr "Не вказано"
 
 #: qms_cherga/qms_cherga/page/operator_dashboard/operator_dashboard.js:118
 #: qms_cherga/qms_cherga/page/operator_dashboard/operator_dashboard.js:484
@@ -529,6 +646,20 @@ msgstr "Номер"
 #: qms_cherga/qms_cherga/workspace/qms_cherga/qms_cherga.json
 msgid "Office"
 msgstr "Офіс"
+
+#: qms_cherga/api.py:153 qms_cherga/api.py:365 qms_cherga/api.py:500
+msgid "Office '{0}' is currently closed."
+msgstr "Офіс '{0}' наразі закритий."
+
+#: qms_cherga/api.py:129 qms_cherga/api.py:351 qms_cherga/api.py:486
+#: qms_cherga/qms_cherga/page/operator_dashboard/operator_dashboard.py:137
+msgid "Office '{0}' not found."
+msgstr "Офіс '{0}' не знайдено."
+
+#: qms_cherga/api.py:348 qms_cherga/api.py:484
+#: qms_cherga/qms_cherga/page/operator_dashboard/operator_dashboard.py:131
+msgid "Office ID is required."
+msgstr "Потрібен ідентифікатор офісу."
 
 #. Label of the office_name (Data) field in DocType 'QMS Office'
 #: qms_cherga/qms_cherga/doctype/qms_office/qms_office.json
@@ -557,6 +688,14 @@ msgstr "Панель керування оператора"
 msgid "Operator Skills"
 msgstr "Навички Оператора"
 
+#: qms_cherga/qms_cherga/page/operator_dashboard/operator_dashboard.py:32
+msgid "Operator record for user {0} is not active."
+msgstr "Запис оператора для користувача {0} неактивний."
+
+#: qms_cherga/api.py:235
+msgid "Operator {0} has no skills assigned."
+msgstr "Оператору {0} не призначено жодних навичок."
+
 #. Label of the organization (Link) field in DocType 'QMS Office'
 #. Label of the organization (Link) field in DocType 'QMS Service'
 #. Label of the organization (Link) field in DocType 'QMS Service Category'
@@ -576,9 +715,17 @@ msgstr "Назва організації"
 msgid "Parent Category"
 msgstr "Батьківська категорія"
 
+#: qms_cherga/api.py:324
+msgid "Permission denied."
+msgstr "Доступ заборонено"
+
 #: qms_cherga/qms_cherga/page/operator_dashboard/operator_dashboard.js:417
 msgid "Phone"
 msgstr "Телефон"
+
+#: qms_cherga/www/qms_display_board.html:49
+msgid "Please check the opening hours."
+msgstr "Будь-ласка, перевірте графік роботи"
 
 #: qms_cherga/qms_cherga/page/operator_dashboard/operator_dashboard.js:351
 msgid "Please finish or postpone the current ticket before recalling another."
@@ -606,7 +753,7 @@ msgstr "Відкладено"
 msgid "Postponing ticket..."
 msgstr "Відкладення квитка..."
 
-#: qms_cherga/public/js/qms_kiosk.js:141
+#: qms_cherga/public/js/qms_kiosk.js:142
 msgid "Print call failed:"
 msgstr "Не вдалося виконати друк:"
 
@@ -681,6 +828,10 @@ msgstr ""
 #. Name of a DocType
 #: qms_cherga/qms_cherga/doctype/qms_operator_skill/qms_operator_skill.json
 msgid "QMS Operator Skill"
+msgstr ""
+
+#: qms_cherga/qms_cherga/page/operator_dashboard/operator_dashboard.py:38
+msgid "QMS Operator record not found for user {0}."
 msgstr ""
 
 #. Name of a DocType
@@ -807,6 +958,22 @@ msgstr "Виберіть точку"
 msgid "Service"
 msgstr "Послуга"
 
+#: qms_cherga/api.py:134
+msgid "Service '{0}' is currently inactive."
+msgstr "Послуга '{0}' наразі неактивна."
+
+#: qms_cherga/api.py:136
+msgid "Service '{0}' is not available for live queue."
+msgstr "Послуга '{0}' недоступна для черги в реальному часі."
+
+#: qms_cherga/api.py:143
+msgid "Service '{0}' is not available in office '{1}'."
+msgstr "Послуга «{0}» недоступна в офісі «{1}»."
+
+#: qms_cherga/api.py:127
+msgid "Service '{0}' not found."
+msgstr "Службу '{0}' не знайдено."
+
 #. Label of a shortcut in the QMS CherGa Workspace
 #: qms_cherga/qms_cherga/workspace/qms_cherga/qms_cherga.json
 msgid "Service Category"
@@ -823,6 +990,22 @@ msgstr "Назва послуги"
 #: qms_cherga/qms_cherga/workspace/qms_cherga/qms_cherga.json
 msgid "Service Point"
 msgstr "Точка обслуговування"
+
+#: qms_cherga/qms_cherga/page/operator_dashboard/operator_dashboard.py:277
+msgid "Service for ticket {0} completed."
+msgstr "Обслуговування квитка {0} завершено."
+
+#: qms_cherga/api.py:452
+msgid "Service not specified"
+msgstr "Послуга не вказана"
+
+#: qms_cherga/api.py:123
+msgid "Service or Office not specified."
+msgstr "Служба або офіс не вказані."
+
+#: qms_cherga/api.py:242
+msgid "Service point with ID '{0}' not found."
+msgstr "Точку обслуговування з ідентифікатором '{0}' не знайдено."
 
 #. Label of the services_section_section (Section Break) field in DocType 'QMS
 #. Office'
@@ -874,6 +1057,10 @@ msgstr "Час початку"
 msgid "Started"
 msgstr "Розпочато"
 
+#: qms_cherga/qms_cherga/page/operator_dashboard/operator_dashboard.py:223
+msgid "Started serving ticket {0}."
+msgstr "Початок обслуговування талону {0}."
+
 #: qms_cherga/qms_cherga/page/operator_dashboard/operator_dashboard.js:101
 msgid "Starting service..."
 msgstr "Розпочато обслуговування..."
@@ -917,7 +1104,7 @@ msgstr "Неділя"
 msgid "System Manager"
 msgstr ""
 
-#: qms_cherga/public/js/qms_kiosk.js:181 qms_cherga/public/js/qms_kiosk.js:322
+#: qms_cherga/public/js/qms_kiosk.js:182 qms_cherga/public/js/qms_kiosk.js:323
 msgid "System error: cannot connect to server."
 msgstr "Системна помилка: не можливо встановити з'єднання з сервером."
 
@@ -930,6 +1117,10 @@ msgstr "Призначенний оператор"
 #: qms_cherga/qms_cherga/doctype/qms_websocket_test/qms_websocket_test.json
 msgid "Test Name"
 msgstr ""
+
+#: qms_cherga/www/qms_display_board.html:49
+msgid "The electronic queue is currently not working."
+msgstr "Електронна черга наразі не працює."
 
 #. Option for the 'Day of Week' (Select) field in DocType 'QMS Schedule Rule
 #. Child'
@@ -947,13 +1138,37 @@ msgstr "Талон"
 msgid "Ticket Number"
 msgstr "Номер талону"
 
-#: qms_cherga/public/js/qms_kiosk.js:155
+#: qms_cherga/api.py:184
+msgid "Ticket created successfully."
+msgstr "Талон успішно створено."
+
+#: qms_cherga/public/js/qms_kiosk.js:156
 msgid "Ticket created, but failed to get ticket details for display/printing."
 msgstr "Талон створено, але не вдалося отримати його дані для відображення/друку."
 
 #: qms_cherga/qms_cherga/page/operator_dashboard/operator_dashboard.js:366
 msgid "Ticket recalled successfully."
 msgstr "Квиток успішно відкликано."
+
+#: qms_cherga/api.py:310
+msgid "Ticket {0} called to point {1}."
+msgstr "Талон {0} викликаний до пункту {1}."
+
+#: qms_cherga/qms_cherga/page/operator_dashboard/operator_dashboard.py:315
+msgid "Ticket {0} marked as 'No Show'."
+msgstr "Квиток {0} позначено як «Не з’явився»."
+
+#: qms_cherga/qms_cherga/page/operator_dashboard/operator_dashboard.py:180
+msgid "Ticket {0} not found."
+msgstr "Квиток {0} не знайдено."
+
+#: qms_cherga/qms_cherga/page/operator_dashboard/operator_dashboard.py:349
+msgid "Ticket {0} postponed."
+msgstr "Квиток {0} відкладено."
+
+#: qms_cherga/qms_cherga/page/operator_dashboard/operator_dashboard.py:449
+msgid "Ticket {0} recalled successfully."
+msgstr "Квиток {0} успішно відкликано."
 
 #. Label of the timezone (Data) field in DocType 'QMS Office'
 #: qms_cherga/qms_cherga/doctype/qms_office/qms_office.json
@@ -984,11 +1199,15 @@ msgstr "Вівторок"
 msgid "Unexpected response structure from server."
 msgstr "Неочікувана структура відповіді від сервера."
 
-#: qms_cherga/public/js/qms_kiosk.js:166
+#: qms_cherga/api.py:276
+msgid "Unknown Service"
+msgstr "Невідома послуга"
+
+#: qms_cherga/public/js/qms_kiosk.js:167
 msgid "Unknown error creating ticket."
 msgstr "Невідома помилка при створені талону."
 
-#: qms_cherga/public/js/qms_kiosk.js:310
+#: qms_cherga/public/js/qms_kiosk.js:311
 msgid "Unknown error loading services."
 msgstr "Невідома помилка при завантаженні послуг."
 
@@ -1021,6 +1240,11 @@ msgstr "Відвідувача успішно викликано."
 msgid "Waiting"
 msgstr "Очікування"
 
+#: qms_cherga/www/qms_display_board.html:30
+#: qms_cherga/www/qms_display_board.html:57
+msgid "Waiting for data..."
+msgstr "Очікування даних..."
+
 #. Option for the 'Day of Week' (Select) field in DocType 'QMS Schedule Rule
 #. Child'
 #: qms_cherga/qms_cherga/doctype/qms_schedule_rule_child/qms_schedule_rule_child.json
@@ -1030,6 +1254,18 @@ msgstr "Середа"
 #: qms_cherga/public/js/qms_display_board.js:107
 msgid "Window "
 msgstr "Вікно"
+
+#: qms_cherga/api.py:157 qms_cherga/api.py:368 qms_cherga/api.py:503
+msgid "Working schedule not configured for office '{0}'."
+msgstr "Робочий графік не налаштовано для офісу '{0}'."
+
+#: qms_cherga/api.py:360 qms_cherga/api.py:495
+msgid "Working schedule not configured."
+msgstr "Графік роботи не налаштовано."
+
+#: qms_cherga/api.py:320
+msgid "{0} not found."
+msgstr "{0} не знайдено."
 
 #: qms_cherga/qms_cherga/page/operator_dashboard/operator_dashboard.js:303
 msgid "{0} successful."

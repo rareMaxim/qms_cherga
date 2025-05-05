@@ -3,7 +3,7 @@
 document.addEventListener('DOMContentLoaded', () => {
 
     // --- КОНФІГУРАЦІЯ ---
-    const TICKET_TIMEOUT_SECONDS = 50; // Таймаут для квитка (в секундах)
+    const TICKET_TIMEOUT_SECONDS = 5; // Таймаут для квитка (в секундах)
     // ---------------------
 
     let officeId = null;
@@ -35,7 +35,8 @@ document.addEventListener('DOMContentLoaded', () => {
     function initializeKiosk() {
         officeId = getUrlParameter('office');
         if (!officeId) {
-            mainServiceContainer.innerHTML = '<div class="error-message">Помилка: Не вказано параметр "office" в URL адресі кіоску.<br>Приклад: /qms_kiosk.html?office=YOUR_OFFICE_ID</div>';
+            // Додано __() для перекладу
+            mainServiceContainer.innerHTML = `<div class="error-message">${__('Error: Parameter "office" not specified in the kiosk URL address.')}<br>${__('Example:')} /qms_kiosk.html?office=YOUR_OFFICE_ID</div>`;
             screens.forEach(screen => screen.classList.remove('active'));
             const mainScreen = document.getElementById('main-screen');
             if (mainScreen) mainScreen.classList.add('active');
@@ -93,7 +94,7 @@ document.addEventListener('DOMContentLoaded', () => {
         console.log(`Service selected: ID=${serviceId}, Name=${serviceName}`);
         if (!officeId) {
             // Використовуємо alert або кращий механізм сповіщень
-            alert(__("Error: Could not determine Office ID. Check the URL."));
+            alert(__("Error: Could not determine Office ID. Check the URL.")); // Вже було
             return;
         }
         // Можна показати індикатор завантаження
@@ -138,54 +139,54 @@ document.addEventListener('DOMContentLoaded', () => {
                                     printFrame.contentWindow.print();
                                     setTimeout(() => { if (document.body.contains(printFrame)) document.body.removeChild(printFrame); }, 3000);
                                 } catch (e) {
-                                    console.error(__("Print call failed:"), e);
-                                    alert(__("Could not initiate automatic printing. Please check printer settings and browser pop-up blockers."));
+                                    console.error(__("Print call failed:"), e); // Технічне повідомлення
+                                    alert(__("Could not initiate automatic printing. Please check printer settings and browser pop-up blockers.")); // Вже було
                                     // window.open(printUrl, '_blank'); // Fallback
                                 }
                             };
                             printFrame.onerror = function () {
-                                console.error(__("Error loading iframe for printing URL: ") + printUrl);
-                                alert(__("Error loading page for printing."));
+                                console.error(__("Error loading iframe for printing URL: ") + printUrl); // Технічне повідомлення
+                                alert(__("Error loading page for printing.")); // Вже було
                                 if (document.body.contains(printFrame)) document.body.removeChild(printFrame);
                             }
                             document.body.appendChild(printFrame);
                             // --- Кінець логіки друку ---
                         } else {
-                            console.error("Ticket number or name missing in success response data:", ticketData);
-                            alert(__("Ticket created, but failed to get ticket details for display/printing."));
+                            console.error("Ticket number or name missing in success response data:", ticketData); // Технічне повідомлення
+                            alert(__("Ticket created, but failed to get ticket details for display/printing.")); // Вже було
                             showScreen('main-screen');
                         }
                     } else if (r.message && r.message.status === "info") {
                         // Обробка інформаційних повідомлень (наприклад, "Офіс зачинено")
-                        console.info("Info from create_live_queue_ticket:", r.message.message);
-                        alert(r.message.message); // Показати повідомлення користувачу
+                        console.info("Info from create_live_queue_ticket:", r.message.message); // Технічне повідомлення
+                        alert(r.message.message); // Показати повідомлення користувачу (воно приходить з бекенду, вже перекладене)
                         showScreen('main-screen'); // Повернути на головний екран
                     }
                     else {
                         // Обробка помилок з бекенду (status === 'error' або інша структура)
-                        const errorMessage = r.message?.message || __("Unknown error creating ticket.");
-                        console.error("Error creating ticket:", errorMessage, r.message?.details);
-                        alert(__("Error creating ticket: ") + errorMessage);
+                        const errorMessage = r.message?.message || __("Unknown error creating ticket."); // Вже було
+                        console.error("Error creating ticket:", errorMessage, r.message?.details); // Технічне повідомлення
+                        alert(__("Error creating ticket: ") + errorMessage); // Вже було
                         showScreen('main-screen');
                     }
                 },
                 error: function (err) { // Помилка зв'язку або системна помилка Frappe
                     // hideLoadingIndicator();
-                    console.error("API call failed (create_live_queue_ticket):", err);
-                    alert(__("Error communicating with the server when creating the ticket."));
+                    console.error("API call failed (create_live_queue_ticket):", err); // Технічне повідомлення
+                    alert(__("Error communicating with the server when creating the ticket.")); // Вже було
                     showScreen('main-screen');
                 }
             });
         } else {
-            console.error("frappe.call is not available.");
-            alert(__("System error: cannot connect to server."));
+            console.error("frappe.call is not available."); // Технічне повідомлення
+            alert(__("System error: cannot connect to server.")); // Вже було
             // hideLoadingIndicator();
         }
     }
 
     // --- Функції для відображення послуг (без змін) ---
     function renderServices(container, services) {
-        // ... (код без змін) ...
+        // Ця функція залишається без змін
         container.innerHTML = '';
         if (!services || services.length === 0) {
             container.innerHTML = `<p class="text-muted">${__("No available services in this category.")}</p>`;
@@ -199,6 +200,7 @@ document.addEventListener('DOMContentLoaded', () => {
             const buttonContent = document.createElement('span');
             buttonContent.classList.add('service-button-content');
 
+            // ... (решта коду створення іконки та тексту кнопки без змін) ...
             if (service.icon) {
                 const iconSpan = document.createElement('span');
                 const iconText = service.icon.trim();
@@ -224,38 +226,54 @@ document.addEventListener('DOMContentLoaded', () => {
             buttonContent.appendChild(textSpan);
 
             serviceButton.appendChild(buttonContent);
-            serviceButton.addEventListener('click', () => handleServiceClick(service.id, service.label)); // Передаємо id та label
-            container.appendChild(serviceButton);
+            serviceButton.addEventListener('click', () => handleServiceClick(service.id, service.label));
+            container.appendChild(serviceButton); // Додаємо кнопку до переданого контейнера
         });
     }
-    function renderMainScreen(data) { // data тепер з r.message.data
-        mainServiceContainer.innerHTML = '';
+
+    function renderMainScreen(data) {
+        mainServiceContainer.innerHTML = ''; // Очищаємо головний контейнер
         if (!data || (!data.categories?.length && !data.services_no_category?.length)) {
             mainServiceContainer.innerHTML = `<div class="error-message">${__("No available services found for this kiosk.")}</div>`;
             return;
         }
+
+        // Функція для створення та заповнення групи послуг
+        const createServiceGroup = (container, services, title = null) => {
+            const categoryGroup = document.createElement('div');
+            categoryGroup.classList.add('category-group');
+
+            if (title) {
+                const categoryHeader = document.createElement('h3');
+                categoryHeader.textContent = title;
+                categoryGroup.appendChild(categoryHeader);
+            }
+
+            // !!! Створюємо контейнер для сітки кнопок всередині групи !!!
+            const serviceGridContainer = document.createElement('div');
+            serviceGridContainer.classList.add('category-service-grid'); // Новий клас для CSS
+
+            // Додаємо сітку до групи
+            categoryGroup.appendChild(serviceGridContainer);
+
+            // Рендеримо кнопки всередину нової сітки
+            renderServices(serviceGridContainer, services); // Передаємо serviceGridContainer
+
+            // Додаємо всю групу до головного контейнера
+            container.appendChild(categoryGroup);
+        };
+
         // Послуги без категорії
         if (data.services_no_category && data.services_no_category.length > 0) {
-            const servicesGroup = document.createElement('div'); // Обгортаємо в групу для сітки
-            servicesGroup.classList.add('category-group'); // Можна використовувати той же клас або новий
-            renderServices(servicesGroup, data.services_no_category);
-            mainServiceContainer.appendChild(servicesGroup);
+            // Передаємо mainServiceContainer як головний контейнер
+            createServiceGroup(mainServiceContainer, data.services_no_category);
         }
+
         // Категорії
         if (data.categories && data.categories.length > 0) {
             data.categories.forEach(category => {
-                const categoryGroup = document.createElement('div');
-                categoryGroup.classList.add('category-group');
-                const categoryHeader = document.createElement('h3');
-                categoryHeader.textContent = category.label;
-                categoryGroup.appendChild(categoryHeader);
-                // Створюємо контейнер для кнопок всередині категорії
-                const categoryButtonContainer = document.createElement('div');
-                // Додаємо клас сітки до контейнера кнопок категорії (необов'язково, залежить від дизайну)
-                // categoryButtonContainer.classList.add('button-grid');
-                renderServices(categoryButtonContainer, category.services);
-                categoryGroup.appendChild(categoryButtonContainer);
-                mainServiceContainer.appendChild(categoryGroup);
+                // Передаємо mainServiceContainer як головний контейнер
+                createServiceGroup(mainServiceContainer, category.services, category.label);
             });
         }
     }
@@ -279,27 +297,27 @@ document.addEventListener('DOMContentLoaded', () => {
     // --- Завантаження Послуг (ОНОВЛЕНО) ---
     function loadKioskServices() {
         if (!officeId) {
-            console.error("Cannot load services: Office ID is missing.");
-            mainServiceContainer.innerHTML = `<div class="error-message">${__("Error: Could not determine Office ID from URL.")}</div>`;
+            console.error("Cannot load services: Office ID is missing."); // Технічне
+            mainServiceContainer.innerHTML = `<div class="error-message">${__("Error: Could not determine Office ID from URL.")}</div>`; // Вже було
             return;
         }
-        mainServiceContainer.innerHTML = `<div class="loading-indicator">${__("Loading services...")}</div>`;
+        mainServiceContainer.innerHTML = `<div class="loading-indicator">${__("Loading services...")}</div>`; // Вже було
 
         if (typeof frappe !== 'undefined' && frappe.call) {
-            console.info("Using frappe.call to load services.");
+            console.info("Using frappe.call to load services."); // Технічне
             frappe.call({
                 method: "qms_cherga.api.get_kiosk_services",
                 args: { office: officeId },
                 callback: function (r) {
                     // Перевіряємо новий стандартизований формат
                     if (r.message && r.message.status === 'success') {
-                        console.log("Services loaded:", r.message.data);
+                        console.log("Services loaded:", r.message.data); // Технічне
                         allServicesData = r.message.data; // Дані тепер у r.message.data
                         renderMainScreen(allServicesData);
                     } else if (r.message && r.message.status === 'info') {
                         // Обробка інформаційних повідомлень (наприклад, "Офіс зачинено")
-                        console.info("Info from get_kiosk_services:", r.message.message);
-                        // Відображаємо повідомлення замість списку послуг
+                        console.info("Info from get_kiosk_services:", r.message.message); // Технічне
+                        // Відображаємо повідомлення замість списку послуг (воно з бекенду, вже перекладене)
                         mainServiceContainer.innerHTML = `<div class="info-message">${r.message.message}</div>`;
                         // Можна також сховати заголовок, якщо потрібно
                         const header = document.querySelector('#main-screen .screen-header h2');
@@ -307,19 +325,19 @@ document.addEventListener('DOMContentLoaded', () => {
                     }
                     else {
                         // Обробка помилок з бекенду
-                        const errorMessage = r.message?.message || __("Unknown error loading services.");
-                        console.error("Error loading services:", errorMessage, r.message?.details);
-                        mainServiceContainer.innerHTML = `<div class="error-message">${__("Error loading services:")} ${errorMessage}</div>`;
+                        const errorMessage = r.message?.message || __("Unknown error loading services."); // Вже було
+                        console.error("Error loading services:", errorMessage, r.message?.details); // Технічне
+                        mainServiceContainer.innerHTML = `<div class="error-message">${__("Error loading services:")} ${errorMessage}</div>`; // Вже було
                     }
                 },
                 error: function (err) { // Помилка зв'язку
-                    console.error("API call failed (get_kiosk_services):", err);
-                    mainServiceContainer.innerHTML = `<div class="error-message">${__("Error communicating with the server when loading services.")}</div>`;
+                    console.error("API call failed (get_kiosk_services):", err); // Технічне
+                    mainServiceContainer.innerHTML = `<div class="error-message">${__("Error communicating with the server when loading services.")}</div>`; // Вже було
                 }
             });
         } else {
-            console.warn("frappe.call not available. Using fetch to load services.");
-            mainServiceContainer.innerHTML = `<div class="error-message">${__("System error: cannot connect to server.")}</div>`;
+            console.warn("frappe.call not available. Using fetch to load services."); // Технічне
+            mainServiceContainer.innerHTML = `<div class="error-message">${__("System error: cannot connect to server.")}</div>`; // Вже було
         }
     }
 

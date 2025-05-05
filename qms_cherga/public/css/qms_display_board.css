@@ -30,17 +30,21 @@ body {
 
 .container {
     width: 100%;
-    margin: 0 auto;
+    /* margin: 0 auto; */
+    /* Прибрано або закоментовано */
+    margin: 0;
+    /* Явно встановлюємо нульові відступи */
     background-color: #ffffff;
     padding: 15px 0;
-    /* Збільшено вертикальні відступи */
+    /* Залишаємо вертикальні відступи */
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.12);
-    /* Чіткіша тінь */
     display: flex;
     flex-direction: column;
     flex-grow: 1;
     box-sizing: border-box;
     min-height: 0;
+    max-width: none;
+    /* Додатково, щоб переконатися, що немає обмеження */
 }
 
 h2,

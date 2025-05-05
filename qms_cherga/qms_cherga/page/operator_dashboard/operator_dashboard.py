@@ -1,10 +1,7 @@
-# qms_cherga/qms_cherga/page/operator_dashboard/operator_dashboard.py
 import frappe
-from frappe import _
+from frappe import _  # Імпортуємо функцію перекладу
 from frappe.utils import get_fullname, today, now_datetime, time_diff_in_seconds, flt, get_datetime
 
-# Імпортуємо допоміжні функції (припускаємо, що вони в api.py)
-# Якщо ви створили qms_cherga/utils/response.py, змініть шлях імпорту
 from qms_cherga.utils.response import success_response, error_response, info_response
 
 
@@ -18,7 +15,8 @@ def get_initial_data():
         current_user = frappe.session.user
         if current_user == "Guest":
             # 401 Unauthorized
-            return error_response("Authentication required.", http_status_code=401)
+            # Повідомлення Frappe за замовчуванням вже перекладається
+            return error_response(_("Authentication required."), http_status_code=401)
 
         operator_info = {}
         current_ticket_details = None
@@ -31,16 +29,17 @@ def get_initial_data():
             if not operator_doc.is_active:
                 # 403 Forbidden - оператор існує, але не активний
                 return error_response(
-                    message=f"Operator record for user {current_user} is not active.",
+                    message=_("Operator record for user {0} is not active.").format(
+                        current_user),
                     error_code="OPERATOR_INACTIVE",
                     http_status_code=403)
         except frappe.DoesNotExistError:
             # 404 Not Found
-            return error_response(message=f"QMS Operator record not found for user {current_user}.",
+            return error_response(message=_("QMS Operator record not found for user {0}.").format(current_user),
                                   http_status_code=404)
 
         office_id = operator_doc.default_office
-        office_name_full = "Not Specified"
+        office_name_full = _("Not Specified")  # Перекладено
         if office_id:
             try:
                 office_doc_data = frappe.db.get_value(
@@ -60,20 +59,23 @@ def get_initial_data():
                     # Офіс, вказаний у оператора, не знайдено - помилка конфігурації
                     frappe.log_warning(
                         f"Office '{office_id}' linked to operator '{operator_doc.name}' not found.", "Operator Config Warning")
-                    office_name_full = f"Error: Office '{office_id}' not found"
+                    office_name_full = _("Error: Office '{0}' not found").format(
+                        office_id)  # Перекладено
 
             except Exception as e:
                 # Логуємо помилку отримання даних офісу/точок
                 frappe.log_error(
                     f"Error fetching office/service point details for office {office_id}: {e}", "Initial Data Error")
-                office_name_full = "Error loading office data"
+                office_name_full = _(
+                    "Error loading office data")  # Перекладено
 
         operator_info = {
             "qms_operator_name": operator_doc.name,
             "full_name": operator_doc.full_name or get_fullname(current_user),
             "default_office_id": office_id,
             "default_office_name": office_name_full,
-            "current_status": "Available"  # Потребує кращої логіки
+            # Потребує кращої логіки, перекладено
+            "current_status": _("Available")
         }
 
         # Шукаємо поточний активний талон
@@ -90,9 +92,9 @@ def get_initial_data():
         if active_ticket:
             ticket_data = active_ticket[0]
             service_name = frappe.db.get_value(
-                "QMS Service", ticket_data.service, "service_name") if ticket_data.service else "N/A"
+                "QMS Service", ticket_data.service, "service_name") if ticket_data.service else _("N/A")  # Перекладено
             service_point_name = frappe.db.get_value(
-                "QMS Service Point", ticket_data.service_point, "point_name") if ticket_data.service_point else "N/A"
+                "QMS Service Point", ticket_data.service_point, "point_name") if ticket_data.service_point else _("N/A")  # Перекладено
 
             current_ticket_details = ticket_data.copy()
             current_ticket_details["service_name"] = service_name
@@ -109,7 +111,9 @@ def get_initial_data():
         # Обробка неочікуваних помилок
         frappe.log_error(frappe.get_traceback(), "Get Initial Data API Error")
         return error_response(
-            message="An unexpected error occurred while fetching initial data.",
+            # Перекладено
+            message=_(
+                "An unexpected error occurred while fetching initial data."),
             details=str(e),
             http_status_code=500
         )
@@ -123,12 +127,14 @@ def get_queue_stats(office: str):
     """
     if not office:
         # 400 Bad Request
-        return error_response("Office ID is required.", http_status_code=400)
+        # Перекладено
+        return error_response(_("Office ID is required."), http_status_code=400)
 
     try:
         if not frappe.db.exists("QMS Office", office):
             # 404 Not Found
-            return error_response(f"Office '{office}' not found.", http_status_code=404)
+            # Перекладено
+            return error_response(_("Office '{0}' not found.").format(office), http_status_code=404)
 
         waiting_count = frappe.db.count(
             "QMS Ticket", {"status": "Waiting", "office": office})
@@ -147,7 +153,9 @@ def get_queue_stats(office: str):
                          f"Get Queue Stats Error for Office {office}")
         # 500 Internal Server Error
         return error_response(
-            message="An unexpected error occurred while fetching queue statistics.",
+            # Перекладено
+            message=_(
+                "An unexpected error occurred while fetching queue statistics."),
             details=str(e),
             http_status_code=500
         )
@@ -160,23 +168,26 @@ def _get_validated_ticket(ticket_name: str, expected_statuses: list = None):
     current_user = frappe.session.user
     if current_user == "Guest":
         # Викидаємо виняток, який буде зловлено зовнішньою функцією
-        raise frappe.AuthenticationError("Authentication required.")
+        raise frappe.AuthenticationError(
+            _("Authentication required."))  # Перекладено
 
     try:
         ticket_doc = frappe.get_doc("QMS Ticket", ticket_name)
     except frappe.DoesNotExistError:
         # Викидаємо виняток
-        raise frappe.DoesNotExistError(f"Ticket {ticket_name} not found.")
+        # Повідомлення Frappe має перекладатися
+        raise frappe.DoesNotExistError(
+            _("Ticket {0} not found.").format(ticket_name))  # Перекладено
 
     if ticket_doc.operator != current_user:
         # Викидаємо виняток
         raise frappe.PermissionError(
-            "Cannot modify a ticket assigned to another operator.")
+            _("Cannot modify a ticket assigned to another operator."))  # Перекладено
 
     if expected_statuses and ticket_doc.status not in expected_statuses:
         # Викидаємо виняток
         raise frappe.ValidationError(
-            f"Invalid ticket status '{ticket_doc.status}'. Expected one of: {expected_statuses}.")
+            _("Invalid ticket status '{0}'. Expected one of: {1}.").format(ticket_doc.status, expected_statuses))  # Перекладено
 
     return ticket_doc
 
@@ -200,16 +211,17 @@ def start_serving_ticket(ticket_name: str):
 
         # Отримуємо додаткові дані для відповіді
         service_name = frappe.db.get_value(
-            "QMS Service", ticket_doc.service, "service_name") if ticket_doc.service else "N/A"
+            "QMS Service", ticket_doc.service, "service_name") if ticket_doc.service else _("N/A")  # Перекладено
         service_point_name = frappe.db.get_value(
-            "QMS Service Point", ticket_doc.service_point, "point_name") if ticket_doc.service_point else "N/A"
+            "QMS Service Point", ticket_doc.service_point, "point_name") if ticket_doc.service_point else _("N/A")  # Перекладено
 
         ticket_info = ticket_doc.as_dict()
         ticket_info["service_name"] = service_name
         ticket_info["service_point_name"] = service_point_name
 
         return success_response(
-            message=f"Started serving ticket {ticket_doc.ticket_number}.",
+            message=_("Started serving ticket {0}.").format(
+                ticket_doc.ticket_number),  # Перекладено
             data={"ticket_info": ticket_info}
         )
 
@@ -229,7 +241,8 @@ def start_serving_ticket(ticket_name: str):
         frappe.log_error(frappe.get_traceback(),
                          "Start Serving Ticket API Error")
         return error_response(
-            message="An unexpected error occurred while starting service.",
+            # Перекладено
+            message=_("An unexpected error occurred while starting service."),
             details=str(e),
             http_status_code=500
         )
@@ -260,7 +273,8 @@ def finish_service_ticket(ticket_name: str):
         ticket_doc.save(ignore_permissions=True)
         frappe.db.commit()
 
-        return success_response(message=f"Service for ticket {ticket_doc.ticket_number} completed.")
+        # Перекладено
+        return success_response(message=_("Service for ticket {0} completed.").format(ticket_doc.ticket_number))
 
     except frappe.AuthenticationError as e:
         return error_response(str(e), http_status_code=401)
@@ -274,7 +288,8 @@ def finish_service_ticket(ticket_name: str):
         frappe.db.rollback()
         frappe.log_error(frappe.get_traceback(),
                          "Finish Service Ticket API Error")
-        return error_response("An unexpected error occurred while finishing service.", details=str(e), http_status_code=500)
+        # Перекладено
+        return error_response(_("An unexpected error occurred while finishing service."), details=str(e), http_status_code=500)
 
 
 @frappe.whitelist()
@@ -296,7 +311,8 @@ def mark_no_show(ticket_name: str):
         ticket_doc.save(ignore_permissions=True)
         frappe.db.commit()
 
-        return success_response(message=f"Ticket {ticket_doc.ticket_number} marked as 'No Show'.")
+        # Перекладено
+        return success_response(message=_("Ticket {0} marked as 'No Show'.").format(ticket_doc.ticket_number))
 
     except frappe.AuthenticationError as e:
         return error_response(str(e), http_status_code=401)
@@ -309,7 +325,8 @@ def mark_no_show(ticket_name: str):
     except Exception as e:
         frappe.db.rollback()
         frappe.log_error(frappe.get_traceback(), "Mark No Show API Error")
-        return error_response("An unexpected error occurred while marking as 'No Show'.", details=str(e), http_status_code=500)
+        # Перекладено
+        return error_response(_("An unexpected error occurred while marking as 'No Show'."), details=str(e), http_status_code=500)
 
 
 @frappe.whitelist()
@@ -328,7 +345,8 @@ def hold_ticket(ticket_name: str):
         ticket_doc.save(ignore_permissions=True)
         frappe.db.commit()
 
-        return success_response(message=f"Ticket {ticket_doc.ticket_number} postponed.")
+        # Перекладено
+        return success_response(message=_("Ticket {0} postponed.").format(ticket_doc.ticket_number))
 
     except frappe.AuthenticationError as e:
         return error_response(str(e), http_status_code=401)
@@ -341,7 +359,8 @@ def hold_ticket(ticket_name: str):
     except Exception as e:
         frappe.db.rollback()
         frappe.log_error(frappe.get_traceback(), "Hold Ticket API Error")
-        return error_response("An unexpected error occurred while postponing the ticket.", details=str(e), http_status_code=500)
+        # Перекладено
+        return error_response(_("An unexpected error occurred while postponing the ticket."), details=str(e), http_status_code=500)
 
 
 @frappe.whitelist()
@@ -375,8 +394,9 @@ def get_my_held_tickets():
 
             for ticket in held_tickets_data:
                 ticket_dict = ticket.copy()
+                # Змінено: додано _() для N/A
                 ticket_dict["service_name"] = service_names_map.get(
-                    ticket.service, ticket.service or "N/A")
+                    ticket.service, ticket.service or _("N/A"))
                 result_list.append(ticket_dict)
 
         return success_response(data={"held_tickets": result_list})
@@ -384,7 +404,8 @@ def get_my_held_tickets():
     except Exception as e:
         frappe.log_error(frappe.get_traceback(),
                          "Get My Held Tickets API Error")
-        return error_response("An unexpected error occurred while fetching held tickets.", details=str(e), http_status_code=500)
+        # Перекладено
+        return error_response(_("An unexpected error occurred while fetching held tickets."), details=str(e), http_status_code=500)
 
 
 @frappe.whitelist()
@@ -400,9 +421,9 @@ def recall_ticket(ticket_name: str):
 
         # --- Отримуємо назви для відповіді ---
         service_name = frappe.db.get_value(
-            "QMS Service", ticket_doc.service, "service_name") if ticket_doc.service else "N/A"
+            "QMS Service", ticket_doc.service, "service_name") if ticket_doc.service else _("N/A")  # Перекладено
         service_point_name = frappe.db.get_value(
-            "QMS Service Point", ticket_doc.service_point, "point_name") if ticket_doc.service_point else "Not Assigned"
+            "QMS Service Point", ticket_doc.service_point, "point_name") if ticket_doc.service_point else _("Not Assigned")  # Перекладено
 
         # --- Оновлення Полів Документа ---
         ticket_doc.status = "Called"  # Ставимо статус "Викликано"
@@ -425,7 +446,8 @@ def recall_ticket(ticket_name: str):
 
         # --- Успішна відповідь API ---
         return success_response(
-            message=f"Ticket {ticket_doc.ticket_number} recalled successfully.",
+            message=_("Ticket {0} recalled successfully.").format(
+                ticket_doc.ticket_number),  # Перекладено
             data={"ticket_info": ticket_info}
         )
 
@@ -440,4 +462,5 @@ def recall_ticket(ticket_name: str):
     except Exception as e:
         frappe.db.rollback()
         frappe.log_error(frappe.get_traceback(), "Recall Ticket API Error")
-        return error_response("An unexpected error occurred while recalling the ticket.", details=str(e), http_status_code=500)
+        # Перекладено
+        return error_response(_("An unexpected error occurred while recalling the ticket."), details=str(e), http_status_code=500)

@@ -6,6 +6,7 @@ from frappe.utils import get_datetime, get_system_timezone, get_time, now_dateti
 from zoneinfo import ZoneInfo, ZoneInfoNotFoundError
 from datetime import datetime
 
+# Імпортуємо функції зі стандартизованими відповідями
 from qms_cherga.utils.response import error_response, info_response, success_response
 
 
@@ -119,27 +120,27 @@ def create_live_queue_ticket(service: str, office: str, visitor_phone: str = Non
     try:
         # --- Базова валідація вхідних даних ---
         if not service or not office:
-            return error_response("Service or Office not specified.", error_code="MISSING_PARAMS", http_status_code=400)
+            return error_response(_("Service or Office not specified."), error_code="MISSING_PARAMS", http_status_code=400)
 
         # Перевірка існування записів
         if not frappe.db.exists("QMS Service", service):
-            return error_response(f"Service '{service}' not found.", error_code="INVALID_SERVICE", http_status_code=404)
+            return error_response(_("Service '{0}' not found.").format(service), error_code="INVALID_SERVICE", http_status_code=404)
         if not frappe.db.exists("QMS Office", office):
-            return error_response(f"Office '{office}' not found.", error_code="INVALID_OFFICE", http_status_code=404)
+            return error_response(_("Office '{0}' not found.").format(office), error_code="INVALID_OFFICE", http_status_code=404)
 
         # --- Додаткові перевірки ---
         service_doc = frappe.get_cached_doc("QMS Service", service)
         if not service_doc.enabled:
-            return error_response(f"Service '{service_doc.service_name}' is currently inactive.", error_code="SERVICE_INACTIVE", http_status_code=400)
+            return error_response(_("Service '{0}' is currently inactive.").format(service_doc.service_name), error_code="SERVICE_INACTIVE", http_status_code=400)
         if not service_doc.live_queue_enabled:
-            return error_response(f"Service '{service_doc.service_name}' is not available for live queue.", error_code="SERVICE_NO_LIVE_QUEUE", http_status_code=400)
+            return error_response(_("Service '{0}' is not available for live queue.").format(service_doc.service_name), error_code="SERVICE_NO_LIVE_QUEUE", http_status_code=400)
 
         is_service_in_office = frappe.db.exists("QMS Office Service Assignment", {
                                                 "parent": office, "service": service, "is_active_in_office": 1})
         if not is_service_in_office:
             office_name = frappe.db.get_value(
                 "QMS Office", office, "office_name")
-            return error_response(f"Service '{service_doc.service_name}' is not available in office '{office_name}'.", error_code="SERVICE_NOT_IN_OFFICE", http_status_code=400)
+            return error_response(_("Service '{0}' is not available in office '{1}'.").format(service_doc.service_name, office_name), error_code="SERVICE_NOT_IN_OFFICE", http_status_code=400)
 
         office_doc = frappe.get_cached_doc("QMS Office", office)
         schedule_name = office_doc.schedule or frappe.db.get_value(
@@ -149,11 +150,11 @@ def create_live_queue_ticket(service: str, office: str, visitor_phone: str = Non
             if not is_office_open(schedule_name, office_doc.timezone):
                 # Використовуємо info_response, бо це не помилка системи, а стан офісу
                 # Повертаємо 200 OK, але з інформаційним статусом
-                return info_response(f"Office '{office_doc.office_name}' is currently closed.", data={"office_status": "closed"})
+                return info_response(_("Office '{0}' is currently closed.").format(office_doc.office_name), data={"office_status": "closed"})
         else:
             # Якщо немає графіка, це помилка конфігурації
             # 500 бо це проблема налаштування сервера
-            return error_response(f"Working schedule not configured for office '{office_doc.office_name}'.", error_code="NO_SCHEDULE", http_status_code=500)
+            return error_response(_("Working schedule not configured for office '{0}'.").format(office_doc.office_name), error_code="NO_SCHEDULE", http_status_code=500)
 
         # --- Валідація номеру телефону ---
         if visitor_phone:
@@ -180,7 +181,7 @@ def create_live_queue_ticket(service: str, office: str, visitor_phone: str = Non
 
         # --- Успішна відповідь ---
         return success_response(
-            message="Ticket created successfully.",
+            message=_("Ticket created successfully."),
             data={
                 "ticket_name": new_ticket.name,  # Унікальний ID документа
                 "ticket_number": new_ticket.ticket_number,  # Номер для відображення
@@ -192,6 +193,7 @@ def create_live_queue_ticket(service: str, office: str, visitor_phone: str = Non
     except frappe.exceptions.ValidationError as e:
         # Обробка помилок валідації Frappe
         frappe.db.rollback()
+        # Повідомлення з ValidationError вже може бути перекладене
         return error_response(str(e), error_code="VALIDATION_ERROR", http_status_code=400)
     except Exception as e:
         # Обробка інших неочікуваних помилок
@@ -200,7 +202,7 @@ def create_live_queue_ticket(service: str, office: str, visitor_phone: str = Non
                          "QMS Ticket Creation API Error")
         # Повертаємо загальну помилку сервера
         return error_response(
-            message="Failed to create ticket due to an internal error.",
+            message=_("Failed to create ticket due to an internal error."),
             details=str(e),  # Деталі тільки в режимі розробника
             http_status_code=500
         )
@@ -216,7 +218,7 @@ def call_next_visitor(service_point_name: str):  # service_point_name - це ID
         current_user = frappe.session.user
         if current_user == "Guest":
             # 401 Unauthorized
-            return error_response("Authentication required.", http_status_code=401)
+            return error_response(_("Authentication required."), http_status_code=401)
 
         # --- Отримуємо дані Оператора та Навички ---
         try:
@@ -224,27 +226,27 @@ def call_next_visitor(service_point_name: str):  # service_point_name - це ID
                 "QMS Operator", {"user": current_user, "is_active": 1})
         except frappe.DoesNotExistError:
             # 404 Not Found
-            return error_response(f"Active QMS Operator record not found for user {current_user}.", http_status_code=404)
+            return error_response(_("Active QMS Operator record not found for user {0}.").format(current_user), http_status_code=404)
 
         operator_skills = [
             skill.service for skill in operator_doc.get("operator_skills", [])]
         if not operator_skills:
             # 400 Bad Request або 409 Conflict - оператор не може працювати
-            return error_response(f"Operator {current_user} has no skills assigned.", error_code="NO_SKILLS", http_status_code=400)
+            return error_response(_("Operator {0} has no skills assigned.").format(current_user), error_code="NO_SKILLS", http_status_code=400)
 
         # --- Отримуємо дані Точки Обслуговування та Офісу ---
         service_point_data = frappe.db.get_value("QMS Service Point", service_point_name, [
                                                  "office", "point_name"], as_dict=True)
         if not service_point_data:
             # 404 Not Found
-            return error_response(f"Service point with ID '{service_point_name}' not found.", http_status_code=404)
+            return error_response(_("Service point with ID '{0}' not found.").format(service_point_name), http_status_code=404)
 
         office_id = service_point_data.office
         actual_service_point_display_name = service_point_data.point_name  # "Людська" назва
 
         if not office_id:
             # 500 Internal Server Error - проблема конфігурації
-            return error_response(f"Could not determine Office for service point '{actual_service_point_display_name}'.", http_status_code=500)
+            return error_response(_("Could not determine Office for service point '{0}'.").format(actual_service_point_display_name), http_status_code=500)
 
         # --- Пошук Наступного Талону ---
         # TODO: Додати логіку обробки талонів по запису (is_appointment, appointment_datetime), якщо реалізовано
@@ -264,14 +266,14 @@ def call_next_visitor(service_point_name: str):  # service_point_name - це ID
         if not waiting_tickets:
             # Це інформаційна відповідь, а не помилка
             # Повертаємо порожні дані
-            return info_response("No tickets found in queue for calling.", data={"ticket_info": None})
+            return info_response(_("No tickets found in queue for calling."), data={"ticket_info": None})
 
         # --- Оновлення Знайденого Талону ---
         next_ticket_name = waiting_tickets[0].name
         ticket_doc = frappe.get_doc("QMS Ticket", next_ticket_name)
 
         service_name = frappe.db.get_value(
-            "QMS Service", ticket_doc.service, "service_name") if ticket_doc.service else "Unknown Service"
+            "QMS Service", ticket_doc.service, "service_name") if ticket_doc.service else _("Unknown Service")
 
         ticket_doc.status = "Called"
         ticket_doc.call_time = now_datetime()
@@ -305,25 +307,28 @@ def call_next_visitor(service_point_name: str):  # service_point_name - це ID
         # frappe.publish_realtime(event='qms_ticket_called', message=ticket_data_for_response, room=f'office_{office_id}')
 
         return success_response(
-            message=f"Ticket {ticket_doc.ticket_number} called to point {actual_service_point_display_name}.",
+            message=_("Ticket {0} called to point {1}.").format(
+                ticket_doc.ticket_number, actual_service_point_display_name),
             data={"ticket_info": ticket_data_for_response}
         )
 
     except frappe.exceptions.DoesNotExistError as e:
         # Обробка, якщо документ не знайдено під час get_doc або get_value
         frappe.db.rollback()
-        doc_type_name = str(e).split("'")[1] if "'" in str(e) else "Document"
-        return error_response(f"{doc_type_name} not found.", details=frappe.get_traceback(), http_status_code=404)
+        doc_type_name = str(e).split(
+            "'")[1] if "'" in str(e) else _("Document")
+        return error_response(_("{0} not found.").format(doc_type_name), details=frappe.get_traceback(), http_status_code=404)
     except frappe.exceptions.PermissionError as e:
         # Обробка помилок доступу
         frappe.db.rollback()
-        return error_response("Permission denied.", details=frappe.get_traceback(), http_status_code=403)
+        return error_response(_("Permission denied."), details=frappe.get_traceback(), http_status_code=403)
     except Exception as e:
         # Обробка інших неочікуваних помилок
         frappe.db.rollback()
         frappe.log_error(frappe.get_traceback(), "Call Next Visitor API Error")
         return error_response(
-            message="An unexpected error occurred while calling the next visitor.",
+            message=_(
+                "An unexpected error occurred while calling the next visitor."),
             details=str(e),
             http_status_code=500
         )
@@ -340,10 +345,10 @@ def get_display_data(office: str, limit_called: int = 3, limit_waiting: int = 20
         limit_waiting = cint(limit_waiting)
 
         if not office:
-            return error_response("Office ID is required.", http_status_code=400)
+            return error_response(_("Office ID is required."), http_status_code=400)
 
         if not frappe.db.exists("QMS Office", office):
-            return error_response(f"Office '{office}' not found.", http_status_code=404)
+            return error_response(_("Office '{0}' not found.").format(office), http_status_code=404)
 
         # Перевірка графіка роботи
         office_doc = frappe.get_cached_doc("QMS Office", office)
@@ -351,14 +356,17 @@ def get_display_data(office: str, limit_called: int = 3, limit_waiting: int = 20
             "QMS Organization", office_doc.organization, "default_schedule")
 
         office_is_open = False
-        closed_message = "Working schedule not configured."
+        # Змінено: ініціалізація перекладним рядком
+        closed_message = _("Working schedule not configured.")
 
         if schedule_name:
             office_is_open = is_office_open(schedule_name, office_doc.timezone)
             if not office_is_open:
-                closed_message = f"Office '{office_doc.office_name}' is currently closed."
+                closed_message = _("Office '{0}' is currently closed.").format(
+                    office_doc.office_name)
         else:
-            closed_message = f"Working schedule not configured for office '{office_doc.office_name}'."
+            closed_message = _("Working schedule not configured for office '{0}'.").format(
+                office_doc.office_name)
             office_is_open = False
 
         # Отримуємо інформаційне повідомлення
@@ -440,7 +448,8 @@ def get_display_data(office: str, limit_called: int = 3, limit_waiting: int = 20
                 '-')[-1] if row.ticket_number and '-' in row.ticket_number else row.ticket_number
             waiting_tickets.append({
                 "ticket": short_ticket_number or row.name,
-                "service": service_names_map_waiting.get(row.service, "Service not specified"),
+                # Переклад тут
+                "service": service_names_map_waiting.get(row.service, _("Service not specified")),
                 "service_id": row.service  # Додаємо ID для можливої стилізації на фронтенді
             })
 
@@ -457,7 +466,8 @@ def get_display_data(office: str, limit_called: int = 3, limit_waiting: int = 20
         frappe.log_error(frappe.get_traceback(),
                          f"Get Display Data API Error for Office {office}")
         return error_response(
-            message="An unexpected error occurred while fetching display data.",
+            message=_(
+                "An unexpected error occurred while fetching display data."),
             details=str(e),
             http_status_code=500
         )
@@ -471,9 +481,9 @@ def get_kiosk_services(office: str):
     """
     try:
         if not office:
-            return error_response("Office ID is required.", http_status_code=400)
+            return error_response(_("Office ID is required."), http_status_code=400)
         if not frappe.db.exists("QMS Office", office):
-            return error_response(f"Office '{office}' not found.", http_status_code=404)
+            return error_response(_("Office '{0}' not found.").format(office), http_status_code=404)
 
         # Перевірка графіка роботи
         office_doc = frappe.get_cached_doc("QMS Office", office)
@@ -481,14 +491,17 @@ def get_kiosk_services(office: str):
             "QMS Organization", office_doc.organization, "default_schedule")
 
         office_is_open = False
-        closed_message = "Working schedule not configured."
+        # Змінено: ініціалізація перекладним рядком
+        closed_message = _("Working schedule not configured.")
 
         if schedule_name:
             office_is_open = is_office_open(schedule_name, office_doc.timezone)
             if not office_is_open:
-                closed_message = f"Office '{office_doc.office_name}' is currently closed."
+                closed_message = _("Office '{0}' is currently closed.").format(
+                    office_doc.office_name)
         else:
-            closed_message = f"Working schedule not configured for office '{office_doc.office_name}'."
+            closed_message = _("Working schedule not configured for office '{0}'.").format(
+                office_doc.office_name)
             office_is_open = False
 
         if not office_is_open:
@@ -584,7 +597,8 @@ def get_kiosk_services(office: str):
         frappe.log_error(frappe.get_traceback(),
                          f"Get Kiosk Services API Error for Office {office}")
         return error_response(
-            message="An unexpected error occurred while fetching kiosk services.",
+            message=_(
+                "An unexpected error occurred while fetching kiosk services."),
             details=str(e),
             http_status_code=500
         )

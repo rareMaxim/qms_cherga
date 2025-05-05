@@ -27,7 +27,7 @@ document.addEventListener('DOMContentLoaded', () => {
         return true;
     }
 
-    // --- DOM References (без змін) ---
+    // --- DOM References (додано lastCalledSeparatorEl) ---
     const currentDateEl = document.getElementById('current-date');
     const currentTimeEl = document.getElementById('current-time');
     const lastCallsListEl = document.getElementById('last-calls-list');
@@ -38,6 +38,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const mainContentEl = document.getElementById('main-content');
     const timeBarEl = document.getElementById('time-bar');
     const infoMessageBarEl = document.getElementById('info-message-bar');
+    const lastCalledSeparatorEl = document.getElementById('last-called-separator'); // Додано
 
     let lastCalledDataSignature = '';
     let previousCallItemsMap = new Map();
@@ -67,74 +68,88 @@ document.addEventListener('DOMContentLoaded', () => {
             currentTimeEl.textContent = formatTime(now);
     }
 
-    // --- Функції оновлення блоків "Last Called" та "Next Up" (без змін) ---
+    // --- Функції оновлення блоків "Last Called" та "Next Up" ---
+    // --- Оновлено updateLastCalled ---
     function updateLastCalled(calls) {
-        if (!lastCallsListEl)
+        // Додано перевірку наявності елементів
+        if (!lastCallsListEl || !lastCalledBarEl || !lastCalledSeparatorEl)
             return;
-        const placeholder = lastCallsListEl.querySelector('.placeholder');
-        if (placeholder) placeholder.remove();
-        const fragment = document.createDocumentFragment();
-        const currentDataSignature = JSON.stringify(calls);
-        let newCallDetected = false;
-        const currentCallIdentifiers = new Set();
-        const nowTimestamp = Date.now();
-        if (!calls || calls.length === 0) {
-            if (!lastCallsListEl.querySelector('.placeholder')) {
-                lastCallsListEl.innerHTML = `<span class="placeholder" style="color: #ccc;">${__("No active calls")}</span>`;
-            }
-            lastCalledDataSignature = currentDataSignature;
-            previousCallItemsMap.clear(); return;
-        }
-        calls.forEach(call => {
-            const callIdentifier = `${call.ticket}-${call.window}`;
-            currentCallIdentifiers.add(callIdentifier);
-            const previousTimestamp = previousCallItemsMap.get(callIdentifier);
-            if (lastCalledDataSignature !== '' && previousTimestamp === undefined) {
-                newCallDetected = true;
-                console.log(`New call detected: ${call.ticket} to ${call.window}`);
-                previousCallItemsMap.set(callIdentifier, nowTimestamp);
-                call.isNew = true;
-            }
-            else if (previousTimestamp !== undefined) {
-                previousCallItemsMap.set(callIdentifier, nowTimestamp);
-            } else {
-                previousCallItemsMap.set(callIdentifier, nowTimestamp);
 
-            }
-            const item = document.createElement('div');
-            item.classList.add('call-item');
-            item.dataset.callId = callIdentifier;
-            item.innerHTML = ` ${call.ticket || 'N/A'} <span class="window-info">${call.window ? __("Window ") + call.window : 'N/A'}</span> <span class="time-info">(${call.time || '--:--'})</span> `;
-            if (call.isNew) {
-                item.classList.add('new-call-highlight');
-                setTimeout(() => {
-                    const elementToClear = lastCallsListEl.querySelector(`[data-call-id="${callIdentifier}"]`);
-                    if (elementToClear) {
-                        elementToClear.classList.remove('new-call-highlight');
-                        elementToClear.style.animation = 'none';
-                    }
-                }, HIGHLIGHT_DURATION);
-            } fragment.appendChild(item);
-        });
-        const currentKeys = Array.from(previousCallItemsMap.keys());
-        currentKeys.forEach(key => {
-            if (!currentCallIdentifiers.has(key)) {
-                previousCallItemsMap.delete(key);
-            }
-        });
-        if (newCallDetected && callSound) {
-            callSound.play().catch(error => {
-                console.warn("Sound playback failed. Reason:", error);
+        const hasCalls = calls && calls.length > 0;
+        const currentDataSignature = JSON.stringify(calls);
+
+        if (hasCalls) {
+            // Показуємо блок та роздільник
+            lastCalledBarEl.style.display = 'block'; // Або інший стиль за замовчуванням, якщо використовували класи
+            lastCalledSeparatorEl.style.display = 'block';
+
+            const fragment = document.createDocumentFragment();
+            let newCallDetected = false;
+            const currentCallIdentifiers = new Set();
+            const nowTimestamp = Date.now();
+
+            calls.forEach(call => {
+                const callIdentifier = `${call.ticket}-${call.window}`;
+                currentCallIdentifiers.add(callIdentifier);
+                const previousTimestamp = previousCallItemsMap.get(callIdentifier);
+                if (lastCalledDataSignature !== '' && previousTimestamp === undefined) {
+                    newCallDetected = true;
+                    console.log(`New call detected: ${call.ticket} to ${call.window}`);
+                    previousCallItemsMap.set(callIdentifier, nowTimestamp);
+                    call.isNew = true;
+                }
+                else if (previousTimestamp !== undefined) {
+                    previousCallItemsMap.set(callIdentifier, nowTimestamp);
+                } else {
+                    previousCallItemsMap.set(callIdentifier, nowTimestamp);
+                }
+                const item = document.createElement('div');
+                item.classList.add('call-item');
+                item.dataset.callId = callIdentifier;
+                item.innerHTML = ` ${call.ticket || 'N/A'} <span class="window-info">${call.window ? call.window : 'N/A'}</span> <span class="time-info">(${call.time || '--:--'})</span> `;
+                if (call.isNew) {
+                    item.classList.add('new-call-highlight');
+                    setTimeout(() => {
+                        const elementToClear = lastCallsListEl.querySelector(`[data-call-id="${callIdentifier}"]`);
+                        if (elementToClear) {
+                            elementToClear.classList.remove('new-call-highlight');
+                            elementToClear.style.animation = 'none';
+                        }
+                    }, HIGHLIGHT_DURATION);
+                } fragment.appendChild(item);
             });
-            if (lastCalledBarEl) {
-                lastCalledBarEl.classList.remove('updated');
-                void lastCalledBarEl.offsetWidth;
-                lastCalledBarEl.classList.add('updated');
+
+            const currentKeys = Array.from(previousCallItemsMap.keys());
+            currentKeys.forEach(key => {
+                if (!currentCallIdentifiers.has(key)) {
+                    previousCallItemsMap.delete(key);
+                }
+            });
+
+            if (newCallDetected && callSound) {
+                callSound.play().catch(error => {
+                    console.warn("Sound playback failed. Reason:", error);
+                });
+                if (lastCalledBarEl) {
+                    lastCalledBarEl.classList.remove('updated');
+                    void lastCalledBarEl.offsetWidth;
+                    lastCalledBarEl.classList.add('updated');
+                }
             }
-        } lastCallsListEl.innerHTML = '';
-        lastCallsListEl.appendChild(fragment);
+            lastCallsListEl.innerHTML = ''; // Очищаємо перед додаванням нових
+            lastCallsListEl.appendChild(fragment);
+
+        } else {
+            // Ховаємо блок та роздільник
+            lastCalledBarEl.style.display = 'none';
+            lastCalledSeparatorEl.style.display = 'none';
+            lastCallsListEl.innerHTML = ''; // Очищаємо вміст (placeholder не потрібен)
+            previousCallItemsMap.clear(); // Очищаємо мапу, якщо викликів немає
+        }
+
         lastCalledDataSignature = currentDataSignature;
-    } //
+    }
+    // --- updateKioskNext залишається без змін ---
     function updateKioskNext(tickets) {
         if (!kioskNextListEl)
             return;
@@ -166,7 +181,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
-    // --- Fetch Data (ОНОВЛЕНО) ---
+    // --- Fetch Data (без змін) ---
     async function fetchData() {
         if (!officeId) {
             console.warn("fetchData called but officeId is not set. Skipping.");
@@ -261,7 +276,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
-    // --- Функції керування оверлеєм (без змін) ---
+    // --- Функції керування оверлеєм (змінено: приховуємо last-called-bar) ---
     function showOverlay(message) {
         if (officeClosedOverlayEl) {
             const messageSpan = officeClosedOverlayEl.querySelector('span');
@@ -271,8 +286,12 @@ document.addEventListener('DOMContentLoaded', () => {
         }
         if (mainContentEl)
             mainContentEl.style.display = 'none';
+        // Змінено: Ховаємо last-called-bar та роздільник при показі оверлея
         if (lastCalledBarEl)
             lastCalledBarEl.style.display = 'none';
+        if (lastCalledSeparatorEl)
+            lastCalledSeparatorEl.style.display = 'none';
+        // Кінець зміни
         if (timeBarEl) timeBarEl.style.display = 'none';
         // Також ховаємо інфо-бар при показі оверлея
         if (infoMessageBarEl)
@@ -284,10 +303,14 @@ document.addEventListener('DOMContentLoaded', () => {
         }
         if (mainContentEl)
             mainContentEl.style.display = 'flex';
-        if (lastCalledBarEl)
-            lastCalledBarEl.style.display = 'block';
+        // Змінено: Не показуємо last-called-bar тут, це робить updateLastCalled
+        // if (lastCalledBarEl)
+        //     lastCalledBarEl.style.display = 'block';
+        // Кінець зміни
         if (timeBarEl) timeBarEl.style.display = 'flex';
+        // Інфо-бар показується/ховається в fetchData
     }
+
 
     // --- INITIALIZATION & INTERVALS (без змін) ---
     if (initializeDisplayBoard()) {
