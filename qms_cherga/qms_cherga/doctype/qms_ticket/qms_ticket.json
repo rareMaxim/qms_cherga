@@ -21,10 +21,14 @@
   "start_service_time",
   "completion_time",
   "tab_visitor_appointment",
+  "visitor_name",
   "visitor_phone",
+  "visitor_email",
+  "column_break_opph",
   "priority",
   "is_appointment",
   "appointment_datetime",
+  "appointment_source",
   "tab_statistics",
   "estimated_wait_time_mins",
   "actual_wait_time_mins",
@@ -61,7 +65,7 @@
    "fieldtype": "Select",
    "in_list_view": 1,
    "label": "Status",
-   "options": "Waiting\nCalled\nServing\nCompleted\nNoShow\nCancelled\nPostponed",
+   "options": "Scheduled\nWaiting\nCalled\nServing\nCompleted\nNoShow\nCancelled\nPostponed",
    "read_only": 1,
    "reqd": 1
   },
@@ -74,7 +78,7 @@
   {
    "fieldname": "issue_time",
    "fieldtype": "Datetime",
-   "label": "Issue Time",
+   "label": "Booking Time",
    "read_only": 1
   },
   {
@@ -107,15 +111,13 @@
    "default": "0",
    "fieldname": "is_appointment",
    "fieldtype": "Check",
-   "label": "Is Appointment",
-   "read_only": 1
+   "label": "Is Appointment"
   },
   {
    "depends_on": "eval:doc.is_appointment==1",
    "fieldname": "appointment_datetime",
    "fieldtype": "Datetime",
-   "label": "Appointment Datetime",
-   "read_only": 1
+   "label": "Appointment Datetime"
   },
   {
    "fieldname": "main_tab",
@@ -172,12 +174,31 @@
    "fieldtype": "Link",
    "label": "Target Operator",
    "options": "QMS Operator"
+  },
+  {
+   "fieldname": "visitor_name",
+   "fieldtype": "Data",
+   "label": "Visitor Name"
+  },
+  {
+   "fieldname": "visitor_email",
+   "fieldtype": "Data",
+   "label": "Visitor Email",
+   "options": "Email"
+  },
+  {
+   "fieldname": "column_break_opph",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "appointment_source",
+   "fieldtype": "Data"
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-05-02 10:49:14.269636",
+ "modified": "2025-05-05 22:32:15.681451",
  "modified_by": "Administrator",
  "module": "Qms Cherga",
  "name": "QMS Ticket",

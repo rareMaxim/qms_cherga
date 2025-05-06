@@ -1,0 +1,222 @@
+{% extends "templates/base_minimal.html" %}
+
+{% block title %}{{ _("Кіоск Електронної Черги") }}{% endblock %}
+
+{% block style %}
+{# Підключаємо Tailwind через CDN, як у app.html #}
+<script src="https://cdn.tailwindcss.com"></script>
+{# Підключаємо Font Awesome (якщо потрібні іконки) #}
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css"
+    integrity="sha512-SnH5WK+bZxgPHs44uWIX+LLJAJ9/2PkPKZ5QiAj6Ta86w+fsb2TkcmfRyVX3pBnMFcV7oQPJkl9QevSCWr3W6A=="
+    crossorigin="anonymous" referrerpolicy="no-referrer" />
+{# Підключаємо наш новий CSS файл #}
+<link rel="stylesheet" href="/assets/qms_cherga/css/qms_kiosk_tailwind.css?v={{ build_version }}">
+{% endblock %}
+
+{% block page_content %}
+<div id="kiosk-app-container">
+    <div id="page-welcome" class="kiosk-page active flex-col justify-center items-center text-center">
+        <div id="office-logo-container" class="mb-8">
+        </div>
+        <div id="office-name-display" class="text-5xl font-bold text-gray-800 mb-4">{{ _("Ласкаво просимо!") }}</div>
+        <div class="text-2xl text-gray-600 mb-12">{{ _("Кіоск електронної черги") }}</div>
+        <div id="start-button-container" class="w-1/2 max-w-xs">
+            <button onclick="showPage('page-service')"
+                class="kiosk-button bg-blue-600 hover:bg-blue-700 text-white w-full">
+                {{ _("Розпочати") }}
+            </button>
+        </div>
+        <div id="kiosk-loading-indicator" class="loading-indicator" style="display: none;">
+            {{ _("Завантаження...") }}
+        </div>
+        <div id="kiosk-error-message" class="error-message" style="display: none;">
+        </div>
+    </div>
+
+    <div id="page-service" class="kiosk-page">
+        <div class="flex justify-between items-center mb-8">
+            <h1 class="text-3xl font-bold text-gray-800">{{ _("Оберіть послугу") }}</h1>
+            <button onclick="showPage('page-welcome')" class="kiosk-button kiosk-button-back">{{ _("На головну")
+                }}</button>
+        </div>
+        <div id="service-container" class="flex-grow">
+            <div class="loading-indicator">{{ _("Завантаження послуг...") }}</div>
+        </div>
+    </div>
+
+    <div id="page-info" class="kiosk-page">
+        <div class="flex justify-between items-center mb-6">
+            <h1 class="text-3xl font-bold text-gray-800">{{ _("Введіть Ваші дані") }}</h1>
+            <button onclick="showPage('page-service')" class="kiosk-button kiosk-button-back">{{ _("Назад") }}</button>
+        </div>
+
+        <div class="flex-grow">
+            <div class="mb-4">
+                <label for="input-name" class="block text-xl font-medium text-gray-700 mb-2">{{ _("Прізвище, Ім'я
+                    (необов'язково)") }}</label>
+                <input type="text" id="input-name" class="kiosk-input" placeholder="{{ _('Ваше повне ім\'я') }}"
+                    readonly onclick="activateKeyboard('alpha', 'input-name')">
+            </div>
+            <div class="mb-6">
+                <label for="input-phone" class="block text-xl font-medium text-gray-700 mb-2">{{ _("Номер мобільного
+                    телефону (необов'язково)") }}</label>
+                <input type="tel" id="input-phone" class="kiosk-input" placeholder="+380 XX XXX XX XX" readonly
+                    onclick="activateKeyboard('numeric', 'input-phone')">
+                <p class="text-sm text-gray-500 mt-1">{{ _("Для SMS-сповіщень про стан черги (якщо налаштовано)") }}</p>
+            </div>
+
+            <div id="keyboard-container">
+                <div id="keyboard-alpha" class="keyboard">
+                    <div class="keyboard-row">
+                        <button class="keyboard-key" onclick="inputChar('Й')">Й</button><button class="keyboard-key"
+                            onclick="inputChar('Ц')">Ц</button><button class="keyboard-key"
+                            onclick="inputChar('У')">У</button><button class="keyboard-key"
+                            onclick="inputChar('К')">К</button><button class="keyboard-key"
+                            onclick="inputChar('Е')">Е</button><button class="keyboard-key"
+                            onclick="inputChar('Н')">Н</button><button class="keyboard-key"
+                            onclick="inputChar('Г')">Г</button><button class="keyboard-key"
+                            onclick="inputChar('Ш')">Ш</button><button class="keyboard-key"
+                            onclick="inputChar('Щ')">Щ</button><button class="keyboard-key"
+                            onclick="inputChar('З')">З</button><button class="keyboard-key"
+                            onclick="inputChar('Х')">Х</button><button class="keyboard-key"
+                            onclick="inputChar('Ї')">Ї</button>
+                    </div>
+                    <div class="keyboard-row">
+                        <button class="keyboard-key" onclick="inputChar('Ф')">Ф</button><button class="keyboard-key"
+                            onclick="inputChar('І')">І</button><button class="keyboard-key"
+                            onclick="inputChar('В')">В</button><button class="keyboard-key"
+                            onclick="inputChar('А')">А</button><button class="keyboard-key"
+                            onclick="inputChar('П')">П</button><button class="keyboard-key"
+                            onclick="inputChar('Р')">Р</button><button class="keyboard-key"
+                            onclick="inputChar('О')">О</button><button class="keyboard-key"
+                            onclick="inputChar('Л')">Л</button><button class="keyboard-key"
+                            onclick="inputChar('Д')">Д</button><button class="keyboard-key"
+                            onclick="inputChar('Ж')">Ж</button><button class="keyboard-key"
+                            onclick="inputChar('Є')">Є</button>
+                    </div>
+                    <div class="keyboard-row">
+                        <button class="keyboard-key special" onclick="inputChar('\'')">'</button> <button
+                            class="keyboard-key" onclick="inputChar('Я')">Я</button><button class="keyboard-key"
+                            onclick="inputChar('Ч')">Ч</button><button class="keyboard-key"
+                            onclick="inputChar('С')">С</button><button class="keyboard-key"
+                            onclick="inputChar('М')">М</button><button class="keyboard-key"
+                            onclick="inputChar('И')">И</button><button class="keyboard-key"
+                            onclick="inputChar('Т')">Т</button><button class="keyboard-key"
+                            onclick="inputChar('Ь')">Ь</button><button class="keyboard-key"
+                            onclick="inputChar('Б')">Б</button><button class="keyboard-key"
+                            onclick="inputChar('Ю')">Ю</button>
+                        <button class="keyboard-key special" onclick="backspace()">← {{ _("Видалити") }}</button>
+                    </div>
+                    <div class="keyboard-row">
+                        <button class="keyboard-key space" onclick="inputChar(' ')">{{ _("Пробіл") }}</button>
+                        <button class="keyboard-key special" onclick="hideKeyboard()">{{ _("Приховати") }}</button>
+                    </div>
+                </div>
+                <div id="keyboard-numeric" class="keyboard">
+                    <div class="keyboard-row">
+                        <button class="keyboard-key" onclick="inputChar('1')">1</button>
+                        <button class="keyboard-key" onclick="inputChar('2')">2</button>
+                        <button class="keyboard-key" onclick="inputChar('3')">3</button>
+                    </div>
+                    <div class="keyboard-row">
+                        <button class="keyboard-key" onclick="inputChar('4')">4</button>
+                        <button class="keyboard-key" onclick="inputChar('5')">5</button>
+                        <button class="keyboard-key" onclick="inputChar('6')">6</button>
+                    </div>
+                    <div class="keyboard-row">
+                        <button class="keyboard-key" onclick="inputChar('7')">7</button>
+                        <button class="keyboard-key" onclick="inputChar('8')">8</button>
+                        <button class="keyboard-key" onclick="inputChar('9')">9</button>
+                    </div>
+                    <div class="keyboard-row">
+                        <button class="keyboard-key" onclick="inputChar('+')">+</button>
+                        <button class="keyboard-key" onclick="inputChar('0')">0</button>
+                        <button class="keyboard-key special" onclick="backspace()">←</button>
+                    </div>
+                    <div class="keyboard-row">
+                        <button class="keyboard-key special" onclick="hideKeyboard()">{{ _("Приховати") }}</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="mt-auto pt-6 flex flex-col sm:flex-row gap-4 justify-center">
+            <button id="btn-register-now" onclick="registerNow()"
+                class="kiosk-button bg-emerald-500 hover:bg-emerald-600 text-white flex-1">
+                {{ _("Отримати талон зараз") }}
+            </button>
+            <button id="btn-schedule" onclick="goToScheduling()"
+                class="kiosk-button bg-blue-600 hover:bg-blue-700 text-white flex-1">
+                {{ _("Записатися на інший час") }}
+            </button>
+        </div>
+    </div>
+
+    <div id="page-schedule" class="kiosk-page">
+        <div class="flex justify-between items-center mb-6">
+            <h1 class="text-3xl font-bold text-gray-800">{{ _("Оберіть зручну дату та час") }}</h1>
+            <button onclick="showPage('page-info')" class="kiosk-button kiosk-button-back">{{ _("Назад") }}</button>
+        </div>
+
+        <div class="flex-grow">
+            <div class="mb-8">
+                <h2 class="text-2xl font-semibold text-gray-700 mb-4">{{ _("1. Оберіть дату:") }}</h2>
+                <div id="date-grid" class="date-grid">
+                    <div class="loading-indicator">{{ _("Завантаження доступних дат...") }}</div>
+                </div>
+            </div>
+
+            <div id="time-selection-section" class="mb-8" style="display: none;">
+                <h2 class="text-2xl font-semibold text-gray-700 mb-4">{{ _("2. Оберіть час:") }}</h2>
+                <div id="time-grid" class="time-grid">
+                </div>
+            </div>
+        </div>
+
+        <div class="mt-auto pt-6 text-center">
+            <button id="btn-confirm-schedule" onclick="confirmSchedule()"
+                class="kiosk-button bg-emerald-500 hover:bg-emerald-600 text-white w-full max-w-sm mx-auto" disabled>
+                {{ _("Підтвердити запис") }}
+            </button>
+        </div>
+    </div>
+
+    <div id="page-confirmation" class="kiosk-page justify-center items-center text-center">
+        <div id="confirmation-content" class="mb-8">
+            <div class="loading-indicator">{{ _("Обробка запиту...") }}</div>
+        </div>
+        <div id="printing-message" class="printing-message">
+            <svg class="w-12 h-12 text-blue-500 mx-auto mb-4 animate-pulse" fill="none" stroke="currentColor"
+                viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                    d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z">
+                </path>
+            </svg>
+            {{ _("Йде друк талону...") }} <br> {{ _("Будь ласка, заберіть ваш талон.") }}
+        </div>
+        <div class="mt-auto w-full max-w-xs">
+            <p class="text-gray-500 text-sm mb-2">{{ _("Екран автоматично повернеться на головну через") }} <span
+                    id="timeout-counter">15</span> {{ _("сек.") }}</p>
+            <button onclick="finish()" class="kiosk-button bg-blue-600 hover:bg-blue-700 text-white w-full">
+                {{ _("Завершити") }}
+            </button>
+        </div>
+    </div>
+
+</div>
+{% endblock %}
+
+{% block script %}
+{# Глобальні налаштування для JS #}
+<script>
+    window.qms_config = {
+        TICKET_TIMEOUT_SECONDS: 15,
+        PRINT_DELAY_MS: 500,
+        PRINT_CLEANUP_MS: 4000,
+        // Параметри для запису (приклад)
+        APPOINTMENT_DAYS_AHEAD: 7 // На скільки днів вперед показувати дати
+    };
+</script>
+{# Підключаємо наш новий JS файл #}
+<script src="/assets/qms_cherga/js/qms_kiosk_tailwind.js?v={{ build_version }}"></script>
+{% endblock %}

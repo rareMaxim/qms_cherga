@@ -208,10 +208,10 @@ qms_cherga.OperatorDashboard = class {
 		}
 		// Блокуємо кнопку
 		this.elements.callNextButton?.prop('disabled', true).addClass('btn-loading'); //
-		frappe.show_alert({
-			message: __("Calling next visitor to point {0}...", [this.service_point_name || this.service_point_id]),
-			indicator: "info"
-		}, 3); //
+		// frappe.show_alert({
+		// 	message: __("Calling next visitor to point {0}...", [this.service_point_name || this.service_point_id]),
+		// 	indicator: "info"
+		// }, 3); //
 
 		frappe.call({
 			method: "qms_cherga.api.call_next_visitor", // Викликаємо оновлений API
@@ -288,10 +288,10 @@ qms_cherga.OperatorDashboard = class {
 		const button = button_selector ? $(this.wrapper).find(button_selector) : null; //
 		button?.prop('disabled', true).addClass('btn-loading'); // Додаємо клас для спінера
 
-		frappe.show_alert({
-			message: loading_message || __("Processing action for {0}...", [ticket_name]),
-			indicator: "info"
-		}, 2); //
+		// frappe.show_alert({
+		// 	message: loading_message || __("Processing action for {0}...", [ticket_name]),
+		// 	indicator: "info"
+		// }, 2); //
 
 		frappe.call({
 			// Викликаємо методи з operator_dashboard.py

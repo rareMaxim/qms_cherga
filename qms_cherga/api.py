@@ -7,12 +7,441 @@ from zoneinfo import ZoneInfo, ZoneInfoNotFoundError
 from datetime import datetime
 
 # Імпортуємо функції зі стандартизованими відповідями
+from isodate import parse_date
 from qms_cherga.utils.response import error_response, info_response, success_response
 
+# Додайте ці імпорти на початку файлу api.py, якщо їх немає
+from frappe.utils import (
+    get_datetime, get_system_timezone, get_time, now_datetime, cint, today, now, get_date_str
+)
+from zoneinfo import ZoneInfo, ZoneInfoNotFoundError
+from datetime import timedelta, datetime
+
+
+@frappe.whitelist(allow_guest=True)
+def get_office_info(office: str):
+    """
+    Отримує базову інформацію про офіс за його ID (назвою/абревіатурою)
+    для відображення на публічних сторінках (кіоск, запис, табло).
+    """
+    if not office:
+        # 400 Bad Request
+        return error_response(_("Office ID is required."), http_status_code=400)
+
+    try:
+        # Отримуємо тільки ті поля, які безпечно показувати публічно
+        office_data = frappe.db.get_value("QMS Office", office,
+                                          ["office_name", "timezone",
+                                              "address", "contact_phone"],
+                                          as_dict=True)
+
+        if not office_data:
+            # 404 Not Found
+            return error_response(_("Office '{0}' not found.").format(office), http_status_code=404)
+
+        # Повертаємо тільки необхідні та безпечні дані
+        return success_response(data={
+            "office_name": office_data.office_name,
+            "timezone": office_data.timezone,
+            "address": office_data.address,
+            "contact_phone": office_data.contact_phone
+            # Не повертаємо пов'язані документи чи конфіденційну інформацію
+        })
+
+    except Exception as e:
+        frappe.log_error(message=frappe.get_traceback(),
+                         title=f"Get Office Info API Error for Office {office}")
+        # 500 Internal Server Error
+        return error_response(
+            message=_(
+                "An unexpected error occurred while fetching office information."),
+            details=str(e),  # Деталі будуть доступні тільки в developer_mode
+            http_status_code=500
+        )
+
+
+@frappe.whitelist(allow_guest=True)
+def get_available_appointment_slots(service: str, office: str, date: str):
+    """
+    Отримує список доступних часових слотів для попереднього запису.
+    (З доданими print для діагностики)
+    """
+    # Додаємо ліміт ітерацій для циклу while, щоб запобігти нескінченному виконанню
+    # Обмеження на кількість слотів в одному робочому інтервалі
+    MAX_SLOT_ITERATIONS_PER_INTERVAL = 1000
+
+    print(f"\n--- DEBUG: Entering get_available_appointment_slots ---")
+    print(
+        f"DEBUG: Args: service='{service}', office='{office}', date='{date}'")
+    try:
+        # --- Валідація ---
+        if not service or not office or not date:
+            print("DEBUG: Validation failed: Missing parameters.")
+            return error_response(_("Service, Office, and Date are required."), error_code="MISSING_PARAMS", http_status_code=400)
+
+        if not frappe.db.exists("QMS Service", service):
+            print(f"DEBUG: Validation failed: Service '{service}' not found.")
+            return error_response(_("Service '{0}' not found.").format(service), error_code="INVALID_SERVICE", http_status_code=404)
+        if not frappe.db.exists("QMS Office", office):
+            print(f"DEBUG: Validation failed: Office '{office}' not found.")
+            return error_response(_("Office '{0}' not found.").format(office), error_code="INVALID_OFFICE", http_status_code=404)
+
+        # Валідація дати
+        try:
+            # Використовуємо datetime.fromisoformat для стандарту YYYY-MM-DD
+            target_date = datetime.fromisoformat(date).date()
+            print(f"DEBUG: Parsed target_date: {target_date}")
+        except ValueError:
+            print(f"DEBUG: Validation failed: Invalid date format '{date}'.")
+            return error_response(_("Invalid date format provided. Use YYYY-MM-DD."), error_code="INVALID_DATE_FORMAT", http_status_code=400)
+
+        # Перевірка часової зони та дати відносно поточної
+        office_doc = frappe.get_cached_doc("QMS Office", office)
+        office_tz_str = office_doc.timezone or get_system_timezone()
+        print(f"DEBUG: Office timezone string: '{office_tz_str}'")
+        try:
+            office_tz = ZoneInfo(office_tz_str)
+            now_in_office_tz = datetime.now(office_tz).date()
+            print(
+                f"DEBUG: Current date in office timezone ({office_tz_str}): {now_in_office_tz}")
+            if target_date < now_in_office_tz:
+                print("DEBUG: Target date is in the past.")
+                return info_response(_("Cannot book appointments for past dates."), data={"slots": [], "is_available": False})
+        except ZoneInfoNotFoundError:
+            print(
+                f"DEBUG: Validation failed: Invalid timezone '{office_tz_str}'.")
+            return error_response(_("Invalid office timezone configured: {0}").format(office_tz_str), error_code="INVALID_TIMEZONE", http_status_code=500)
+
+        print("DEBUG: Initial validation passed.")
+
+        # --- Отримання налаштувань ---
+        service_doc = frappe.get_cached_doc("QMS Service", service)
+        avg_duration_mins = service_doc.avg_duration_mins or 15
+        slot_duration = timedelta(minutes=avg_duration_mins)
+        print(
+            f"DEBUG: Service '{service}' found. Slot duration: {avg_duration_mins} mins.")
+
+        schedule_name = office_doc.schedule or frappe.db.get_value(
+            "QMS Organization", office_doc.organization, "default_schedule")
+        if not schedule_name:
+            print(
+                f"DEBUG: Configuration error: No schedule found for office '{office}'.")
+            return error_response(_("Working schedule not configured for office '{0}'.").format(office_doc.office_name), error_code="NO_SCHEDULE", http_status_code=500)
+        print(f"DEBUG: Using schedule '{schedule_name}'.")
+
+        # --- Визначення робочих інтервалів на задану дату ---
+        print(
+            f"DEBUG: Calling get_working_intervals_for_date for date: {target_date}, schedule: {schedule_name}")
+        working_intervals = get_working_intervals_for_date(
+            schedule_name, target_date, office_tz_str)
+        print(f"DEBUG: Received working_intervals: {working_intervals}")
+
+        if not working_intervals:
+            print("DEBUG: No working intervals found for the date. Returning closed.")
+            return info_response(_("Office is closed on {0}.").format(get_date_str(target_date)), data={"slots": [], "is_available": False})
+
+        # --- Отримання існуючих записів ---
+        print("DEBUG: Fetching existing appointments...")
+        existing_appointments = frappe.get_all(
+            "QMS Ticket",
+            filters={
+                "office": office,
+                "service": service,
+                "is_appointment": 1,
+                "status": ["!=", "Cancelled"],
+                "appointment_datetime": ["between", (f"{date} 00:00:00", f"{date} 23:59:59")]
+            },
+            fields=["appointment_datetime"]
+        )
+        booked_slots = {get_datetime(appt.appointment_datetime).astimezone(office_tz).time()  # Конвертуємо в зону офісу перед отриманням часу
+                        for appt in existing_appointments if appt.appointment_datetime}
+        print(
+            f"DEBUG: Found {len(existing_appointments)} existing appointments. Booked time slots (in office TZ): {booked_slots}")
+
+        # --- Генерація доступних слотів ---
+        available_slots = []
+        now_time_office = datetime.now(office_tz).time()
+        print(f"DEBUG: Current time in office timezone: {now_time_office}")
+        print(f"DEBUG: Starting slot generation loop...")
+
+        interval_index = 0
+        for start_work, end_work in working_intervals:
+            interval_index += 1
+            print(
+                f"DEBUG: Processing interval #{interval_index}: Start={start_work}, End={end_work}")
+            current_slot_time = start_work
+            iteration_count = 0  # Лічильник для циклу while
+
+            while current_slot_time < end_work:
+                iteration_count += 1
+                # Перевірка на перевищення ліміту ітерацій
+                if iteration_count > MAX_SLOT_ITERATIONS_PER_INTERVAL:
+                    print(
+                        f"DEBUG: ERROR - Exceeded MAX_SLOT_ITERATIONS_PER_INTERVAL ({MAX_SLOT_ITERATIONS_PER_INTERVAL}) for interval {interval_index}. Breaking loop.")
+                    # Можна повернути помилку або просто зупинити генерацію для цього інтервалу
+                    # return error_response("Slot generation limit exceeded.", http_status_code=500)
+                    break  # Виходимо з циклу while для цього інтервалу
+
+                # Виводимо кожну N-у ітерацію або якщо є потенційна проблема
+                if iteration_count % 50 == 0 or iteration_count > MAX_SLOT_ITERATIONS_PER_INTERVAL - 5:
+                    print(
+                        f"DEBUG: Interval #{interval_index}, Iteration #{iteration_count}: current_slot_time={current_slot_time}, end_work={end_work}")
+
+                # Перевірка, чи слот не зайнятий
+                is_booked = current_slot_time in booked_slots
+                # Перевірка, чи слот не в минулому
+                is_past = target_date == now_in_office_tz and current_slot_time < now_time_office
+
+                if not is_booked and not is_past:
+                    # Додаємо слот
+                    slot_dt_naive = datetime.combine(
+                        target_date, current_slot_time)
+                    slot_dt_aware = slot_dt_naive.replace(tzinfo=office_tz)
+                    available_slots.append({
+                        "time": current_slot_time.strftime("%H:%M"),
+                        "datetime": slot_dt_aware.strftime("%Y-%m-%d %H:%M:%S")
+                    })
+                    # print(f"DEBUG: Added slot: {current_slot_time.strftime('%H:%M')}")
+                # else:
+                    # print(f"DEBUG: Skipped slot: {current_slot_time.strftime('%H:%M')} (Booked: {is_booked}, Past: {is_past})")
+
+                # --- Перехід до наступного слоту ---
+                # Важливо: Використовуємо datetime для додавання timedelta
+                current_dt_naive = datetime.combine(
+                    target_date, current_slot_time)
+                # Перевірка на нульову тривалість, щоб уникнути нескінченного циклу
+                if slot_duration.total_seconds() <= 0:
+                    print(
+                        f"DEBUG: ERROR - Slot duration is zero or negative ({slot_duration}). Breaking loop.")
+                    break  # Виходимо з циклу while
+
+                next_dt_naive = current_dt_naive + slot_duration
+
+                # Перевірка, чи не виходимо за межі робочого дня після додавання тривалості
+                # Якщо кінець наступного слоту виходить за межі end_work, то цей слот вже не підходить
+                # (Це може бути оптимізовано, щоб не генерувати останній, якщо він не поміщається)
+                # if next_dt_naive.time() > end_work:
+                # print(f"DEBUG: Next slot end time {next_dt_naive.time()} exceeds interval end {end_work}. Stopping interval.")
+                # break # Зупиняємо для цього інтервалу
+
+                current_slot_time = next_dt_naive.time()
+
+            print(
+                f"DEBUG: Finished processing interval #{interval_index} after {iteration_count} iterations.")
+
+        print(
+            f"DEBUG: Slot generation finished. Found {len(available_slots)} available slots.")
+        print(f"DEBUG: Returning success response.")
+        return success_response(data={"slots": available_slots, "is_available": bool(available_slots)})
+
+    except Exception as e:
+        print(
+            f"DEBUG: Exception caught in get_available_appointment_slots: {type(e).__name__} - {e}")
+        frappe.log_error(frappe.get_traceback(),
+                         "Get Available Slots API Error (with debug)")
+        return error_response(_("An unexpected error occurred while fetching available slots."), details=str(e), http_status_code=500)
+
+
+def get_working_intervals_for_date(schedule_name, target_date, timezone_str):
+    """
+    Допоміжна функція для отримання робочих інтервалів.
+    (З доданими print для діагностики)
+    """
+    print(f"--- DEBUG (helper): Entering get_working_intervals_for_date ---")
+    target_date_str = get_date_str(target_date)
+    day_name = target_date.strftime('%A')
+    print(
+        f"DEBUG (helper): schedule='{schedule_name}', target_date='{target_date_str}', day_name='{day_name}', timezone='{timezone_str}'")
+    intervals = []
+
+    try:
+        # 1. Перевірка винятків
+        print("DEBUG (helper): Checking for exceptions...")
+        exceptions = frappe.get_all(
+            "QMS Schedule Exception Child",
+            filters={"parent": schedule_name, "parenttype": "QMS Schedule",
+                     "exception_date": target_date_str},
+            fields=["is_workday", "start_time", "end_time"],
+            order_by="start_time"
+        )
+        print(
+            f"DEBUG (helper): Found {len(exceptions)} exceptions for the date.")
+
+        has_exception = bool(exceptions)
+        is_explicitly_non_workday = any(
+            not exc.is_workday for exc in exceptions)
+
+        if is_explicitly_non_workday:
+            print(
+                "DEBUG (helper): Exception marks this as a non-workday. Returning empty intervals.")
+            return []
+
+        if has_exception:
+            print("DEBUG (helper): Processing exceptions...")
+            for exc in exceptions:
+                if exc.is_workday and exc.start_time and exc.end_time:
+                    try:
+                        start = get_time(exc.start_time)
+                        end = get_time(exc.end_time)
+                        if start < end:
+                            intervals.append((start, end))
+                            print(
+                                f"DEBUG (helper): Added interval from exception: {start} - {end}")
+                        else:
+                            print(
+                                f"DEBUG (helper): WARNING - Invalid exception interval skipped (start >= end): {exc.start_time} - {exc.end_time}")
+                    except (TypeError, ValueError):
+                        print(
+                            f"DEBUG (helper): ERROR - Could not parse time from exception: Start='{exc.start_time}', End='{exc.end_time}'")
+
+            print(
+                f"DEBUG (helper): Returning intervals based SOLELY on exceptions: {intervals}")
+            return intervals
+
+        # 2. Перевірка правил (якщо не було винятків)
+        print(
+            f"DEBUG (helper): No relevant exceptions found. Checking rules for day: {day_name}...")
+        rules = frappe.get_all(
+            "QMS Schedule Rule Child",
+            filters={"parent": schedule_name,
+                     "parenttype": "QMS Schedule", "day_of_week": day_name},
+            fields=["start_time", "end_time"],
+            order_by="start_time"
+        )
+        print(f"DEBUG (helper): Found {len(rules)} rules for the day.")
+
+        for rule in rules:
+            try:
+                start = get_time(rule.start_time)
+                end = get_time(rule.end_time)
+                if start < end:
+                    intervals.append((start, end))
+                    print(
+                        f"DEBUG (helper): Added interval from rule: {start} - {end}")
+                else:
+                    print(
+                        f"DEBUG (helper): WARNING - Invalid rule interval skipped (start >= end): {rule.start_time} - {rule.end_time}")
+            except (TypeError, ValueError):
+                print(
+                    f"DEBUG (helper): ERROR - Could not parse time from rule: Start='{rule.start_time}', End='{rule.end_time}'")
+
+        print(
+            f"DEBUG (helper): Returning intervals based on rules: {intervals}")
+        return intervals
+
+    except Exception as e:
+        print(f"DEBUG (helper): Exception caught: {type(e).__name__} - {e}")
+        frappe.log_error(
+            f"Error getting working intervals for {schedule_name} on {target_date_str}: {e}", "Schedule Interval Error (with debug)")
+        return []
+
+
+@frappe.whitelist(allow_guest=True)
+def create_appointment_ticket(service: str, office: str, appointment_datetime: str, visitor_phone: str = None):
+    """
+    Створює талон попереднього запису на вказаний час.
+    """
+    try:
+        # --- Валідація вхідних даних ---
+        if not service or not office or not appointment_datetime:
+            return error_response(_("Service, Office, and Appointment Datetime are required."), error_code="MISSING_PARAMS", http_status_code=400)
+
+        if not frappe.db.exists("QMS Service", service):
+            return error_response(_("Service '{0}' not found.").format(service), error_code="INVALID_SERVICE", http_status_code=404)
+        if not frappe.db.exists("QMS Office", office):
+            return error_response(_("Office '{0}' not found.").format(office), error_code="INVALID_OFFICE", http_status_code=404)
+
+        # Валідація та конвертація дати/часу
+        try:
+            # Очікуємо datetime рядок у форматі "YYYY-MM-DD HH:MM:SS" з часовою зоною офісу
+            appt_dt_naive = datetime.strptime(
+                appointment_datetime, '%Y-%m-%d %H:%M:%S')
+            office_doc = frappe.get_cached_doc("QMS Office", office)
+            office_tz_str = office_doc.timezone or get_system_timezone()
+            office_tz = ZoneInfo(office_tz_str)
+            appt_dt_aware = office_tz.localize(appt_dt_naive)  # Робимо aware
+            # Переводимо в UTC для збереження в Frappe (стандартна практика)
+            appt_dt_utc = appt_dt_aware.astimezone(ZoneInfo("UTC"))
+            target_date_str = appt_dt_aware.strftime('%Y-%m-%d')
+            target_time = appt_dt_aware.time()
+
+        except (ValueError, TypeError):
+            return error_response(_("Invalid appointment datetime format. Use 'YYYY-MM-DD HH:MM:SS'."), error_code="INVALID_DATETIME_FORMAT", http_status_code=400)
+        except ZoneInfoNotFoundError:
+            return error_response(_("Invalid office timezone configured: {0}").format(office_tz_str), error_code="INVALID_TIMEZONE", http_status_code=500)
+
+        # --- Перевірка доступності слоту (Дуже важливо!) ---
+        # Проста перевірка, чи вже існує запис на цей час (може бути недостатньою при високому навантаженні)
+        # В ідеалі потрібен механізм блокування слоту.
+        slot_taken = frappe.db.exists("QMS Ticket", {
+            "office": office,
+            "service": service,
+            "is_appointment": 1,
+            "status": ["!=", "Cancelled"],
+            "appointment_datetime": appt_dt_utc  # Порівнюємо з UTC
+        })
+        if slot_taken:
+            # 409 Conflict
+            return error_response(_("The selected time slot ({0}) is no longer available. Please choose another time.").format(target_time.strftime("%H:%M")), error_code="SLOT_TAKEN", http_status_code=409)
+
+        # Додаткова перевірка: чи відкритий офіс у цей час?
+        schedule_name = office_doc.schedule or frappe.db.get_value(
+            "QMS Organization", office_doc.organization, "default_schedule")
+        if schedule_name:
+            working_intervals = get_working_intervals_for_date(
+                schedule_name, appt_dt_aware.date(), office_tz_str)
+            is_within_working_hours = any(
+                start <= target_time < end for start, end in working_intervals)
+            if not is_within_working_hours:
+                return error_response(_("The selected time slot ({0}) is outside of office working hours for {1}.").format(target_time.strftime("%H:%M"), target_date_str), error_code="OUTSIDE_WORKING_HOURS", http_status_code=400)
+        else:
+            # Якщо немає графіка, але ми дійшли сюди, це помилка конфігурації
+            return error_response(_("Working schedule not configured for office '{0}'.").format(office_doc.office_name), error_code="NO_SCHEDULE", http_status_code=500)
+
+        # --- Створення талону ---
+        new_ticket = frappe.new_doc("QMS Ticket")
+        new_ticket.office = office
+        new_ticket.service = service
+        new_ticket.status = "Waiting"  # Або "Scheduled", якщо додасте такий статус
+        new_ticket.is_appointment = 1
+        new_ticket.appointment_datetime = appt_dt_utc  # Зберігаємо в UTC
+        new_ticket.issue_time = now()  # Час створення запису
+        if visitor_phone:
+            # TODO: Додати валідацію формату телефону
+            new_ticket.visitor_phone = visitor_phone
+
+        # autoname згенерує ім'я та номер
+        new_ticket.insert(ignore_permissions=True)
+        frappe.db.commit()
+
+        # --- Успішна відповідь ---
+        return success_response(
+            message=_("Appointment booked successfully for {0} at {1}.").format(
+                get_date_str(appt_dt_aware.date()
+                             ), target_time.strftime("%H:%M")
+            ),
+            data={
+                "ticket_name": new_ticket.name,
+                "ticket_number": new_ticket.ticket_number,
+                "office": new_ticket.office,
+                "service": new_ticket.service,
+                # Для відображення користувачу
+                "appointment_datetime_display": appt_dt_aware.strftime("%Y-%m-%d %H:%M"),
+                "is_appointment": True
+            }
+        )
+
+    except Exception as e:
+        frappe.db.rollback()
+        frappe.log_error(frappe.get_traceback(),
+                         "Create Appointment Ticket API Error")
+        return error_response(_("An unexpected error occurred while booking the appointment."), details=str(e), http_status_code=500)
 
 # --- Функція перевірки робочого часу ---
 # Ця функція сама не повертає стандартизовану відповідь,
 # її результат обробляється викликаючими функціями.
+
+
 def is_office_open(schedule_name: str, timezone: str):
     """
     Перевіряє, чи відкритий офіс зараз згідно з графіком, враховуючи винятки,
