@@ -415,9 +415,9 @@ li {
 }
 
 #kiosk-next-list .service-name {
-    font-size: 0.95em;
+    font-size: 1.2em;
     /* Збільшено */
-    color: #555;
+    color: #000000;
     line-height: 1.3;
     display: block;
     margin-top: 4px;
