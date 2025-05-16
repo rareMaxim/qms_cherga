@@ -1,0 +1,14 @@
+/* frontend/src/style.css */
+@import 'tailwindcss';
+
+/* Додаткові глобальні стилі з вашого HTML, якщо вони не покриваються Tailwind */
+body {
+    font-family: 'Inter', sans-serif;
+    background-color: #f0f4f8;
+    /* Світло-сірий фон */
+    /* display: flex; flex-direction: column; align-items: center; min-height: 100vh; */
+    /* Ці стилі для body краще застосувати до кореневого елемента Vue-додатку або App.vue,
+       щоб не конфліктувати з іншими можливими стилями Frappe */
+    padding: 1rem;
+    /* Можна залишити для body або перенести */
+}

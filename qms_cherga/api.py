@@ -18,6 +18,62 @@ from zoneinfo import ZoneInfo, ZoneInfoNotFoundError
 from datetime import timedelta, datetime
 
 
+def office_room(office_id: str):
+    """
+    Генерує ім'я кімнати для WebSocket на основі ID офісу.
+    """
+    return f'qms_office:{office_id}'
+
+
+@frappe.whitelist(allow_guest=True)
+def ping_display_board(office_id: str, client_timestamp: str):
+    """
+    Обробляє "ping" від табло і надсилає "pong" через WebSocket.
+    """
+    if not office_id:
+        frappe.logger("qms_ping").warning(
+            "ping_display_board called without office_id")
+        # Повертаємо помилку, щоб клієнт знав, що щось не так з його запитом
+        return error_response(_("Office ID is required for ping."), http_status_code=400)
+
+    # Логуємо отриманий пінг
+    frappe.logger("qms_ping").info(
+        f"Ping received from display board for office {office_id} at client_timestamp {client_timestamp}.")
+
+    # Надсилаємо підтвердження ("pong") назад через WebSocket
+    try:
+        current_server_time = now()
+        message_to_send = {
+            'status': 'ok',
+            'office_id': office_id,
+            'server_time': current_server_time,
+            'client_timestamp_received': client_timestamp  # Можна повернути для звірки
+        }
+
+        frappe.logger("qms_ping").info(
+            f"Attempting to publish 'display_board_pong_ack' to room '{office_room(office_id)}' with message: {message_to_send}")
+
+        frappe.publish_realtime(
+            event='display_board_pong_ack',
+            message=message_to_send,
+            # room=office_room(office_id),
+            after_commit=True
+        )
+        frappe.logger("qms_ping").info(
+            f"'display_board_pong_ack' published to room '{office_room(office_id)}'.")
+        # HTTP відповідь на сам ping-запит
+        return success_response(message="Pong will be sent via WebSocket.")
+    except Exception as e:
+        frappe.logger("qms_ping").error(
+            f"Failed to publish pong for office {office_id}: {e}\n{frappe.get_traceback()}")
+        # Помилка при публікації, але HTTP запит оброблено
+        return error_response(
+            message=_("Ping received, but pong dispatch via WebSocket failed."),
+            details=str(e),
+            http_status_code=500
+        )
+
+
 @frappe.whitelist(allow_guest=True)
 def get_office_info(office: str):
     """
@@ -69,10 +125,6 @@ def get_available_appointment_slots(service: str, office: str, date: str):
     # Додаємо ліміт ітерацій для циклу while, щоб запобігти нескінченному виконанню
     # Обмеження на кількість слотів в одному робочому інтервалі
     MAX_SLOT_ITERATIONS_PER_INTERVAL = 1000
-
-    print(f"\n--- DEBUG: Entering get_available_appointment_slots ---")
-    print(
-        f"DEBUG: Args: service='{service}', office='{office}', date='{date}'")
     try:
         # --- Валідація ---
         if not service or not office or not date:
@@ -638,121 +690,75 @@ def create_live_queue_ticket(service: str, office: str, visitor_phone: str = Non
 
 
 @frappe.whitelist()
-def call_next_visitor(service_point_name: str):  # service_point_name - це ID
-    """
-    Викликає наступного відвідувача (Оновлена версія).
-    Повертає стандартизовану відповідь.
-    """
+def call_next_visitor(service_point_name: str):
     try:
         current_user = frappe.session.user
         if current_user == "Guest":
-            # 401 Unauthorized
             return error_response(_("Authentication required."), http_status_code=401)
 
-        # --- Отримуємо дані Оператора та Навички ---
-        try:
-            operator_doc = frappe.get_doc(
-                "QMS Operator", {"user": current_user, "is_active": 1})
-        except frappe.DoesNotExistError:
-            # 404 Not Found
-            return error_response(_("Active QMS Operator record not found for user {0}.").format(current_user), http_status_code=404)
-
+        operator_doc = frappe.get_doc(
+            "QMS Operator", {"user": current_user, "is_active": 1})
         operator_skills = [
             skill.service for skill in operator_doc.get("operator_skills", [])]
         if not operator_skills:
-            # 400 Bad Request або 409 Conflict - оператор не може працювати
             return error_response(_("Operator {0} has no skills assigned.").format(current_user), error_code="NO_SKILLS", http_status_code=400)
 
-        # --- Отримуємо дані Точки Обслуговування та Офісу ---
         service_point_data = frappe.db.get_value("QMS Service Point", service_point_name, [
                                                  "office", "point_name"], as_dict=True)
         if not service_point_data:
-            # 404 Not Found
             return error_response(_("Service point with ID '{0}' not found.").format(service_point_name), http_status_code=404)
 
         office_id = service_point_data.office
-        actual_service_point_display_name = service_point_data.point_name  # "Людська" назва
+        actual_service_point_display_name = service_point_data.point_name
 
         if not office_id:
-            # 500 Internal Server Error - проблема конфігурації
             return error_response(_("Could not determine Office for service point '{0}'.").format(actual_service_point_display_name), http_status_code=500)
 
-        # --- Пошук Наступного Талону ---
-        # TODO: Додати логіку обробки талонів по запису (is_appointment, appointment_datetime), якщо реалізовано
         waiting_tickets = frappe.get_list(
             "QMS Ticket",
-            filters={
-                "office": office_id,
-                "status": "Waiting",
-                "service": ["in", operator_skills]
-            },
+            filters={"office": office_id, "status": "Waiting",
+                     "service": ["in", operator_skills]},
             fields=["name"],
-            # Спочатку пріоритет, потім час створення
             order_by="priority desc, creation asc",
             limit_page_length=1
         )
 
         if not waiting_tickets:
-            # Це інформаційна відповідь, а не помилка
-            # Повертаємо порожні дані
             return info_response(_("No tickets found in queue for calling."), data={"ticket_info": None})
 
-        # --- Оновлення Знайденого Талону ---
         next_ticket_name = waiting_tickets[0].name
         ticket_doc = frappe.get_doc("QMS Ticket", next_ticket_name)
 
-        service_name = frappe.db.get_value(
-            "QMS Service", ticket_doc.service, "service_name") if ticket_doc.service else _("Unknown Service")
-
+        # Просто оновлюємо поля і зберігаємо. Хук on_update в QMSTicket зробить решту.
         ticket_doc.status = "Called"
         ticket_doc.call_time = now_datetime()
         ticket_doc.operator = current_user
-        ticket_doc.service_point = service_point_name  # Зберігаємо ID точки
+        ticket_doc.service_point = service_point_name
 
-        ticket_doc.save(ignore_permissions=True)
-        ticket_doc.reload()  # Оновити дані після збереження
+        # Можливо, зберегти service_name та service_point_name напряму в документі талону
+        # для легшого доступу в get_realtime_data, якщо вони не оновлюються часто.
+        # ticket_doc.service_name = frappe.db.get_value("QMS Service", ticket_doc.service, "service_name")
+        # ticket_doc.service_point_name = actual_service_point_display_name
+
+        ticket_doc.save(ignore_permissions=True)  # Це викличе on_update
         frappe.db.commit()
-
-        # --- Формуємо дані для відповіді ---
-        ticket_data_for_response = {
-            "name": ticket_doc.name,
-            "ticket_number": ticket_doc.ticket_number,
-            "service": ticket_doc.service,
-            "service_name": service_name,
-            "service_point": ticket_doc.service_point,  # ID
-            "service_point_name": actual_service_point_display_name,  # Назва
-            "status": ticket_doc.status,
-            "visitor_phone": ticket_doc.visitor_phone,
-            "call_time": ticket_doc.call_time,
-            "start_service_time": ticket_doc.start_service_time,
-            "office": ticket_doc.office,
-            "operator": ticket_doc.operator,
-            # Додайте інші поля за потреби
-        }
-
-        # --- Успішна відповідь ---
-        # Надсилаємо подію WebSocket для оновлення табло
-        # Потрібно додати цю логіку, якщо використовується WebSocket
-        # frappe.publish_realtime(event='qms_ticket_called', message=ticket_data_for_response, room=f'office_{office_id}')
 
         return success_response(
             message=_("Ticket {0} called to point {1}.").format(
                 ticket_doc.ticket_number, actual_service_point_display_name),
-            data={"ticket_info": ticket_data_for_response}
+            # Повертаємо дані, які також пішли по WS
+            data={"ticket_info": ticket_doc}
         )
-
-    except frappe.exceptions.DoesNotExistError as e:
-        # Обробка, якщо документ не знайдено під час get_doc або get_value
+    # ... (обробка винятків як раніше) ...
+    except frappe.DoesNotExistError as e:
         frappe.db.rollback()
         doc_type_name = str(e).split(
             "'")[1] if "'" in str(e) else _("Document")
         return error_response(_("{0} not found.").format(doc_type_name), details=frappe.get_traceback(), http_status_code=404)
-    except frappe.exceptions.PermissionError as e:
-        # Обробка помилок доступу
+    except frappe.PermissionError as e:
         frappe.db.rollback()
         return error_response(_("Permission denied."), details=frappe.get_traceback(), http_status_code=403)
     except Exception as e:
-        # Обробка інших неочікуваних помилок
         frappe.db.rollback()
         frappe.log_error(frappe.get_traceback(), "Call Next Visitor API Error")
         return error_response(

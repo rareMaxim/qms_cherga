@@ -1,7 +1,7 @@
 {
  "app": "qms_cherga",
  "charts": [],
- "content": "[{\"id\":\"6BXUI35DiB\",\"type\":\"header\",\"data\":{\"text\":\"<span class=\\\"h4\\\">\u0427\u0435\u0440\u0490\u0430 - \u0441\u0438\u0441\u0442\u0435\u043c\u0430 \u043a\u0435\u0440\u0443\u0432\u0430\u043d\u043d\u044f \u0435\u043b\u0435\u043a\u0442\u0440\u043e\u043d\u043d\u043e\u044e \u0447\u0435\u0440\u0433\u043e\u044e</span>\",\"col\":12}},{\"id\":\"bX0U0D3_Nk\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Office\",\"col\":3}},{\"id\":\"txdiUurWgc\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Service Point\",\"col\":3}},{\"id\":\"UIVtJNGy94\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Operator\",\"col\":3}},{\"id\":\"jU2HYc9E91\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Ticket\",\"col\":3}},{\"id\":\"AdbVJpXqDu\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Service Category\",\"col\":3}},{\"id\":\"FDcCPuW8vp\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Service\",\"col\":3}},{\"id\":\"2a8hs5UlVI\",\"type\":\"spacer\",\"data\":{\"col\":12}},{\"id\":\"vqpiuXlBdG\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Operator Dashboard\",\"col\":3}},{\"id\":\"bLwuyOG9UZ\",\"type\":\"spacer\",\"data\":{\"col\":12}},{\"id\":\"m2CeHwlcdi\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Error Log\",\"col\":3}}]",
+ "content": "[{\"id\":\"6BXUI35DiB\",\"type\":\"header\",\"data\":{\"text\":\"<span class=\\\"h4\\\">\u0427\u0435\u0440\u0490\u0430 - \u0441\u0438\u0441\u0442\u0435\u043c\u0430 \u043a\u0435\u0440\u0443\u0432\u0430\u043d\u043d\u044f \u0435\u043b\u0435\u043a\u0442\u0440\u043e\u043d\u043d\u043e\u044e \u0447\u0435\u0440\u0433\u043e\u044e</span>\",\"col\":12}},{\"id\":\"bX0U0D3_Nk\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Office\",\"col\":3}},{\"id\":\"txdiUurWgc\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Service Point\",\"col\":3}},{\"id\":\"UIVtJNGy94\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Operator\",\"col\":3}},{\"id\":\"jU2HYc9E91\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Ticket\",\"col\":3}},{\"id\":\"AdbVJpXqDu\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Service Category\",\"col\":3}},{\"id\":\"FDcCPuW8vp\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Service\",\"col\":3}},{\"id\":\"2a8hs5UlVI\",\"type\":\"spacer\",\"data\":{\"col\":12}},{\"id\":\"vqpiuXlBdG\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Operator Dashboard\",\"col\":3}},{\"id\":\"bLwuyOG9UZ\",\"type\":\"spacer\",\"data\":{\"col\":12}},{\"id\":\"m2CeHwlcdi\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"\u0416\u0443\u0440\u043d\u0430\u043b \u043f\u043e\u043c\u0438\u043b\u043e\u043a\",\"col\":3}}]",
  "creation": "2025-04-26 12:56:13.644096",
  "custom_blocks": [],
  "docstatus": 0,
@@ -26,7 +26,7 @@
    "type": "Link"
   }
  ],
- "modified": "2025-05-05 11:36:39.991379",
+ "modified": "2025-05-15 10:39:11.947382",
  "modified_by": "Administrator",
  "module": "Qms Cherga",
  "name": "QMS CherGa",
@@ -41,9 +41,9 @@
   {
    "color": "Red",
    "doc_view": "List",
-   "label": "Error Log",
+   "label": "\u0416\u0443\u0440\u043d\u0430\u043b \u043f\u043e\u043c\u0438\u043b\u043e\u043a",
    "link_to": "Error Log",
-   "stats_filter": "[[\"Error Log\",\"creation\",\"Timespan\",\"today\",false]]",
+   "stats_filter": "[[\"Error Log\",\"creation\",\"Timespan\",\"today\",false],[\"Error Log\",\"seen\",\"=\",0,false]]",
    "type": "DocType"
   },
   {
