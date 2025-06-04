@@ -56,3 +56,4 @@ jspm_packages/
 yarn.lock
 qms_cherga/public/css/*.*.css
 qms_cherga/public/js/*.*.js*
+qms_cherga/public/node_modules

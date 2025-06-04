@@ -12,8 +12,8 @@ const FRAPPE_APP_WWW_CHERGA_DIR = path.join(__dirname, 'qms_cherga', 'www'); // 
 
 const KIOSK_HTML_SOURCE_NAME = 'kiosk.html';
 const DISPLAYBOARD_HTML_SOURCE_NAME = 'display_board.html';
-const KIOSK_HTML_TARGET_NAME = 'kiosk.html';
-const DISPLAYBOARD_HTML_TARGET_NAME = 'display_board.html';
+const KIOSK_HTML_TARGET_NAME = 'qms_kiosk.html';
+const DISPLAYBOARD_HTML_TARGET_NAME = 'qms_display_board.html';
 
 async function deployAssets() {
     try {
