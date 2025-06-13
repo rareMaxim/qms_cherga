@@ -61,7 +61,7 @@ def get_operator_dashboard_data():
                                        filters={"operator": user, "status": [
                                            "in", ["Called", "Serving"]]},
                                        fields=["name", "ticket_number", "service", "status",
-                                               "issue_time", "call_time", "start_service_time"],
+                                               "issue_time", "call_time", "start_service_time", "visitor_name", "visitor_phone"],
                                        limit=1
                                        )
         active_ticket_doc = None
@@ -77,8 +77,7 @@ def get_operator_dashboard_data():
             "operator_info": operator_info,
             "service_points": service_points,
             "active_ticket": active_ticket_doc,
-            "queue_stats": live_data.get("stats"),  # <-- НОВІ ДАНІ
-            # <-- НОВІ ДАНІ
+            "queue_stats": live_data.get("stats"),
             "postponed_tickets": live_data.get("postponed_tickets")
         })
 
@@ -100,9 +99,9 @@ def get_live_data(office: str, as_dict: bool = False):
     try:
         # Статистика черги для офісу
         stats = {
-            "waiting": frappe.db.count("QMS Ticket", {"office": office, "status": "Waiting", "creation": [">=", today()]}),
-            "serving": frappe.db.count("QMS Ticket", {"office": office, "status": "Serving", "creation": [">=", today()]}),
-            "finished_today": frappe.db.count("QMS Ticket", {"office": office, "status": ["in", ["Completed", "NoShow"]], "creation": [">=", today()]})
+            "waiting": frappe.db.count("QMS Ticket", {"office": office, "status": "Waiting"}),
+            "serving": frappe.db.count("QMS Ticket", {"office": office, "status": "Serving"}),
+            "finished_today": frappe.db.count("QMS Ticket", {"office": office, "status": ["in", ["Completed", "NoShow"]]})
         }
 
         # Список відкладених талонів

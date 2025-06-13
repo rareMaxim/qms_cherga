@@ -37,14 +37,24 @@
                     <div v-else-if="activeTicket"
                         class="active-ticket-card bg-sky-50 p-6 rounded-lg border border-sky-200">
                         <p class="text-5xl font-extrabold text-sky-800 text-center mb-2">{{ activeTicket.ticket_number
-                        }}</p>
+                            }}</p>
                         <p class="text-lg text-slate-700 text-center mb-4">{{ activeTicket.service_name }}</p>
+
+                        <div v-if="activeTicket.visitor_name || activeTicket.visitor_phone"
+                            class="text-center mb-4 border-t border-b border-sky-200 py-3">
+                            <p v-if="activeTicket.visitor_name" class="text-slate-800 font-semibold text-lg">{{
+                                activeTicket.visitor_name }}</p>
+                            <p v-if="activeTicket.visitor_phone" class="text-slate-600 text-sm">{{
+                                activeTicket.visitor_phone }}</p>
+                        </div>
                         <div class="text-sm text-slate-600 text-center">
                             <p>Статус: <span class="font-semibold" :class="statusColor(activeTicket.status)">{{
                                 activeTicket.status }}</span></p>
                             <p>Час виклику: {{ formatTime(activeTicket.call_time) }}</p>
-                            <p v-if="activeTicket.start_service_time">Час початку: {{
-                                formatTime(activeTicket.start_service_time) }}</p>
+                            <p v-if="activeTicket.status === 'Serving'">
+                                Час обслуговування: <span class="font-bold text-lg text-red-600">{{ serviceTimerDisplay
+                                    }}</span>
+                            </p>
                         </div>
                         <div class="mt-6 flex justify-center gap-2 flex-wrap">
                             <button v-if="activeTicket.status === 'Called'"
@@ -71,9 +81,9 @@
                     <h3 class="text-lg font-semibold mb-3 text-slate-700">Статистика черги</h3>
                     <div v-if="queueStats" class="space-y-2 text-slate-600">
                         <p>В очікуванні: <span class="font-bold text-lg text-blue-600">{{ queueStats.waiting ?? '...'
-                        }}</span></p>
+                                }}</span></p>
                         <p>Обслуговується: <span class="font-bold text-lg text-green-600">{{ queueStats.serving ?? '...'
-                        }}</span></p>
+                                }}</span></p>
                         <p>Завершено сьогодні: <span class="font-bold text-lg text-slate-800">{{
                             queueStats.finished_today ?? '...' }}</span></p>
                     </div>
@@ -99,7 +109,7 @@
 </template>
 
 <script setup>
-import { ref, onMounted, onUnmounted, computed } from 'vue';
+import { ref, onMounted, onUnmounted, watch } from 'vue';
 import { useSocket } from '../services/socketService';
 
 // --- Реактивні змінні ---
@@ -111,10 +121,40 @@ const postponedTickets = ref([]);
 const queueStats = ref({});
 const loading = ref(true);
 const error = ref(null);
+const serviceTimerDisplay = ref('00:00:00');
+const timerInterval = ref(null);
 
 const { initSocket, listen, off, disconnectSocket } = useSocket();
 
+
+watch(activeTicket, (newTicket, oldTicket) => {
+    // Зупинити попередній інтервал, якщо він існує
+    if (timerInterval.value) {
+        clearInterval(timerInterval.value);
+        timerInterval.value = null;
+    }
+    // Скинути таймер
+    serviceTimerDisplay.value = '00:00:00';
+
+    // Якщо новий талон в статусі "Serving" і має час початку
+    if (newTicket && newTicket.status === 'Serving' && newTicket.start_service_time) {
+        const startTime = new Date(newTicket.start_service_time).getTime();
+
+        // Запустити новий інтервал
+        timerInterval.value = setInterval(() => {
+            const now = Date.now();
+            const diff = Math.floor((now - startTime) / 1000);
+
+            const hours = String(Math.floor(diff / 3600)).padStart(2, '0');
+            const minutes = String(Math.floor((diff % 3600) / 60)).padStart(2, '0');
+            const seconds = String(diff % 60).padStart(2, '0');
+
+            serviceTimerDisplay.value = `${hours}:${minutes}:${seconds}`;
+        }, 1000);
+    }
+}, { deep: true });
 // --- Функції життєвого циклу ---
+
 onMounted(async () => {
     error.value = null;
     try {
@@ -154,6 +194,10 @@ onUnmounted(() => {
     disconnectSocket();
     off('qms_ticket_updated_doc', handleTicketUpdate);
     off('qms_stats_updated', fetchLiveData);
+    // Очищення інтервалу при виході зі сторінки
+    if (timerInterval.value) {
+        clearInterval(timerInterval.value);
+    }
 });
 
 // --- Методи ---
