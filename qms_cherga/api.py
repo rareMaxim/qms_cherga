@@ -37,19 +37,21 @@ def get_operator_dashboard_data():
         return error_response(_("Active QMS Operator record not found for user {0}.").format(user), error_code="OPERATOR_NOT_FOUND", http_status_code=404)
 
     try:
+        office_id = operator.default_office
+
         # Інформація про оператора та його офіс
         operator_info = {
             "name": operator.name,
             "full_name": operator.full_name,
             "user": operator.user,
-            "office": operator.default_office,
-            "office_name": frappe.db.get_value("QMS Office", operator.default_office, "office_name")
+            "office": office_id,
+            "office_name": frappe.db.get_value("QMS Office", office_id, "office_name")
         }
 
         # Доступні оператору точки обслуговування (Service Points)
         service_points = frappe.get_all("QMS Service Point",
-                                        filters={
-                                            "office": operator.default_office, "is_active": 1},
+                                        filters={"office": office_id,
+                                                 "is_active": 1},
                                         fields=["name", "point_name"],
                                         order_by="point_name"
                                         )
@@ -68,16 +70,66 @@ def get_operator_dashboard_data():
             active_ticket_doc['service_name'] = frappe.db.get_value(
                 "QMS Service", active_ticket_doc.service, "service_name")
 
+        # ОТРИМАННЯ СТАТИСТИКИ ТА ВІДКЛАДЕНИХ ТАЛОНІВ
+        live_data = get_live_data(office=office_id, as_dict=True)
+
         return success_response(data={
             "operator_info": operator_info,
             "service_points": service_points,
-            "active_ticket": active_ticket_doc
+            "active_ticket": active_ticket_doc,
+            "queue_stats": live_data.get("stats"),  # <-- НОВІ ДАНІ
+            # <-- НОВІ ДАНІ
+            "postponed_tickets": live_data.get("postponed_tickets")
         })
 
     except Exception as e:
         frappe.log_error(frappe.get_traceback(),
                          "Get Operator Dashboard Data API Error")
         return error_response(_("An unexpected error occurred while fetching initial data."), details=str(e), http_status_code=500)
+
+
+@frappe.whitelist()
+def get_live_data(office: str, as_dict: bool = False):
+    """
+    Отримує "живі" дані для панелі оператора: статистику та відкладені талони.
+    """
+    if not frappe.db.exists("QMS Office", office):
+        response = error_response(_("Office not found"), http_status_code=404)
+        return response if not as_dict else {}
+
+    try:
+        # Статистика черги для офісу
+        stats = {
+            "waiting": frappe.db.count("QMS Ticket", {"office": office, "status": "Waiting", "creation": [">=", today()]}),
+            "serving": frappe.db.count("QMS Ticket", {"office": office, "status": "Serving", "creation": [">=", today()]}),
+            "finished_today": frappe.db.count("QMS Ticket", {"office": office, "status": ["in", ["Completed", "NoShow"]], "creation": [">=", today()]})
+        }
+
+        # Список відкладених талонів
+        postponed_tickets = frappe.get_all("QMS Ticket",
+                                           filters={"office": office,
+                                                    "status": "Postponed"},
+                                           fields=[
+                                               "name", "ticket_number", "service"],
+                                           order_by="modified desc"
+                                           )
+        for ticket in postponed_tickets:
+            ticket['service_name'] = frappe.db.get_value(
+                "QMS Service", ticket.service, "service_name")
+
+        data_to_return = {
+            "stats": stats,
+            "postponed_tickets": postponed_tickets
+        }
+
+        return success_response(data=data_to_return) if not as_dict else data_to_return
+
+    except Exception as e:
+        frappe.log_error(frappe.get_traceback(),
+                         f"Get Live Data API Error for Office {office}")
+        response = error_response(
+            _("An unexpected error occurred while fetching live data."), details=str(e), http_status_code=500)
+        return response if not as_dict else {}
 
 
 def _update_ticket_status(ticket_name, target_status, user, extra_data=None):
@@ -136,6 +188,10 @@ def recall_ticket(ticket_name: str, service_point: str):
     """Повторно викликає відкладений талон."""
     if not service_point:
         return error_response(_("Service point is required to recall a ticket."), http_status_code=400)
+
+    # Перевіримо чи точка обслуговування вільна
+    # Цю логіку можна зробити складнішою (наприклад, перевіряти чи оператор вільний)
+    # але поки що для простоти припускаємо, що оператор сам контролює цей процес.
 
     return _update_ticket_status(ticket_name, "Called", frappe.session.user, {
         "call_time": now_datetime(),
