@@ -1,4 +1,3 @@
-// deploy-vue-assets.js
 import fs from 'fs-extra';
 import path from 'path';
 import { fileURLToPath } from 'url';
@@ -8,12 +7,16 @@ const __dirname = path.dirname(__filename);
 
 const VITE_DIST_DIR = path.join(__dirname, 'frontend', 'dist');
 const FRAPPE_APP_PUBLIC_DIR = path.join(__dirname, 'qms_cherga', 'public');
-const FRAPPE_APP_WWW_CHERGA_DIR = path.join(__dirname, 'qms_cherga', 'www'); // Використовується для HTML
+const FRAPPE_APP_WWW_CHERGA_DIR = path.join(__dirname, 'qms_cherga', 'www');
 
+// Імена файлів-джерел (з dist) та файлів-цілей (в www)
 const KIOSK_HTML_SOURCE_NAME = 'kiosk.html';
 const DISPLAYBOARD_HTML_SOURCE_NAME = 'display_board.html';
+const OPERATOR_DASHBOARD_HTML_SOURCE_NAME = 'operator_dashboard.html'; // <-- Новий файл
+
 const KIOSK_HTML_TARGET_NAME = 'qms_kiosk.html';
 const DISPLAYBOARD_HTML_TARGET_NAME = 'qms_display_board.html';
+const OPERATOR_DASHBOARD_HTML_TARGET_NAME = 'qms_operator_dashboard.html'; // <-- Новий файл
 
 async function deployAssets() {
     try {
@@ -28,61 +31,48 @@ async function deployAssets() {
         const publicCssDir = path.join(FRAPPE_APP_PUBLIC_DIR, 'css');
         const publicOtherAssetsDir = path.join(FRAPPE_APP_PUBLIC_DIR, 'other_assets');
 
-        // 1. Очистити та створити цільові директорії для JS, CSS та інших ассетів
-        //    ensureDir видалить директорію, якщо вона існує і не порожня, а потім створить її.
-        //    Або можна спочатку видалити, а потім створити.
-        //    fs.emptyDirSync(publicJsDir); // Очищає директорію
-        //    fs.emptyDirSync(publicCssDir);
-        //    fs.emptyDirSync(publicOtherAssetsDir);
-        //    АБО більш безпечно - видалити і створити заново:
-        console.log(`Cleaning up old assets in ${publicJsDir}`);
+        // Очищення старих ассетів
+        console.log(`Cleaning up old assets...`);
         await fs.remove(publicJsDir);
-        console.log(`Cleaning up old assets in ${publicCssDir}`);
         await fs.remove(publicCssDir);
-        console.log(`Cleaning up old assets in ${publicOtherAssetsDir}`);
-        await fs.remove(path.join(FRAPPE_APP_PUBLIC_DIR, 'vue_manifest.json')); // Видаляємо старий маніфест
+        await fs.remove(publicOtherAssetsDir);
+        await fs.remove(path.join(FRAPPE_APP_PUBLIC_DIR, 'vue_manifest.json'));
 
+        // Створення директорій
         await fs.ensureDir(publicJsDir);
         await fs.ensureDir(publicCssDir);
         await fs.ensureDir(publicOtherAssetsDir);
-        await fs.ensureDir(FRAPPE_APP_WWW_CHERGA_DIR); // Цю директорію не очищаємо повністю, якщо там є інші файли
+        await fs.ensureDir(FRAPPE_APP_WWW_CHERGA_DIR);
 
-        // 2. Копіювати ассети (JS, CSS, other_assets)
+        // Копіювання JS, CSS та інших ассетів
         console.log('Copying assets...');
-        if (await fs.pathExists(path.join(VITE_DIST_DIR, 'js'))) {
-            await fs.copy(path.join(VITE_DIST_DIR, 'js'), publicJsDir, { overwrite: true });
-        }
-        if (await fs.pathExists(path.join(VITE_DIST_DIR, 'css'))) {
-            await fs.copy(path.join(VITE_DIST_DIR, 'css'), publicCssDir, { overwrite: true });
-        }
+        await fs.copy(path.join(VITE_DIST_DIR, 'js'), publicJsDir);
+        await fs.copy(path.join(VITE_DIST_DIR, 'css'), publicCssDir);
         if (await fs.pathExists(path.join(VITE_DIST_DIR, 'other_assets'))) {
-            await fs.copy(path.join(VITE_DIST_DIR, 'other_assets'), publicOtherAssetsDir, { overwrite: true });
+            await fs.copy(path.join(VITE_DIST_DIR, 'other_assets'), publicOtherAssetsDir);
         }
 
-        // 3. Копіювати HTML файли (вони мають фіксовані імена, тому overwrite: true достатньо)
-        const kioskSourcePath = path.join(VITE_DIST_DIR, KIOSK_HTML_SOURCE_NAME);
-        const kioskTargetPath = path.join(FRAPPE_APP_WWW_CHERGA_DIR, KIOSK_HTML_TARGET_NAME);
-        if (await fs.pathExists(kioskSourcePath)) {
-            await fs.copy(kioskSourcePath, kioskTargetPath, { overwrite: true });
-            console.log(`Copied Kiosk HTML to ${kioskTargetPath}`);
-        } else {
-            console.warn(`Warning: Kiosk HTML source file not found: ${kioskSourcePath}`);
-        }
+        // Копіювання HTML файлів
+        const copyHtml = async (sourceName, targetName) => {
+            const sourcePath = path.join(VITE_DIST_DIR, sourceName);
+            const targetPath = path.join(FRAPPE_APP_WWW_CHERGA_DIR, targetName);
+            if (await fs.pathExists(sourcePath)) {
+                await fs.copy(sourcePath, targetPath, { overwrite: true });
+                console.log(`Copied ${sourceName} to ${targetPath}`);
+            } else {
+                console.warn(`Warning: Source HTML file not found: ${sourcePath}`);
+            }
+        };
 
-        const displayboardSourcePath = path.join(VITE_DIST_DIR, DISPLAYBOARD_HTML_SOURCE_NAME);
-        const displayboardTargetPath = path.join(FRAPPE_APP_WWW_CHERGA_DIR, DISPLAYBOARD_HTML_TARGET_NAME);
-        if (await fs.pathExists(displayboardSourcePath)) {
-            await fs.copy(displayboardSourcePath, displayboardTargetPath, { overwrite: true });
-            console.log(`Copied Display Board HTML to ${displayboardTargetPath}`);
-        } else {
-            console.warn(`Warning: Display Board HTML source file not found: ${displayboardSourcePath}`);
-        }
+        await copyHtml(KIOSK_HTML_SOURCE_NAME, KIOSK_HTML_TARGET_NAME);
+        await copyHtml(DISPLAYBOARD_HTML_SOURCE_NAME, DISPLAYBOARD_HTML_TARGET_NAME);
+        await copyHtml(OPERATOR_DASHBOARD_HTML_SOURCE_NAME, OPERATOR_DASHBOARD_HTML_TARGET_NAME); // <-- Копіюємо новий файл
 
-        // 4. Копіювати manifest.json
+        // Копіювання manifest.json
         const manifestSourcePath = path.join(VITE_DIST_DIR, 'manifest.json');
         if (await fs.pathExists(manifestSourcePath)) {
-            await fs.copy(manifestSourcePath, path.join(FRAPPE_APP_PUBLIC_DIR, 'vue_manifest.json'), { overwrite: true });
-            console.log(`Copied manifest.json to ${path.join(FRAPPE_APP_PUBLIC_DIR, 'vue_manifest.json')}`);
+            await fs.copy(manifestSourcePath, path.join(FRAPPE_APP_PUBLIC_DIR, 'vue_manifest.json'));
+            console.log(`Copied manifest.json.`);
         }
 
         console.log('Vue assets deployed successfully!');

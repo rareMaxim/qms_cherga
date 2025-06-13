@@ -69,25 +69,15 @@ export default defineConfig({
         include: ['feather-icons', 'showdown', 'tailwind.config.js'],
     },
     build: {
-        // Збираємо в тимчасову директорію всередині frontend/
-        // Наприклад, frontend/dist/
-        // Звідти ви будете копіювати файли.
         outDir: 'dist', // Буде створено qms_cherga/frontend/dist/
         emptyOutDir: true,
         sourcemap: true,
-        manifest: true, // Генерує manifest.json, який може бути корисний для інтеграції
+        manifest: true,
         rollupOptions: {
             input: {
-                // Кожен запис тут - це окрема точка входу HTML
-                // Ключ (наприклад, 'kiosk', 'displayboard') буде використаний для іменування
-                // вихідних HTML-файлів у директорії outDir (наприклад, dist/kiosk.html)
-                // Значення - це шлях до вихідного HTML-файлу відносно кореня frontend/
-
-                // Якщо ваш основний index.html для кіоску:
                 kiosk: resolve(__dirname, 'kiosk.html'),
-
-                // Нова точка входу для табло:
-                display_board: resolve(__dirname, 'display_board.html')
+                display_board: resolve(__dirname, 'display_board.html'),
+                operator_dashboard: resolve(__dirname, 'operator_dashboard.html'),
             },
             output: {
                 // JS файли будуть у frontend/dist/js/

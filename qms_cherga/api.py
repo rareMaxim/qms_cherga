@@ -1,13 +1,9 @@
-# qms_cherga/api.py
-
 import frappe
-from frappe import _  # Імпорт для перекладів
+from frappe import _
 from frappe.utils import get_datetime, get_system_timezone, get_time, now_datetime, cint, today, now
 from zoneinfo import ZoneInfo, ZoneInfoNotFoundError
 from datetime import datetime
 
-# Імпортуємо функції зі стандартизованими відповідями
-from isodate import parse_date
 from qms_cherga.utils.response import error_response, info_response, success_response
 
 # Додайте ці імпорти на початку файлу api.py, якщо їх немає
@@ -25,84 +21,166 @@ def office_room(office_id: str):
     return f'qms_office:{office_id}'
 
 
+@frappe.whitelist()
+def get_operator_dashboard_data():
+    """
+    Отримує всі початкові дані для панелі керування оператора.
+    """
+    user = frappe.session.user
+    if user == "Guest":
+        return error_response(_("Authentication required."), http_status_code=401)
+
+    try:
+        operator = frappe.get_doc(
+            "QMS Operator", {"user": user, "is_active": 1})
+    except frappe.DoesNotExistError:
+        return error_response(_("Active QMS Operator record not found for user {0}.").format(user), error_code="OPERATOR_NOT_FOUND", http_status_code=404)
+
+    try:
+        # Інформація про оператора та його офіс
+        operator_info = {
+            "name": operator.name,
+            "full_name": operator.full_name,
+            "user": operator.user,
+            "office": operator.default_office,
+            "office_name": frappe.db.get_value("QMS Office", operator.default_office, "office_name")
+        }
+
+        # Доступні оператору точки обслуговування (Service Points)
+        service_points = frappe.get_all("QMS Service Point",
+                                        filters={
+                                            "office": operator.default_office, "is_active": 1},
+                                        fields=["name", "point_name"],
+                                        order_by="point_name"
+                                        )
+
+        # Поточний активний талон оператора (якщо є)
+        active_ticket = frappe.get_all("QMS Ticket",
+                                       filters={"operator": user, "status": [
+                                           "in", ["Called", "Serving"]]},
+                                       fields=["name", "ticket_number", "service", "status",
+                                               "issue_time", "call_time", "start_service_time"],
+                                       limit=1
+                                       )
+        active_ticket_doc = None
+        if active_ticket:
+            active_ticket_doc = active_ticket[0]
+            active_ticket_doc['service_name'] = frappe.db.get_value(
+                "QMS Service", active_ticket_doc.service, "service_name")
+
+        return success_response(data={
+            "operator_info": operator_info,
+            "service_points": service_points,
+            "active_ticket": active_ticket_doc
+        })
+
+    except Exception as e:
+        frappe.log_error(frappe.get_traceback(),
+                         "Get Operator Dashboard Data API Error")
+        return error_response(_("An unexpected error occurred while fetching initial data."), details=str(e), http_status_code=500)
+
+
+def _update_ticket_status(ticket_name, target_status, user, extra_data=None):
+    """Внутрішня функція для зміни статусу талону."""
+    try:
+        ticket = frappe.get_doc("QMS Ticket", ticket_name)
+
+        if ticket.status not in ["Called", "Serving", "Postponed"]:
+            # Дозвіл на виклик з очікування
+            if not (target_status == "Called" and ticket.status == "Waiting"):
+                return error_response(_("Ticket {0} is not in a state that can be modified by the operator.").format(ticket.ticket_number), error_code="INVALID_TICKET_STATE", http_status_code=400)
+
+        ticket.status = target_status
+        if extra_data:
+            ticket.update(extra_data)
+
+        ticket.save(ignore_permissions=True)
+        frappe.db.commit()
+        return success_response(data=ticket.as_dict())
+
+    except frappe.DoesNotExistError:
+        return error_response(_("Ticket {0} not found.").format(ticket_name), http_status_code=404)
+    except Exception as e:
+        frappe.db.rollback()
+        frappe.log_error(frappe.get_traceback(),
+                         f"Update Ticket Status API Error for {ticket_name}")
+        return error_response(_("An unexpected error occurred while updating the ticket."), details=str(e), http_status_code=500)
+
+
+@frappe.whitelist()
+def start_service(ticket_name: str):
+    """Переводить талон у статус 'Serving'."""
+    return _update_ticket_status(ticket_name, "Serving", frappe.session.user, {"start_service_time": now_datetime()})
+
+
+@frappe.whitelist()
+def finish_service(ticket_name: str):
+    """Переводить талон у статус 'Completed'."""
+    return _update_ticket_status(ticket_name, "Completed", frappe.session.user, {"completion_time": now_datetime()})
+
+
+@frappe.whitelist()
+def mark_as_no_show(ticket_name: str):
+    """Переводить талон у статус 'NoShow'."""
+    return _update_ticket_status(ticket_name, "NoShow", frappe.session.user, {"completion_time": now_datetime()})
+
+
+@frappe.whitelist()
+def postpone_ticket(ticket_name: str):
+    """Переводить талон у статус 'Postponed'."""
+    return _update_ticket_status(ticket_name, "Postponed", frappe.session.user)
+
+
+@frappe.whitelist()
+def recall_ticket(ticket_name: str, service_point: str):
+    """Повторно викликає відкладений талон."""
+    if not service_point:
+        return error_response(_("Service point is required to recall a ticket."), http_status_code=400)
+
+    return _update_ticket_status(ticket_name, "Called", frappe.session.user, {
+        "call_time": now_datetime(),
+        "service_point": service_point,
+        "operator": frappe.session.user
+    })
+
+
 @frappe.whitelist(allow_guest=True)
 def ping_display_board(office_id: str, client_timestamp: str):
-    """
-    Обробляє "ping" від табло і надсилає "pong" через WebSocket.
-    """
     if not office_id:
-        frappe.logger("qms_ping").warning(
-            "ping_display_board called without office_id")
-        # Повертаємо помилку, щоб клієнт знав, що щось не так з його запитом
         return error_response(_("Office ID is required for ping."), http_status_code=400)
-
-    # Логуємо отриманий пінг
-    frappe.logger("qms_ping").info(
-        f"Ping received from display board for office {office_id} at client_timestamp {client_timestamp}.")
-
-    # Надсилаємо підтвердження ("pong") назад через WebSocket
     try:
-        current_server_time = now()
         message_to_send = {
             'status': 'ok',
             'office_id': office_id,
-            'server_time': current_server_time,
-            'client_timestamp_received': client_timestamp  # Можна повернути для звірки
+            'server_time': now(),
+            'client_timestamp_received': client_timestamp
         }
-
-        frappe.logger("qms_ping").info(
-            f"Attempting to publish 'display_board_pong_ack' to room '{office_room(office_id)}' with message: {message_to_send}")
-
         frappe.publish_realtime(
             event='display_board_pong_ack',
             message=message_to_send,
-            # room=office_room(office_id),
             after_commit=True
         )
-        frappe.logger("qms_ping").info(
-            f"'display_board_pong_ack' published to room '{office_room(office_id)}'.")
-        # HTTP відповідь на сам ping-запит
         return success_response(message="Pong will be sent via WebSocket.")
     except Exception as e:
-        frappe.logger("qms_ping").error(
-            f"Failed to publish pong for office {office_id}: {e}\n{frappe.get_traceback()}")
-        # Помилка при публікації, але HTTP запит оброблено
-        return error_response(
-            message=_("Ping received, but pong dispatch via WebSocket failed."),
-            details=str(e),
-            http_status_code=500
-        )
+        frappe.log_error(
+            f"Failed to publish pong for office {office_id}: {e}", "QMS Ping Error")
+        return error_response(message=_("Ping received, but pong dispatch via WebSocket failed."), details=str(e), http_status_code=500)
 
 
 @frappe.whitelist(allow_guest=True)
 def get_office_info(office: str):
-    """
-    Отримує базову інформацію про офіс за його ID (назвою/абревіатурою)
-    для відображення на публічних сторінках (кіоск, запис, табло).
-    """
     if not office:
-        # 400 Bad Request
         return error_response(_("Office ID is required."), http_status_code=400)
-
     try:
-        # Отримуємо тільки ті поля, які безпечно показувати публічно
-        office_data = frappe.db.get_value("QMS Office", office,
-                                          ["office_name", "timezone",
-                                              "address", "contact_phone"],
-                                          as_dict=True)
-
+        office_data = frappe.db.get_value("QMS Office", office, [
+                                          "office_name", "timezone", "address", "contact_phone"], as_dict=True)
         if not office_data:
-            # 404 Not Found
             return error_response(_("Office '{0}' not found.").format(office), http_status_code=404)
-
-        # Повертаємо тільки необхідні та безпечні дані
-        return success_response(data={
-            "office_name": office_data.office_name,
-            "timezone": office_data.timezone,
-            "address": office_data.address,
-            "contact_phone": office_data.contact_phone
-            # Не повертаємо пов'язані документи чи конфіденційну інформацію
-        })
+        return success_response(data=office_data)
+    except Exception as e:
+        frappe.log_error(frappe.get_traceback(),
+                         f"Get Office Info API Error for Office {office}")
+        return error_response(_("An unexpected error occurred while fetching office information."), details=str(e), http_status_code=500)
 
     except Exception as e:
         frappe.log_error(message=frappe.get_traceback(),

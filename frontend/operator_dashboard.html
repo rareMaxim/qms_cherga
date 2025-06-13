@@ -1,7 +1,3 @@
-<script type="module" crossorigin src="/assets/qms_cherga/js/operator_dashboard.BxVL-Chm.js"></script>
-<link rel="modulepreload" crossorigin href="/assets/qms_cherga/js/style.C-oveC-d.js">
-<link rel="modulepreload" crossorigin href="/assets/qms_cherga/js/socketService.HvFI88JF.js">
-<link rel="stylesheet" crossorigin href="/assets/qms_cherga/css/style.cUjOlFTz.css">
 {% extends "templates/base_minimal.html" %}
 
 {% block title %}Панель Керування Оператора{% endblock %}
@@ -21,4 +17,5 @@
     // Передаємо токен для Frappe Call
     window.csrf_token = '{{ csrf_token }}';
 </script>
+<script type="module" src="/src/main-operator-dashboard.js"></script>
 {% endblock %}
