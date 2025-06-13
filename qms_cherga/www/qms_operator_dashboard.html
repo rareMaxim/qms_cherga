@@ -1,0 +1,26 @@
+<script type="module" crossorigin src="/assets/qms_cherga/js/operator_dashboard.DDDKj1Rs.js"></script>
+<link rel="modulepreload" crossorigin href="/assets/qms_cherga/js/style.BgWLAoaT.js">
+<link rel="modulepreload" crossorigin href="/assets/qms_cherga/js/socketService.IMiAieJH.js">
+<link rel="stylesheet" crossorigin href="/assets/qms_cherga/css/style.DO1cGj3N.css">
+<link rel="stylesheet" crossorigin href="/assets/qms_cherga/css/operator_dashboard.DjIDubFx.css">
+{% extends "templates/base_minimal.html" %}
+
+{% block title %}Панель Керування Оператора{% endblock %}
+
+{% block style %}
+    <!-- 
+      Сюди Vite автоматично додасть посилання на зкомпільований CSS-файл.
+      Ми також можемо додати посилання на зовнішні стилі, наприклад Font Awesome, якщо потрібно.
+    -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css"
+        xintegrity="sha512-DTOQO9RWCH3ppGqcWaEA1BIZOC6xxalwEsw9c2QQeAIftl+Vegovlnee1c9QX4TctnWMn13TZye+giMm8e2LwA=="
+        crossorigin="anonymous" referrerpolicy="no-referrer" />
+{% endblock %}
+
+{% block page_content %}
+    <!-- Точка монтування для нашого Vue-додатку -->
+    <div id="qms-operator-dashboard"></div>
+{% endblock %}
+
+{% block script %}
+{% endblock %}
