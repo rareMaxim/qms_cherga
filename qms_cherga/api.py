@@ -101,7 +101,7 @@ def get_live_data(office: str, as_dict: bool = False):
         stats = {
             "waiting": frappe.db.count("QMS Ticket", {"office": office, "status": "Waiting"}),
             "serving": frappe.db.count("QMS Ticket", {"office": office, "status": "Serving"}),
-            "finished_today": frappe.db.count("QMS Ticket", {"office": office, "status": ["in", ["Completed", "NoShow"]]})
+            "finished_today": frappe.db.count("QMS Ticket", {"office": office, "status": ["in", ["Completed", "NoShow"]], "completion_time": [">=", today()]})
         }
 
         # Список відкладених талонів
