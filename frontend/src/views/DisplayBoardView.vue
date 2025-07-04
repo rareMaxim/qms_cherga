@@ -32,7 +32,7 @@
                     class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3 sm:gap-4">
                     <transition-group name="call-card-anim">
                         <div v-for="call in activeCalls" :key="call.ticket_id"
-                            class="call-card-item bg-gradient-to-br from-sky-500 via-blue-500 to-indigo-600 p-3 sm:p-4 rounded-xl shadow-xl text-white text-center flex flex-col justify-center items-center min-h-[120px] sm:min-h-[150px]">
+                            class="call-card-item bg-blue-600 p-3 sm:p-4 rounded-xl shadow-xl text-white text-center flex flex-col justify-center items-center min-h-[120px] sm:min-h-[150px]">
                             <p class="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-extrabold drop-shadow-md">
                                 {{ call.ticket_number_short }}
                             </p>
@@ -439,7 +439,6 @@ onUnmounted(() => {
 </script>
 
 <style scoped>
-/* ... (ваші стилі залишаються без змін) ... */
 .header-gradient {
     background-image: linear-gradient(to right, #0f172a, #1e293b, #0f172a);
 }
