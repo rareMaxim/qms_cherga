@@ -10,7 +10,7 @@ frappe.ui.form.on("QMS Office", {
             const office_abbr = frm.doc.name; // 'name' містить абревіатуру
             const base_url = window.location.origin;
             // Додаємо пункт меню для Кіоску
-            frm.page.add_action_item(__("Відкрити Кіоск"), function () {
+            frm.page.add_action_item(__("Кіоск"), function () {
                 // Формуємо URL для Кіоску
                 const kiosk_url = `${base_url}/qms_kiosk.html?office=${encodeURIComponent(office_abbr)}`;
                 // Дія при натисканні: відкрити URL у новій вкладці
@@ -18,11 +18,18 @@ frappe.ui.form.on("QMS Office", {
             }, "Посилання"); // Додаємо до підгрупи "Посилання"
 
             // Додаємо пункт меню для Табло
-            frm.page.add_action_item(__("Відкрити Табло"), function () {
+            frm.page.add_action_item(__("Табло"), function () {
                 // Формуємо URL для Табло
                 const display_url = `${base_url}/qms_display_board.html?office=${encodeURIComponent(office_abbr)}`;
                 // Дія при натисканні: відкрити URL у новій вкладці
                 window.open(display_url, '_blank');
+            }, "Посилання"); // Додаємо до підгрупи "Посилання"
+            // Додаємо пункт меню для Панелі адміністратора
+            frm.page.add_action_item(__("Панель оператора"), function () {
+                // Формуємо URL для Панелі адміністратора
+                const admin_url = `${base_url}/qms_operator_dashboard`;
+                // Дія при натисканні: відкрити URL у новій вкладці
+                window.open(admin_url, '_blank');
             }, "Посилання"); // Додаємо до підгрупи "Посилання"
 
             // Примітка: Додавання однакових пунктів меню в 'refresh' зазвичай
