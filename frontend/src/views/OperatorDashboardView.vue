@@ -14,7 +14,7 @@
                         </option>
                     </select>
                 </div>
-                <button @click="callNext" :disabled="!selectedServicePoint || loading"
+                <button @click="callNext" :disabled="!selectedServicePoint || loading || activeTicket"
                     class="bg-blue-600 text-white font-bold py-2 px-4 rounded-lg hover:bg-blue-700 disabled:bg-slate-400">
                     Викликати наступного
                 </button>
@@ -37,7 +37,7 @@
                     <div v-else-if="activeTicket"
                         class="active-ticket-card bg-sky-50 p-6 rounded-lg border border-sky-200">
                         <p class="text-5xl font-extrabold text-sky-800 text-center mb-2">{{ activeTicket.ticket_number
-                            }}</p>
+                        }}</p>
                         <p class="text-lg text-slate-700 text-center mb-4">{{ activeTicket.service_name }}</p>
 
                         <div v-if="activeTicket.visitor_name || activeTicket.visitor_phone"
@@ -53,7 +53,7 @@
                             <p>Час виклику: {{ formatTime(activeTicket.call_time) }}</p>
                             <p v-if="activeTicket.status === 'Serving'">
                                 Час обслуговування: <span class="font-bold text-lg text-red-600">{{ serviceTimerDisplay
-                                    }}</span>
+                                }}</span>
                             </p>
                         </div>
                         <div class="mt-6 flex justify-center gap-2 flex-wrap">
@@ -81,9 +81,9 @@
                     <h3 class="text-lg font-semibold mb-3 text-slate-700">Статистика черги</h3>
                     <div v-if="queueStats" class="space-y-2 text-slate-600">
                         <p>В очікуванні: <span class="font-bold text-lg text-blue-600">{{ queueStats.waiting ?? '...'
-                                }}</span></p>
+                        }}</span></p>
                         <p>Обслуговується: <span class="font-bold text-lg text-green-600">{{ queueStats.serving ?? '...'
-                                }}</span></p>
+                        }}</span></p>
                         <p>Завершено сьогодні: <span class="font-bold text-lg text-slate-800">{{
                             queueStats.finished_today ?? '...' }}</span></p>
                     </div>

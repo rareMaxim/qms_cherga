@@ -828,7 +828,18 @@ def call_next_visitor(service_point_name: str):
         current_user = frappe.session.user
         if current_user == "Guest":
             return error_response(_("Authentication required."), http_status_code=401)
-
+        # Перевірка, чи є у оператора вже активний талон
+        active_ticket = frappe.db.exists("QMS Ticket", {
+            "operator": current_user,
+            "status": ["in", ["Called", "Serving"]]
+        })
+        if active_ticket:
+            return error_response(
+                _("You already have an active ticket. Please finish or postpone the current one before calling a new visitor."),
+                error_code="ACTIVE_TICKET_EXISTS",
+                http_status_code=409  # 409 Conflict - відповідний статус для цієї ситуації
+            )
+            
         operator_doc = frappe.get_doc(
             "QMS Operator", {"user": current_user, "is_active": 1})
         operator_skills = [
