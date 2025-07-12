@@ -9,6 +9,6 @@ body {
     /* display: flex; flex-direction: column; align-items: center; min-height: 100vh; */
     /* Ці стилі для body краще застосувати до кореневого елемента Vue-додатку або App.vue,
        щоб не конфліктувати з іншими можливими стилями Frappe */
-    padding: 1rem;
+    padding: 0%;
     /* Можна залишити для body або перенести */
 }

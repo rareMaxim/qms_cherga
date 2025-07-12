@@ -44,7 +44,7 @@
    "fieldname": "assigned_operator",
    "fieldtype": "Link",
    "label": "Assigned Operator",
-   "options": "User"
+   "options": "QMS Operator"
   },
   {
    "fieldname": "ip_address",
@@ -55,7 +55,7 @@
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-05-02 10:48:23.248442",
+ "modified": "2025-07-12 16:56:30.624362",
  "modified_by": "Administrator",
  "module": "Qms Cherga",
  "name": "QMS Service Point",
