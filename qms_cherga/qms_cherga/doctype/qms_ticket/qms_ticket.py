@@ -40,6 +40,15 @@ class QMSTicket(Document):
         visitor_phone: DF.Data | None
     # end: auto-generated types
 
+    def after_delete(self):
+        """Викликається при видаленні документа."""
+        frappe.logger("qms_realtime").debug(
+            f"QMSTicket {self.name} after_delete triggered.")
+
+        # Створюємо подію про видалення
+        self.publish_event(event_name_for_socket='qms_ticket_deleted',
+                           event_type_in_payload='Deleted')
+
     def on_update(self):
         """Викликається після кожного збереження документу (існуючого або нового після after_insert)."""
 

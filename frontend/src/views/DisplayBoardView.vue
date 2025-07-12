@@ -377,6 +377,20 @@ function handleQueueUpdate(eventData) {
     }
 }
 
+function handleTicketDeletion(eventData) {
+    if (!eventData || eventData.office !== officeId.value) {
+        return;
+    }
+    const ticketId = eventData.name || eventData.ticket_id;
+    console.log(`[DisplayBoard] Handling ticket deletion for ID: ${ticketId}`);
+
+    // Видаляємо талон зі списку активних викликів
+    activeCalls.value = activeCalls.value.filter(call => call.ticket_id !== ticketId);
+
+    // Видаляємо талон зі списку очікування
+    waitingTickets.value = waitingTickets.value.filter(ticket => ticket.ticket_id !== ticketId);
+}
+
 
 onMounted(async () => {
     updateDateTime();
@@ -409,6 +423,7 @@ onMounted(async () => {
         listen('qms_office_message_updated', handleQueueUpdate);
         listen('qms_office_status_changed', handleQueueUpdate);
         listen('qms_stats_updated', handleQueueUpdate); // Для події оновлення статистики (якщо вона впливає на табло)
+        listen('qms_ticket_deleted', handleTicketDeletion);
 
 
         if (pingIntervalId.value) clearInterval(pingIntervalId.value);
@@ -434,6 +449,9 @@ onUnmounted(() => {
     disconnectSocket();
     if (dateTimeIntervalId) clearInterval(dateTimeIntervalId);
     if (pingIntervalId.value) clearInterval(pingIntervalId.value);
+    off('qms_ticket_updated_doc', handleQueueUpdate);
+    off('qms_stats_updated', fetchLiveData);
+    off('qms_ticket_deleted', handleTicketDeletion);
 });
 
 </script>
