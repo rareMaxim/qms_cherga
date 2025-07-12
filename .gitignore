@@ -57,3 +57,6 @@ yarn.lock
 qms_cherga/public/css/*.*.css
 qms_cherga/public/js/*.*.js*
 qms_cherga/public/node_modules
+qms_cherga/www/qms_display_board.html
+qms_cherga/www/qms_operator_dashboard.html
+qms_cherga/www/qms_kiosk.html
