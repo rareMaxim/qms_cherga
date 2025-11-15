@@ -1,31 +1,13 @@
 """
-QMS Cherga API - Backwards Compatibility Module
+QMS Cherga API Module
 
-Цей модуль імпортує всі функції з нових модулів для зворотної сумісності.
-Старий api.py перенесено в модульну структуру qms_cherga/api/*.py
+Модульна структура API для системи управління чергами.
 """
 
-# Імпортуємо всі функції з нових модулів
-from qms_cherga.api import *  # noqa: F401, F403
-
-# Імпортуємо специфічні функції для явної доступності
-from qms_cherga.api.common import (
-    office_room,
-    is_office_open,
-    get_working_intervals_for_date
-)
-
-from qms_cherga.api.kiosk import (
-    get_office_info,
-    get_kiosk_services,
-    create_live_queue_ticket
-)
-
-from qms_cherga.api.display import (
-    get_display_data,
-    ping_display_board
-)
-
+# Імпортуємо всі публічні функції для зворотної сумісності
+from qms_cherga.api.common import office_room, is_office_open, get_working_intervals_for_date
+from qms_cherga.api.kiosk import get_kiosk_services, create_live_queue_ticket, get_office_info
+from qms_cherga.api.display import get_display_data, ping_display_board
 from qms_cherga.api.operator import (
     get_operator_dashboard_data,
     get_live_data,
@@ -36,7 +18,6 @@ from qms_cherga.api.operator import (
     postpone_ticket,
     recall_ticket
 )
-
 from qms_cherga.api.appointments import (
     get_available_appointment_slots,
     create_appointment_ticket
@@ -49,9 +30,9 @@ __all__ = [
     "get_working_intervals_for_date",
 
     # Kiosk API
-    "get_office_info",
     "get_kiosk_services",
     "create_live_queue_ticket",
+    "get_office_info",
 
     # Display Board API
     "get_display_data",

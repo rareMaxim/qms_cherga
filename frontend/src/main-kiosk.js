@@ -1,9 +1,8 @@
-// frontend/src/main.js
+// frontend/src/main-kiosk.js
 import { createApp } from 'vue'
-import App from './App.vue'
+import AppKiosk from './AppKiosk.vue'
 import './style.css' // Ваш основний CSS (з Tailwind)
 
-const app = createApp(App)
-
+const app = createApp(AppKiosk)
 
 app.mount('#app-kiosk')

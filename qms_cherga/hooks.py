@@ -132,13 +132,20 @@ app_license = "mit"
 # ---------------
 # Hook on document methods and events
 
-# doc_events = {
-# 	"*": {
-# 		"on_update": "method",
-# 		"on_cancel": "method",
-# 		"on_trash": "method"
-# 	}
-# }
+doc_events = {
+	"QMS Office": {
+		"on_update": "qms_cherga.utils.hooks_handlers.on_office_update",
+		"after_insert": "qms_cherga.utils.hooks_handlers.on_office_update",
+	},
+	"QMS Service": {
+		"on_update": "qms_cherga.utils.hooks_handlers.on_service_update",
+		"after_insert": "qms_cherga.utils.hooks_handlers.on_service_update",
+	},
+	"QMS Service Category": {
+		"on_update": "qms_cherga.utils.hooks_handlers.on_service_category_update",
+		"after_insert": "qms_cherga.utils.hooks_handlers.on_service_category_update",
+	}
+}
 
 # Scheduled Tasks
 # ---------------
